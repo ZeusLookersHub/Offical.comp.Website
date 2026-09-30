@@ -9,6 +9,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import StartProjectPage from './pages/StartProjectPage';
+import LookersAIPage from './pages/LookersAIPage';
 import Loader from './components/Loader';
 
 const AppContent: React.FC = () => {
@@ -46,6 +47,7 @@ const AppContent: React.FC = () => {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/start-your-project" element={<StartProjectPage />} />
+            <Route path="/lookers-ai" element={<LookersAIPage />} />
           </Routes>
         </main>
         <Footer />

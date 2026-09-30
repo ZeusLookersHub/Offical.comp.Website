@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
+import BrandMark from './BrandMark';
 
 interface HeaderProps {
   scrolled: boolean;
@@ -17,9 +18,10 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
     { en: 'Projects', ar: 'المشاريع', path: '/projects' },
     { en: 'About', ar: 'حولنا', path: '/about' },
     { en: 'Contact', ar: 'اتصل بنا', path: '/contact' },
+    { en: 'Start Your Project', ar: 'ابدأ مشروعك', path: '/start-your-project' },
   ];
 
-  const primaryBtn = { en: 'Start Your Project', ar: 'ابدأ مشروعك' };
+  const primaryBtn = { en: 'Lookers AI', ar: 'لوكرز AI' };
 
   return (
     <header 
@@ -30,12 +32,7 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
         {/* Logo Area */}
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative w-10 h-7 bg-black rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">
-            <div className="flex space-x-1">
-              <div className="w-2.5 h-2.5 border-2 border-gold rounded-full bg-white/90"></div>
-              <div className="w-2.5 h-2.5 border-2 border-gold rounded-full bg-white/90"></div>
-            </div>
-          </div>
+          <BrandMark />
           <span className="text-xl font-black tracking-tighter text-white uppercase italic">
             Lookers<span className="text-white/40 group-hover:text-gold transition-colors">Hub</span>
           </span>
@@ -84,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
 
           {/* Primary CTA Button */}
           <Link 
-            to="/start-your-project"
+            to="/lookers-ai"
             className="px-6 py-3 bg-gold text-black text-[10px] font-black uppercase tracking-[0.1em] rounded-xl hover:scale-105 transition-transform"
           >
             {lang === 'en' ? primaryBtn.en : primaryBtn.ar}
@@ -115,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
               </Link>
             ))}
             <Link 
-              to="/start-your-project"
+              to="/lookers-ai"
               className="py-4 bg-gold text-black text-center font-black uppercase rounded-xl"
               onClick={() => setIsMenuOpen(false)}
             >
