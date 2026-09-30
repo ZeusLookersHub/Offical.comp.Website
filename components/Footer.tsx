@@ -22,7 +22,7 @@ const Footer: React.FC = () => {
           <p className="text-dimGray text-[10px] uppercase tracking-[0.3em] font-black">
             {lang === 'en' 
               ? `© ${new Date().getFullYear()} LookersHub. All rights reserved.` 
-              : `© ${new Date().getFullYear()} لوكرز هب. جميع الحقوق محفوظة.`}
+              : `© ${new Date().getFullYear()} LookersHub. جميع الحقوق محفوظة.`}
           </p>
           
           <div className="flex items-center gap-8 text-[10px] font-black text-dimGray uppercase tracking-[0.2em]">
