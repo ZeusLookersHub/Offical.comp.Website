@@ -246,7 +246,7 @@ const LookersAIPage: React.FC = () => {
     return (
       <div className="lai-field" key={field.id}>
         <label htmlFor={`lai-${field.id}`}>{field.label[lang]}{field.optional && <span className="lai-optional">{copy(lang, 'Optional', 'اختياري')}</span>}</label>
-        {field.example && <p className="lai-field-example">{copy(lang, 'Example: ', 'مثال: ')}{field.example[lang]}</p>}
+        {field.example && <p className="lai-field-example">{field.example[lang]}</p>}
         {field.kind === 'single' && (
           <div className="lai-option-grid">
             {(field.options || []).map((option) => (
@@ -294,13 +294,11 @@ const LookersAIPage: React.FC = () => {
           <p>{copy(lang, 'Shape your brief, keep the important context, and leave with a prompt ready to use.', 'رتّب فكرتك، واحفظ تفاصيلها المهمة، واخرج بـPrompt جاهز للاستخدام.')}</p>
         </header>
 
-        {stage !== 'home' && (
-          <nav className="lai-steps" aria-label={copy(lang, 'Project steps', 'خطوات المشروع')}>
-            {stages.map((item, index) => <div key={item} className={index === stepIndex ? 'is-active' : index < stepIndex ? 'is-done' : ''}>
-              <span>{index < stepIndex ? <Check size={13} /> : index + 1}</span><small>{stageTitles[item][lang]}</small>
-            </div>)}
-          </nav>
-        )}
+        <nav className="lai-steps" aria-label={copy(lang, 'Project steps', 'خطوات المشروع')}>
+          {stages.map((item, index) => <div key={item} className={index === stepIndex ? 'is-active' : index < stepIndex ? 'is-done' : ''}>
+            <span>{index < stepIndex ? <Check size={13} /> : index + 1}</span><small>{stageTitles[item][lang]}</small>
+          </div>)}
+        </nav>
 
 
         <section className="lai-attachments" aria-label={copy(lang, 'Project files', 'ملفات المشروع')}
