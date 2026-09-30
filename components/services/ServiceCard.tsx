@@ -29,7 +29,7 @@ const ServiceCard: React.FC<Props> = ({ service, lang, active, onSelect }) => {
   return (
     <button
       type="button"
-      className={\`service-card \${active ? 'is-active' : ''}\`}
+      className={`service-card ${active ? 'is-active' : ''}`}
       onClick={onSelect}
       aria-pressed={active}
       aria-controls="service-detail"

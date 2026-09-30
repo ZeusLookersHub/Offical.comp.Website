@@ -38,7 +38,7 @@ const ServiceDetailView: React.FC<Props> = ({ serviceId, lang, activeTab, onTabC
             <p className="service-detail__intro">{english ? marketingServiceIntro.en : marketingServiceIntro.ar}</p>
           )}
         </div>
-        <div className={\`service-detail__image service-detail__image--\${serviceId}\`} aria-hidden="true">
+        <div className={`service-detail__image service-detail__image--${serviceId}`} aria-hidden="true">
           {service.image && <img src={service.image} alt="" />}
           <span className="service-detail__image-mark"><Megaphone size={26} /></span>
         </div>
@@ -55,10 +55,10 @@ const ServiceDetailView: React.FC<Props> = ({ serviceId, lang, activeTab, onTabC
                   key={tab.id}
                   type="button"
                   role="tab"
-                  id={\`marketing-tab-\${tab.id}\`}
+                  id={`marketing-tab-${tab.id}`}
                   aria-selected={selected}
                   aria-controls="marketing-tab-panel"
-                  className={\`marketing-tab \${selected ? 'is-active' : ''}\`}
+                  className={`marketing-tab ${selected ? 'is-active' : ''}`}
                   onClick={() => onTabChange(tab.id)}
                 >
                   <Icon size={19} aria-hidden="true" />
@@ -68,7 +68,7 @@ const ServiceDetailView: React.FC<Props> = ({ serviceId, lang, activeTab, onTabC
             })}
           </div>
 
-          <div key={activeTab} className="marketing-panel" id="marketing-tab-panel" role="tabpanel" aria-labelledby={\`marketing-tab-\${activeTab}\`}>
+          <div key={activeTab} className="marketing-panel" id="marketing-tab-panel" role="tabpanel" aria-labelledby={`marketing-tab-${activeTab}`}>
             {activeTab === 'work' ? (
               <>
                 <div className="marketing-panel__heading">

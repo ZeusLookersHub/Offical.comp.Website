@@ -36,7 +36,7 @@ const ProjectsPage: React.FC = () => {
 
       <section className="max-w-7xl mx-auto px-6 space-y-32">
         {portfolioProjects.map((proj, idx) => (
-          <div key={proj.id} className={\`flex flex-col lg:flex-row items-center gap-16 reveal \${idx % 2 !== 0 ? 'lg:flex-row-reverse' : ''}\`}>
+          <div key={proj.id} className={`flex flex-col lg:flex-row items-center gap-16 reveal ${idx % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
             <div className="lg:w-1/2">
               <span className="text-gold font-black text-[10px] uppercase tracking-[0.5em] mb-4 block">
                 {lang === 'en' ? proj.tag.en : proj.tag.ar}
