@@ -74,7 +74,7 @@ const AboutPage: React.FC = () => {
       <section className="px-6 mb-40 reveal">
         <div className="max-w-7xl mx-auto h-[40vh] md:h-[60vh] rounded-[3.5rem] overflow-hidden border border-white/5 relative group">
           <img 
-            src="input_file_1.png" 
+            src="/images/service-operations.png" 
             alt="LookersHub Workspace" 
             className="w-full h-full object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-105"
           />

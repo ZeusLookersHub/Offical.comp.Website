@@ -25,7 +25,7 @@ const ProjectsPage: React.FC = () => {
         en: "Our flagship product designed to unify digital observability and performance monitoring into a single, cohesive experience.",
         ar: "منتجنا الرائد المصمم لتوحيد المراقبة الرقمية وتتبع الأداء في تجربة واحدة متماسكة."
       },
-      image: "input_file_2.png",
+      image: "/images/service-strategy.png",
       tag: "Proprietary Product"
     },
     {
@@ -36,7 +36,7 @@ const ProjectsPage: React.FC = () => {
         en: "An in-house high-performance mobile game demonstrating our expertise in real-time engine optimization and immersive UX.",
         ar: "لعبة موبايل داخلية عالية الأداء توضح خبرتنا في تحسين المحركات في الوقت الفعلي وتجربة المستخدم الغامرة."
       },
-      image: "input_file_0.png",
+      image: "/images/service-operations.png",
       tag: "In-House Studio"
     }
   ];

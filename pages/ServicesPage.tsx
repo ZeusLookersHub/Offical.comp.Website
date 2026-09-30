@@ -11,19 +11,19 @@ const services = [
     title: 'Strategy & Planning',
     description:
       'We help you define product vision, technical strategy, and execution roadmap.',
-    image: '/services/service-strategy.png',
+    image: '/images/service-strategy.png',
   },
   {
     title: 'Operations & Systems',
     description:
       'We build scalable systems, internal tools, and workflows to support growth.',
-    image: '/services/service-operations.png',
+    image: '/images/service-operations.png',
   },
   {
     title: 'Marketing & Growth',
     description:
       'We craft digital marketing strategies focused on growth, performance, and conversion.',
-    image: 'https://drive.google.com/file/d/11G5A8mhGw_tupSfiJLI6wqwA72_OXaLu/view?usp=drive_link',
+    image: '/images/service-marketing.png',
   },
 ];
 
