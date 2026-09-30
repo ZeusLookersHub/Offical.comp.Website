@@ -1,89 +1,61 @@
-import React from 'react';
-
-const services = [
-  {
-    title: 'App & Game Development',
-    description:
-      'We design and develop high-performance mobile applications and games, from idea to launch.',
-    image: 'https://images.unsplash.com/photo-1769109002985-c0ff65466052?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  },
-  {
-    title: 'Strategy & Planning',
-    description:
-      'We help you define product vision, technical strategy, and execution roadmap.',
-    image: '/images/service-strategy.png',
-  },
-  {
-    title: 'Operations & Systems',
-    description:
-      'We build scalable systems, internal tools, and workflows to support growth.',
-    image: '/images/service-operations.png',
-  },
-  {
-    title: 'Marketing & Growth',
-    description:
-      'We craft digital marketing strategies focused on growth, performance, and conversion.',
-    image: '/images/service-marketing.png',
-  },
-];
+import React, { useEffect, useState } from 'react';
+import { useLanguage } from '../LanguageContext';
+import { services, type MarketingTabId, type ServiceId } from '../data/services';
+import ServiceCard from '../components/services/ServiceCard';
+import ServiceDetailView from '../components/services/ServiceDetailView';
+import './ServicesPage.css';
 
 const ServicesPage: React.FC = () => {
+  const { lang } = useLanguage();
+  const [selectedService, setSelectedService] = useState<ServiceId | null>(null);
+  const [activeTab, setActiveTab] = useState<MarketingTabId>('branding');
+  const english = lang === 'en';
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+
+  const selectService = (id: ServiceId) => {
+    setSelectedService(id);
+    setActiveTab('branding');
+    window.requestAnimationFrame(() => {
+      document.getElementById('service-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   return (
-    <section
-      style={{
-        padding: '80px 24px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-      }}
-    >
-      <h1
-        style={{
-          fontSize: '42px',
-          marginBottom: '48px',
-          textAlign: 'center',
-        }}
-      >
-        Our Services
-      </h1>
+    <div className="services-page">
+      <div className="services-page__inner">
+        <header className="services-heading">
+          <p className="services-heading__eyebrow">{english ? 'What we do' : 'ما نقدّمه'}</p>
+          <h1>{english ? 'Services' : 'خدماتنا'}</h1>
+          <p>{english ? 'Digital solutions shaped around your next stage of growth.' : 'حلول رقمية متكاملة تدعم خطوتك القادمة نحو النمو.'}</p>
+        </header>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '32px',
-        }}
-      >
-        {services.map((service) => (
-          <div
-            key={service.title}
-            style={{
-              borderRadius: '16px',
-              overflow: 'hidden',
-              background: '#0b0b0b',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
-          >
-            <img
-              src={service.image}
-              alt={service.title}
-              style={{
-                width: '100%',
-                height: '200px',
-                objectFit: 'cover',
-                display: 'block',
-              }}
+        <div className="service-card-grid" aria-label={english ? 'Our services' : 'خدماتنا'}>
+          {services.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              lang={lang}
+              active={selectedService === service.id}
+              onSelect={() => selectService(service.id)}
             />
+          ))}
+        </div>
 
-            <div style={{ padding: '20px' }}>
-              <h3 style={{ marginBottom: '12px' }}>{service.title}</h3>
-              <p style={{ opacity: 0.8, lineHeight: 1.6 }}>
-                {service.description}
-              </p>
-            </div>
-          </div>
-        ))}
+        {selectedService && (
+          <ServiceDetailView
+            key={selectedService}
+            serviceId={selectedService}
+            lang={lang}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onBack={() => setSelectedService(null)}
+          />
+        )}
       </div>
-    </section>
+    </div>
   );
 };
 
