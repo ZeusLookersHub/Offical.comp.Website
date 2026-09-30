@@ -58,27 +58,27 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
           </nav>
 
           {/* Language Switch */}
-          <div className="relative flex items-center switch-bg p-1 rounded-full w-24 h-9 overflow-hidden">
-            <div 
-              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gold rounded-full transition-all duration-300 ${
-                lang === 'en' ? 'left-1' : 'left-[calc(50%+1px)]'
-              }`}
+          <div dir="ltr" aria-label="Language" className="relative flex items-center switch-bg p-1 rounded-full w-24 h-9 overflow-hidden">
+            <div
+              aria-hidden="true"
+              className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-gold rounded-full transition-transform duration-300"
+              style={{ transform: lang === 'en' ? 'translateX(100%)' : 'translateX(0)' }}
             />
-            <button 
-              onClick={() => setLang('en')}
-              className={`relative z-10 flex-1 text-[10px] font-black uppercase transition-colors duration-300 ${
-                lang === 'en' ? 'text-black' : 'text-dimGray'
-              }`}
-            >
-              EN
-            </button>
-            <button 
+            <button
+              type="button"
+              aria-pressed={lang === 'ar'}
               onClick={() => setLang('ar')}
-              className={`relative z-10 flex-1 text-[10px] font-black uppercase transition-colors duration-300 ${
-                lang === 'ar' ? 'text-black' : 'text-dimGray'
-              }`}
+              className={`relative z-10 flex-1 text-[10px] font-black uppercase transition-colors duration-300 ${lang === 'ar' ? 'text-black' : 'text-dimGray'}`}
             >
               AR
+            </button>
+            <button
+              type="button"
+              aria-pressed={lang === 'en'}
+              onClick={() => setLang('en')}
+              className={`relative z-10 flex-1 text-[10px] font-black uppercase transition-colors duration-300 ${lang === 'en' ? 'text-black' : 'text-dimGray'}`}
+            >
+              EN
             </button>
           </div>
 
