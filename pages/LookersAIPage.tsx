@@ -506,7 +506,7 @@ const LookersAIPage: React.FC = () => {
               </div>
             </section>
           )}
-        </main>
+        </div>
 
         <footer className="lookers-ai__footer">
           <span>{copy(lang, 'Lookers AI keeps a private local memory in this browser.', 'يحفظ Lookers AI ذاكرة محلية خاصة في هذا المتصفح.')}</span>
