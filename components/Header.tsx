@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
     { en: 'Start Your Project', ar: 'ابدأ مشروعك', path: '/start-your-project' },
   ];
 
-  const primaryBtn = { en: 'Lookers AI', ar: 'لوكرز AI' };
+  const primaryBtn = { en: 'Lookers AI', ar: 'Lookers AI' };
 
   return (
     <header 

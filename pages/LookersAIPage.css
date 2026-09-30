@@ -203,3 +203,22 @@
   .lookers-ai *, .lookers-ai *::before, .lookers-ai *::after { scroll-behavior:auto !important; transition:none !important; }
   .lai-spinner { animation:none; }
 }
+
+/* Fixed-position project files panel shared by every wizard step. */
+.lai-autosave-status { display:inline-flex; align-items:center; gap:6px; color:var(--lai-muted); font-size:11px; }
+.lai-autosave-status svg { color:#78ce9a; }
+.lai-attachments { margin:18px 0 22px; padding:15px; border:1px solid var(--lai-border); border-radius:16px; background:linear-gradient(135deg,rgba(230,193,90,.045),rgba(255,255,255,.018)); }
+.lai-attachments-heading { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.lai-attachments-heading > div { display:grid; gap:4px; }
+.lai-attachments-heading b { font-size:13px; }
+.lai-attachments-heading small,.lai-file-main small { color:var(--lai-muted); font-size:10px; }
+.lai-attachments-content { margin-top:12px; }
+.lai-empty-upload { display:grid; justify-items:center; gap:7px; width:100%; min-height:83px; padding:14px; color:var(--lai-gold); background:rgba(255,255,255,.015); border:1px dashed rgba(230,193,90,.34); border-radius:12px; cursor:pointer; }
+.lai-empty-upload span { color:var(--lai-ink); font-size:12px; font-weight:700; }
+.lai-empty-upload small { color:var(--lai-muted); font-size:10px; }
+.lai-file-list { margin-top:0; }
+.lai-upload-state { display:inline-flex; align-items:center; flex:none; gap:5px; color:#78ce9a; font-size:10px; white-space:nowrap; }
+.lai-upload-state.is-processing { color:var(--lai-gold); }
+.lai-field-example { margin:0; color:var(--lai-muted); font-size:10px; line-height:1.6; }
+.lai-shared-files-note { margin:0; padding:12px; border-radius:10px; color:var(--lai-muted); font-size:11px; background:rgba(255,255,255,.02); }
+@media (max-width:620px) { .lai-attachments { padding:11px; } .lai-attachments-heading { align-items:flex-start; } .lai-attachments-heading small { max-width:210px; } .lai-file { flex-wrap:wrap; } .lai-upload-state { margin-inline-start:auto; } }

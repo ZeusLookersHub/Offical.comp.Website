@@ -17,7 +17,7 @@ import './LookersAIPage.css';
 const STORAGE_KEY = 'lookers-ai-memory-v1';
 const stages = ['home', 'files', 'details', 'review', 'result'] as const;
 type Stage = typeof stages[number];
-type Tab = 'prompt' | 'summary' | 'memory';
+type Tab = 'prompt' | 'summary';
 
 const copy = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
 const loadMemory = (): LookersMemory => {
@@ -59,8 +59,8 @@ const LookersAIPage: React.FC = () => {
   const { lang } = useLanguage();
   const ar = lang === 'ar';
   const [memory, setMemory] = useState<LookersMemory>(loadMemory);
+  const memoryRef = useRef(memory);
   const [tab, setTab] = useState<Tab>('prompt');
-  const [saveIssue, setSaveIssue] = useState(false);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -78,19 +78,19 @@ const LookersAIPage: React.FC = () => {
   }, [answers, current.taskType]);
 
   const commit = (next: LookersMemory) => {
+    memoryRef.current = next;
     setMemory(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      setSaveIssue(false);
     } catch {
-      setSaveIssue(true);
     }
   };
   const patchCurrent = (patch: Partial<ProjectMemory>, action?: string) => {
     const now = new Date().toISOString();
-    const project = { ...current, ...patch, updatedAt: now };
+    const latest = memoryRef.current;
+    const project = { ...latest.current, ...patch, updatedAt: now };
     if (action) project.activity = [...project.activity, { at: now, action }].slice(-250);
-    commit({ ...memory, current: project });
+    commit({ ...latest, current: project });
   };
   const setStage = (next: Stage) => {
     patchCurrent({ step: next }, `opened_${next}`);
@@ -106,12 +106,27 @@ const LookersAIPage: React.FC = () => {
   };
 
   const addFiles = async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (!files.length) return;
     setBusy(true);
-    const additions: AttachmentMemory[] = [];
-    for (const file of Array.from(fileList)) {
+    const additions: AttachmentMemory[] = files.map((file) => {
       const extension = file.name.split('.').pop()?.toLowerCase() || '';
       const image = file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(extension);
       const textLike = ['txt', 'md', 'csv', 'tsv', 'json'].includes(extension) || file.type.startsWith('text/');
+      return {
+        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+        name: file.name, mime: file.type || extension || 'application/octet-stream', size: file.size,
+        kind: image ? 'image' : textLike ? 'text' : 'file', include: true,
+        note: copy(lang, 'Preparing file…', 'جارٍ تجهيز الملف…'), processing: true
+      };
+    });
+    patchCurrent({ attachments: [...memoryRef.current.current.attachments, ...additions] }, 'attachments_added');
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      const attachment = additions[index];
+      const extension = file.name.split('.').pop()?.toLowerCase() || '';
+      const image = attachment.kind === 'image';
+      const textLike = attachment.kind === 'text';
       let text: string | undefined;
       let dataUrl: string | undefined;
       let note = '';
@@ -130,19 +145,11 @@ const LookersAIPage: React.FC = () => {
       } else {
         note = copy(lang, 'Saved as a file reference; its contents are not read in this browser.', 'حُفظ كمرجع للملف؛ لا يقرأ المتصفح محتواه تلقائيًا.');
       }
-      additions.push({
-        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-        name: file.name,
-        mime: file.type || extension || 'application/octet-stream',
-        size: file.size,
-        kind: image ? 'image' : textLike ? 'text' : 'file',
-        include: true,
-        note,
-        text,
-        dataUrl
-      });
+      const latestAttachments = memoryRef.current.current.attachments.map((item) => item.id === attachment.id
+        ? { ...item, note, text, dataUrl, processing: false }
+        : item);
+      patchCurrent({ attachments: latestAttachments });
     }
-    patchCurrent({ attachments: [...current.attachments, ...additions] }, 'attachments_added');
     setBusy(false);
   };
 
@@ -185,7 +192,7 @@ const LookersAIPage: React.FC = () => {
       if (imported?.version !== 1 || !imported.current?.id || !Array.isArray(imported.archived) || !imported.current.answers || !Array.isArray(imported.current.attachments)) throw new Error('Invalid memory file');
       commit(imported);
       setTab('prompt');
-      setSaveIssue(false);
+
     } catch {
       window.alert(copy(lang, 'This memory file could not be opened.', 'تعذر فتح ملف الذاكرة هذا.'));
     }
@@ -239,6 +246,7 @@ const LookersAIPage: React.FC = () => {
     return (
       <div className="lai-field" key={field.id}>
         <label htmlFor={`lai-${field.id}`}>{field.label[lang]}{field.optional && <span className="lai-optional">{copy(lang, 'Optional', 'اختياري')}</span>}</label>
+        {field.example && <p className="lai-field-example">{copy(lang, 'Example: ', 'مثال: ')}{field.example[lang]}</p>}
         {field.kind === 'single' && (
           <div className="lai-option-grid">
             {(field.options || []).map((option) => (
@@ -277,19 +285,11 @@ const LookersAIPage: React.FC = () => {
             <span>LookersHub</span>
             <b>AI</b>
           </div>
-          <div className="lookers-ai__memory">
-            {saveIssue ? <span className="is-warning">{copy(lang, 'Memory storage is full', 'مساحة الذاكرة ممتلئة')}</span>
-              : <span><CheckCircle2 size={14} />{copy(lang, 'Saved in this browser', 'محفوظة في هذا المتصفح')}</span>}
-            <span className="lookers-ai__archive-count">{memory.archived.length} {copy(lang, 'saved', 'محفوظ')}</span>
-            <button type="button" className="lai-icon-button" title={copy(lang, 'Download memory file', 'تنزيل ملف الذاكرة')} aria-label={copy(lang, 'Download memory file', 'تنزيل ملف الذاكرة')}
-              onClick={() => exportJson('LookersAI-memory.json', memory)}><FileJson2 size={17} /></button>
-            <button type="button" className="lai-icon-button" title={copy(lang, 'Import memory file', 'استيراد ملف الذاكرة')} aria-label={copy(lang, 'Import memory file', 'استيراد ملف الذاكرة')}
-              onClick={() => importRef.current?.click()}><Upload size={17} /></button>
-          </div>
+          <span className="lai-autosave-status"><CheckCircle2 size={14} />{copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز')}</span>
         </div>
 
         <header className="lookers-ai__hero">
-          <span className="lai-kicker"><Sparkles size={15} />{copy(lang, 'LOOKERS AI / PROMPT STUDIO', 'لوكرز AI / استوديو الـPrompt')}</span>
+          <span className="lai-kicker"><Sparkles size={15} />{copy(lang, 'LOOKERS AI / PROMPT STUDIO', 'Lookers AI / استوديو الـPrompt')}</span>
           <h1>{copy(lang, 'From a simple idea to a ready', 'من فكرة بسيطة إلى')} <em>Prompt</em></h1>
           <p>{copy(lang, 'Shape your brief, keep the important context, and leave with a prompt ready to use.', 'رتّب فكرتك، واحفظ تفاصيلها المهمة، واخرج بـPrompt جاهز للاستخدام.')}</p>
         </header>
@@ -302,13 +302,44 @@ const LookersAIPage: React.FC = () => {
           </nav>
         )}
 
+
+        <section className="lai-attachments" aria-label={copy(lang, 'Project files', 'ملفات المشروع')}
+          onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
+          <div className="lai-attachments-heading">
+            <div><b>{copy(lang, 'Project files & references', 'ملفات ومراجع المشروع')}</b>
+              <small>{copy(lang, 'Add files once; they stay visible throughout every step.', 'أضف الملفات مرة واحدة لتبقى ظاهرة في جميع الخطوات.')}</small></div>
+            <button type="button" className="lai-secondary-button" onClick={openFilePicker} disabled={busy}><Paperclip size={16} />{copy(lang, 'Add files', 'أضف ملفات')}</button>
+          </div>
+          <div className="lai-attachments-content">
+            {current.attachments.length === 0
+              ? <button type="button" className="lai-empty-upload" onClick={openFilePicker}>
+                  <Upload size={20} /><span>{copy(lang, 'Choose files or drop them here', 'اختر ملفات أو اسحبها إلى هنا')}</span>
+                  <small>{copy(lang, 'Images, text, CSV, and project references', 'صور ونصوص وCSV ومراجع المشروع')}</small>
+                </button>
+              : <div className="lai-file-list">{current.attachments.map((file) => <article className={`lai-file ${file.include ? '' : 'is-muted'}`} key={file.id}>
+                  {file.dataUrl ? <img src={file.dataUrl} alt="" /> : <span className="lai-file-icon">{file.kind === 'text' ? <FileText size={18} /> : <Paperclip size={18} />}</span>}
+                  <div className="lai-file-main"><b>{file.name}</b><small>{file.processing ? file.note : `${prettySize(file.size, lang)} · ${file.note || file.mime}`}</small>
+                    {!file.processing && <input type="text" value={file.note} aria-label={copy(lang, 'Reference note', 'ملاحظة على المرجع')}
+                      placeholder={copy(lang, 'Add a note about this file', 'أضف ملاحظة عن هذا الملف')}
+                      onChange={(event) => updateFileNote(file.id, event.target.value)} />}
+                  </div>
+                  <span className={`lai-upload-state ${file.processing ? 'is-processing' : ''}`} aria-label={file.processing ? copy(lang, 'Processing', 'قيد التجهيز') : copy(lang, 'Uploaded', 'تم الرفع')}>
+                    {file.processing ? <LoaderCircle className="lai-spinner" size={15} /> : <CheckCircle2 size={15} />}
+                    {file.processing ? copy(lang, 'Preparing', 'جارٍ التجهيز') : copy(lang, 'Added', 'تمت الإضافة')}
+                  </span>
+                  <label className="lai-file-include"><input type="checkbox" checked={file.include} onChange={() => toggleFile(file.id)} />{copy(lang, 'Include', 'أرفق')}</label>
+                  <button type="button" className="lai-icon-button is-danger" title={copy(lang, 'Remove file', 'حذف الملف')} aria-label={copy(lang, 'Remove file', 'حذف الملف')}
+                    onClick={() => removeFile(file.id)}><X size={17} /></button>
+                </article>)}</div>}
+          </div>
+        </section>
         <div className="lookers-ai__main">
           {stage === 'home' && (
             <section className="lai-card lai-brief-card">
               <div className="lai-card-heading">
                 <div className="lai-heading-icon"><Lightbulb size={19} /></div>
                 <div><h2>{copy(lang, 'What would you like to make?', 'إيه اللي حابب تنفّذه؟')}</h2>
-                  <p>{copy(lang, 'Start with a sentence. Lookers AI will organize the brief with you.', 'ابدأ بجملة واحدة، ولوكرز AI هيرتّب معك تفاصيل الفكرة.')}</p></div>
+                  <p>{copy(lang, 'Start with a sentence. Lookers AI will organize the brief with you.', 'ابدأ بجملة واحدة، وLookers AI هيرتّب معك تفاصيل الفكرة.')}</p></div>
               </div>
               <label className="lai-sr-only" htmlFor="lai-idea">{copy(lang, 'Project idea', 'فكرة المشروع')}</label>
               <textarea id="lai-idea" className="lai-idea-input" rows={4} value={String(answers.idea || '')}
@@ -319,7 +350,6 @@ const LookersAIPage: React.FC = () => {
                 {exampleIdeas.map((example) => <button type="button" key={example} onClick={() => setAnswer('idea', example)}>{example}</button>)}
               </div>
               <div className="lai-brief-footer">
-                <button type="button" className="lai-secondary-button" onClick={openFilePicker}><Paperclip size={16} />{copy(lang, 'Add references', 'أرفق مراجع')}</button>
                 <button type="button" className="lai-primary-button" disabled={!String(answers.idea || '').trim()}
                   onClick={() => { const inferred = detectTaskType(String(answers.idea || '')); patchCurrent({ taskType: inferred, step: 'files' }, 'brief_started'); }}>
                   {copy(lang, 'Start building', 'ابدأ التجهيز')}<ArrowUpRight size={17} />
@@ -335,26 +365,7 @@ const LookersAIPage: React.FC = () => {
                 <div><h2>{copy(lang, 'Add useful references', 'أضف مراجع تساعد على فهم الفكرة')}</h2>
                   <p>{copy(lang, 'Images and readable text are saved in local memory. Other files are kept as named references.', 'تُحفظ الصور والنصوص المقروءة في الذاكرة المحلية. وتُحفظ بقية الملفات كمرجع بالاسم.')}</p></div>
               </div>
-              <div className="lai-dropzone" role="button" tabIndex={0} onClick={openFilePicker} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openFilePicker(); }}
-                onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
-                {busy ? <LoaderCircle className="lai-spinner" size={24} /> : <Upload size={24} />}
-                <b>{copy(lang, 'Drop files here or choose files', 'اسحب الملفات هنا أو اخترها')}</b>
-                <small>{copy(lang, 'Images, text, CSV, and other project references', 'صور ونصوص وCSV ومراجع المشروع الأخرى')}</small>
-              </div>
-              {current.attachments.length > 0 && <div className="lai-file-list">
-                {current.attachments.map((file) => <article className={`lai-file ${file.include ? '' : 'is-muted'}`} key={file.id}>
-                  {file.dataUrl ? <img src={file.dataUrl} alt="" /> : <span className="lai-file-icon">{file.kind === 'text' ? <FileText size={18} /> : <Paperclip size={18} />}</span>}
-                  <div className="lai-file-main"><b>{file.name}</b><small>{prettySize(file.size, lang)} · {file.note || file.mime}</small>
-                    <input type="text" value={file.note} aria-label={copy(lang, 'Reference note', 'ملاحظة على المرجع')}
-                      placeholder={copy(lang, 'Add a note about this file', 'أضف ملاحظة عن هذا الملف')}
-                      onChange={(event) => updateFileNote(file.id, event.target.value)} />
-                  </div>
-                  <label className="lai-file-include"><input type="checkbox" checked={file.include} onChange={() => toggleFile(file.id)} />
-                    {copy(lang, 'Include', 'أرفق')}</label>
-                  <button type="button" className="lai-icon-button is-danger" title={copy(lang, 'Remove file', 'حذف الملف')} aria-label={copy(lang, 'Remove file', 'حذف الملف')}
-                    onClick={() => removeFile(file.id)}><X size={17} /></button>
-                </article>)}
-              </div>}
+              <p className="lai-shared-files-note">{copy(lang, "Your references are available in the shared files panel above.", "مراجعك متاحة في لوحة الملفات الثابتة أعلى الخطوات.")}</p>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('home')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
                 <button type="button" className="lai-primary-button" onClick={() => setStage('details')}>{copy(lang, 'Continue', 'تابع')}<ArrowRight size={16} /></button>
@@ -466,8 +477,8 @@ const LookersAIPage: React.FC = () => {
                   <p>{copy(lang, 'It is saved with this project in your browser memory.', 'تم حفظه مع المشروع في ذاكرة المتصفح.')}</p></div>
               </div>
               <div className="lai-tabs" role="tablist" aria-label={copy(lang, 'Result views', 'طرق عرض النتيجة')}>
-                {(['prompt', 'summary', 'memory'] as Tab[]).map((item) => <button key={item} type="button" role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>
-                  {item === 'prompt' ? 'Prompt' : item === 'summary' ? copy(lang, 'Project summary', 'ملخص المشروع') : copy(lang, 'Memory', 'الذاكرة')}
+                {(['prompt', 'summary'] as Tab[]).map((item) => <button key={item} type="button" role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>
+                  {item === 'prompt' ? 'Prompt' : copy(lang, 'Project summary', 'ملخص المشروع')}
                 </button>)}
                 {tab === 'prompt' && <button type="button" className="lai-copy-button" onClick={() => void copyPrompt()}>{copied ? <Check size={15} /> : <Clipboard size={15} />}{copied ? copy(lang, 'Copied', 'تم النسخ') : copy(lang, 'Copy', 'انسخ')}</button>}
               </div>
@@ -478,19 +489,6 @@ const LookersAIPage: React.FC = () => {
                 <div><b>{copy(lang, 'Desired result', 'النتيجة المطلوبة')}</b><p>{String(answers.purpose || '') || copy(lang, 'Not specified', 'غير محددة')}</p></div>
                 <div><b>{copy(lang, 'Project files', 'ملفات المشروع')}</b><p>{current.attachments.filter((file) => file.include).map((file) => file.name).join(ar ? '، ' : ', ') || copy(lang, 'No references attached', 'لا توجد مراجع مرفقة')}</p></div>
                 <div><b>{copy(lang, 'Last saved', 'آخر حفظ')}</b><p>{new Date(current.updatedAt).toLocaleString(ar ? 'ar-EG' : 'en-US')}</p></div>
-              </div>}
-              {tab === 'memory' && <div className="lai-memory-panel">
-                <div className="lai-memory-symbol"><FileJson2 size={24} /></div>
-                <h3>{copy(lang, 'Your project memory stays with you', 'ذاكرة المشروع محفوظة معك')}</h3>
-                <p>{copy(lang, 'Lookers AI saves your current brief and previous projects in this browser. Export a JSON memory file to keep a portable backup or move it to another browser.', 'يحفظ Lookers AI تفاصيل المشروع الحالي ومشاريعك السابقة في هذا المتصفح. صدّر ملف ذاكرة JSON للاحتفاظ بنسخة أو نقلها إلى متصفح آخر.')}</p>
-                <div className="lai-memory-actions">
-                  <button type="button" className="lai-secondary-button" onClick={() => exportJson('LookersAI-memory.json', memory)}><Download size={16} />{copy(lang, 'Download memory file', 'نزّل ملف الذاكرة')}</button>
-                  <button type="button" className="lai-secondary-button" onClick={() => importRef.current?.click()}><Upload size={16} />{copy(lang, 'Restore memory file', 'استعد ملف ذاكرة')}</button>
-                </div>
-                <div className="lai-archive-list"><b>{copy(lang, 'Previous projects', 'المشاريع السابقة')} ({memory.archived.length})</b>
-                  {memory.archived.slice(0, 5).map((project) => <span key={project.id}>{project.title || copy(lang, 'Untitled project', 'مشروع بلا عنوان')} · {new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')}</span>)}
-                  {memory.archived.length === 0 && <small>{copy(lang, 'Projects you start over from will appear here.', 'ستجد هنا المشاريع التي تنشئها قبل بدء مشروع جديد.')}</small>}
-                </div>
               </div>}
               <div className="lai-result-actions">
                 <button type="button" className="lai-primary-button" onClick={downloadPrompt}><Download size={16} />{copy(lang, 'Download prompt', 'نزّل الـPrompt')}</button>
@@ -508,10 +506,7 @@ const LookersAIPage: React.FC = () => {
           )}
         </div>
 
-        <footer className="lookers-ai__footer">
-          <span>{copy(lang, 'Lookers AI keeps a private local memory in this browser.', 'يحفظ Lookers AI ذاكرة محلية خاصة في هذا المتصفح.')}</span>
-          <button type="button" onClick={() => importRef.current?.click()}>{copy(lang, 'Restore from memory file', 'استعد من ملف الذاكرة')}<ChevronRight size={14} /></button>
-        </footer>
+        <footer className="lookers-ai__footer"><span>{copy(lang, 'Your draft is saved privately on this device.', 'تُحفظ مسودتك بشكل خاص على هذا الجهاز.')}</span></footer>
       </div>
       <input ref={uploadRef} hidden type="file" multiple accept="image/*,.txt,.md,.csv,.tsv,.json,.pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ''; }} />
       <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={(event) => void importMemory(event.target.files?.[0])} />
