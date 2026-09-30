@@ -124,9 +124,9 @@ const ServiceDetailView: React.FC<Props> = ({ serviceId, lang, activeTab, onTabC
         <div key={serviceId} className="service-coming-soon">
           <span className="marketing-panel__mark"><IconForTab.work size={25} /></span>
           <div>
-            <p className="service-detail__eyebrow">{english ? 'OUR CAPABILITIES' : 'ما نقدمه'}</p>
-            <h3>{english ? 'A focused team, from plan to delivery.' : 'فريق متكامل من التخطيط وحتى التنفيذ.'}</h3>
-            <p>{english ? 'This service detail can grow with the same reusable structure used for Marketing & Growth.' : 'يمكن إضافة تفاصيل هذه الخدمة باستخدام نظام العرض نفسه المستخدم في التسويق والنمو.'}</p>
+            <p className="service-detail__eyebrow">{english ? 'OUR APPROACH' : 'منهج عملنا'}</p>
+            <h3>{english ? 'A clear path from your goals to launch.' : 'منهج واضح يحوّل أهدافك إلى خطوات قابلة للتنفيذ.'}</h3>
+            <p>{english ? 'We shape the work to fit your product, team, and stage—then move from direction to delivery together.' : 'نصمم مسار العمل بما يناسب منتجك وفريقك ومرحلتك، ثم ننتقل معًا من تحديد الاتجاه إلى التنفيذ.'}</p>
           </div>
         </div>
       )}
