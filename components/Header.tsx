@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 import BrandMark from './BrandMark';
 
@@ -12,6 +12,15 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { lang, setLang } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
+  const startNewLookersProject = () => {
+    setIsMenuOpen(false);
+    if (location.pathname === '/lookers-ai') {
+      window.dispatchEvent(new Event('lookers-ai:start-new'));
+      return;
+    }
+    navigate('/lookers-ai', { state: { startNewProject: true } });
+  };
 
   const navItems = [
     { en: 'Services', ar: 'الخدمات', path: '/services' },
@@ -21,7 +30,6 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
     { en: 'Start Your Project', ar: 'ابدأ مشروعك', path: '/start-your-project' },
   ];
 
-  const primaryBtn = { en: 'Lookers AI', ar: 'Lookers AI' };
 
   return (
     <header 
@@ -80,12 +88,13 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
           </div>
 
           {/* Primary CTA Button */}
-          <Link 
-            to="/lookers-ai"
+          <button
+            type="button"
+            onClick={startNewLookersProject}
             className="px-6 py-3 bg-gold text-black text-[10px] font-black uppercase tracking-[0.1em] rounded-xl hover:scale-105 transition-transform"
           >
-            {lang === 'en' ? primaryBtn.en : primaryBtn.ar}
-          </Link>
+            Lookers AI
+          </button>
         </div>
 
         {/* Mobile Nav Toggle */}
@@ -111,13 +120,13 @@ const Header: React.FC<HeaderProps> = ({ scrolled }) => {
                 {lang === 'en' ? item.en : item.ar}
               </Link>
             ))}
-            <Link 
-              to="/lookers-ai"
+            <button
+              type="button"
+              onClick={startNewLookersProject}
               className="py-4 bg-gold text-black text-center font-black uppercase rounded-xl"
-              onClick={() => setIsMenuOpen(false)}
             >
-              {lang === 'en' ? primaryBtn.en : primaryBtn.ar}
-            </Link>
+              Lookers AI
+            </button>
             <div className="flex justify-center pt-4">
                <button 
                 onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}

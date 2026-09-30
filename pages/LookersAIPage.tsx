@@ -1,31 +1,34 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2,
-  ChevronRight, Clipboard, Download, FileJson2, FileText, ImagePlus, Lightbulb,
-  LoaderCircle, MessageSquareText, Paperclip, RotateCcw, Sparkles, Target, Upload,
+  Clipboard, Download, FileJson2, FileText, ImagePlus, Lightbulb,
+  FileSpreadsheet, LoaderCircle, MessageSquareText, Paperclip, RotateCcw, Sparkles, Target, Upload,
   X
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import BrandMark from '../components/BrandMark';
 import {
-  compileLookersPrompt, createProjectMemory, detectTaskType, emptyMemory,
-  questions, taskTypes, type AttachmentMemory, type Lang, type LookersMemory,
-  type ProjectMemory, type TaskType
+  compileLookersPrompt, createProjectDraft, detectTaskType, emptyProjectState,
+  questions, taskTypes, type ProjectAttachment, type Lang, type UserProjectState,
+  type ProjectDraft, type TaskType
 } from '../data/lookersAi';
 import './LookersAIPage.css';
 
-const STORAGE_KEY = 'lookers-ai-memory-v1';
+const STORAGE_KEY = 'lookers-ai-project-state-v1';
+const LEGACY_STORAGE_KEY = 'lookers-ai-memory-v1';
 const stages = ['home', 'files', 'details', 'review', 'result'] as const;
 type Stage = typeof stages[number];
 type Tab = 'prompt' | 'summary';
 
 const copy = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
-const loadMemory = (): LookersMemory => {
+const loadProjectState = (): UserProjectState => {
   try {
-    const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if (value?.version === 1 && value.current?.id && Array.isArray(value.archived)) return value as LookersMemory;
+    const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    const value = JSON.parse(stored || 'null');
+    if (value?.version === 1 && value.current?.id && Array.isArray(value.archived)) return value as UserProjectState;
   } catch { /* A damaged draft starts a clean project. */ }
-  return emptyMemory();
+  return emptyProjectState();
 };
 const toDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -47,29 +50,57 @@ const storeImageReference = async (file: File): Promise<string> => {
     return canvas.toDataURL('image/jpeg', 0.68);
   } catch {
     if (file.size <= 250_000) return toDataUrl(file);
-    throw new Error('Image is too large to keep in browser memory.');
+    throw new Error('Image is too large to store on this device.');
   }
 };
 const safeFileName = (value: string) => value.replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'lookers-ai';
-const prettySize = (size: number, lang: Lang) => size < 1024 * 1024
-  ? `${Math.max(1, Math.round(size / 1024))} ${copy(lang, 'KB', 'ك.ب')}`
-  : `${(size / (1024 * 1024)).toFixed(1)} ${copy(lang, 'MB', 'م.ب')}`;
+const prettySize = (size: number, lang: Lang) => size < 1024
+  ? `${size} ${copy(lang, 'B', 'بايت')}`
+  : size < 1024 * 1024
+    ? `${Math.round(size / 1024)} ${copy(lang, 'KB', 'ك.ب')}`
+    : `${(size / (1024 * 1024)).toFixed(1)} ${copy(lang, 'MB', 'م.ب')}`;
 
 const LookersAIPage: React.FC = () => {
   const { lang } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
   const ar = lang === 'ar';
-  const [memory, setMemory] = useState<LookersMemory>(loadMemory);
-  const memoryRef = useRef(memory);
+  const [projectState, setProjectState] = useState<UserProjectState>(loadProjectState);
+  const projectStateRef = useRef(projectState);
   const [tab, setTab] = useState<Tab>('prompt');
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
-  const current = memory.current;
+  const current = projectState.current;
   const answers = current.answers;
   const stage = current.step;
   const prompt = useMemo(() => compileLookersPrompt(current, lang), [current, lang]);
-  const imageCount = current.attachments.filter((file) => file.include && file.kind === 'image').length;
+  const reviewRows = [
+    { id: 'idea', label: copy(lang, 'Idea', 'الفكرة'), value: String(answers.idea || ''), step: 'home' as Stage },
+    { id: 'task-type', label: copy(lang, 'Task type', 'نوع المهمة'), value: taskTypes.find((item) => item.id === current.taskType)?.title[lang] || '', step: 'details' as Stage },
+    { id: 'references', label: copy(lang, 'References', 'المراجع'), value: current.attachments.length
+      ? current.attachments.map((file) => `${file.name} · ${file.include ? copy(lang, 'Included', 'مرفق') : copy(lang, 'Excluded', 'مستبعد')} · ${prettySize(file.size, lang)}`).join(' / ')
+      : copy(lang, 'No references attached', 'لا توجد مراجع مرفقة'), step: 'files' as Stage },
+    { id: 'purpose', label: copy(lang, 'Desired result', 'النتيجة المطلوبة'), value: String(answers.purpose || ''), step: 'details' as Stage },
+    { id: 'context', label: copy(lang, 'Helpful context', 'سياق يساعد على الفهم'), value: String(answers.context || ''), step: 'details' as Stage },
+    { id: 'successCriteria', label: copy(lang, 'Success criteria', 'معايير النجاح'), value: String(answers.successCriteria || ''), step: 'details' as Stage },
+    { id: 'location', label: copy(lang, 'Execution location', 'مكان التنفيذ'), value: String(answers.location || ''), step: 'details' as Stage },
+    { id: 'tools', label: copy(lang, 'Available tools', 'الأدوات المتاحة'), value: String(answers.tools || ''), step: 'details' as Stage },
+    { id: 'permissions', label: copy(lang, 'Permissions or approvals', 'الصلاحيات أو الموافقات'), value: String(answers.permissions || ''), step: 'details' as Stage },
+    { id: 'size', label: copy(lang, 'Expected project size', 'حجم المشروع المتوقع'), value: String(answers.size || '') === 'auto' ? copy(lang, 'Let Lookers AI decide', 'دع Lookers AI يحدده') : String(answers.size || ''), step: 'details' as Stage },
+    { id: 'constraints', label: copy(lang, 'Constraints', 'القيود'), value: String(answers.constraints || ''), step: 'details' as Stage },
+    { id: 'stopConditions', label: copy(lang, 'Stop and ask when', 'التوقف وطلب المدخلات عند'), value: String(answers.stopConditions || ''), step: 'details' as Stage },
+    { id: 'deliverable', label: copy(lang, 'Deliverable', 'التسليم المطلوب'), value: String(answers.deliverable || ''), step: 'details' as Stage },
+    ...questions[current.taskType].map((field) => {
+      const value = answers[field.id];
+      const formatted = Array.isArray(value)
+        ? value.map((item) => field.options?.find((option) => option.value === item)?.[lang] || item).join(ar ? '، ' : ', ')
+        : String(value || '');
+      return { id: field.id, label: field.label[lang], value: formatted, step: 'details' as Stage };
+    })
+  ];
+
   const completeness = useMemo(() => {
     const questionsForTask = questions[current.taskType];
     const missing = questionsForTask.filter((question) => !question.optional && !String(answers[question.id] || '').trim());
@@ -77,17 +108,17 @@ const LookersAIPage: React.FC = () => {
     return { missing, percent: Math.round(((questionsForTask.length - missing.length + 1) / (questionsForTask.length + 1)) * 100) };
   }, [answers, current.taskType]);
 
-  const commit = (next: LookersMemory) => {
-    memoryRef.current = next;
-    setMemory(next);
+  const commit = (next: UserProjectState) => {
+    projectStateRef.current = next;
+    setProjectState(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
     }
   };
-  const patchCurrent = (patch: Partial<ProjectMemory>, action?: string) => {
+  const patchCurrent = (patch: Partial<ProjectDraft>, action?: string) => {
     const now = new Date().toISOString();
-    const latest = memoryRef.current;
+    const latest = projectStateRef.current;
     const project = { ...latest.current, ...patch, updatedAt: now };
     if (action) project.activity = [...project.activity, { at: now, action }].slice(-250);
     commit({ ...latest, current: project });
@@ -109,7 +140,7 @@ const LookersAIPage: React.FC = () => {
     const files = Array.from(fileList);
     if (!files.length) return;
     setBusy(true);
-    const additions: AttachmentMemory[] = files.map((file) => {
+    const additions: ProjectAttachment[] = files.map((file) => {
       const extension = file.name.split('.').pop()?.toLowerCase() || '';
       const image = file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(extension);
       const textLike = ['txt', 'md', 'csv', 'tsv', 'json'].includes(extension) || file.type.startsWith('text/');
@@ -120,7 +151,7 @@ const LookersAIPage: React.FC = () => {
         note: copy(lang, 'Preparing file…', 'جارٍ تجهيز الملف…'), processing: true
       };
     });
-    patchCurrent({ attachments: [...memoryRef.current.current.attachments, ...additions] }, 'attachments_added');
+    patchCurrent({ attachments: [...projectStateRef.current.current.attachments, ...additions] }, 'attachments_added');
     for (let index = 0; index < files.length; index += 1) {
       const file = files[index];
       const attachment = additions[index];
@@ -132,7 +163,7 @@ const LookersAIPage: React.FC = () => {
       let note = '';
       if (image) {
         try { dataUrl = await storeImageReference(file); }
-        catch { note = copy(lang, 'Image reference saved by name; preview could not be kept in browser memory.', 'حُفظ اسم الصورة كمرجع، لكن تعذر حفظ معاينتها في ذاكرة المتصفح.'); }
+        catch { note = copy(lang, 'Image reference saved by name; a preview could not be stored on this device.', 'حُفظ اسم الصورة كمرجع، لكن تعذر حفظ معاينتها على هذا الجهاز.'); }
       } else if (textLike) {
         try {
           const source = await file.text();
@@ -145,7 +176,7 @@ const LookersAIPage: React.FC = () => {
       } else {
         note = copy(lang, 'Saved as a file reference; its contents are not read in this browser.', 'حُفظ كمرجع للملف؛ لا يقرأ المتصفح محتواه تلقائيًا.');
       }
-      const latestAttachments = memoryRef.current.current.attachments.map((item) => item.id === attachment.id
+      const latestAttachments = projectStateRef.current.current.attachments.map((item) => item.id === attachment.id
         ? { ...item, note, text, dataUrl, processing: false }
         : item);
       patchCurrent({ attachments: latestAttachments });
@@ -182,32 +213,60 @@ const LookersAIPage: React.FC = () => {
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(href), 1000);
   };
-  const importMemory = async (file?: File) => {
+  const importProject = async (file?: File) => {
     if (!file) return;
     try {
-      const parsed = JSON.parse(await file.text()) as LookersMemory | { version: number; project?: ProjectMemory };
-      const imported: LookersMemory = 'project' in parsed && parsed.project
-        ? { version: 1, current: parsed.project, archived: memory.archived }
-        : parsed as LookersMemory;
-      if (imported?.version !== 1 || !imported.current?.id || !Array.isArray(imported.archived) || !imported.current.answers || !Array.isArray(imported.current.attachments)) throw new Error('Invalid memory file');
-      commit(imported);
+      const parsed = JSON.parse(await file.text()) as { version?: number; project?: ProjectDraft };
+      const imported = parsed?.version === 1 ? parsed.project : undefined;
+      if (!imported?.id || !imported.answers || !Array.isArray(imported.attachments)) throw new Error('Invalid project file');
+      patchCurrent(imported);
       setTab('prompt');
 
     } catch {
-      window.alert(copy(lang, 'This memory file could not be opened.', 'تعذر فتح ملف الذاكرة هذا.'));
+      window.alert(copy(lang, 'This project file could not be opened.', 'تعذر فتح ملف المشروع هذا.'));
     }
     if (importRef.current) importRef.current.value = '';
   };
-  const startOver = () => {
-    if (!window.confirm(copy(lang, 'Start a new project? This project will be saved in your local memory archive.', 'هل تريد بدء مشروع جديد؟ سيُحفظ هذا المشروع في أرشيف الذاكرة المحلي.'))) return;
-    const archived = String(answers.idea || '').trim() || current.attachments.length || current.activity.length > 1
-      ? [{ ...current, title: current.title || copy(lang, 'Untitled project', 'مشروع بلا عنوان') }, ...memory.archived].slice(0, 50)
-      : memory.archived;
-    const next = createProjectMemory();
-    commit({ version: 1, current: next, archived });
+  const startOver = (confirmBeforeArchive = true) => {
+    const latest = projectStateRef.current;
+    const active = latest.current;
+    const hasWork = Boolean(
+      String(active.answers.idea || '').trim() ||
+      active.attachments.length ||
+      active.generatedPrompt ||
+      Object.values(active.answers).some((value) => Array.isArray(value) ? value.length > 0 : Boolean(String(value).trim())) ||
+      active.taskType !== 'general' ||
+      active.activity.some((entry) => entry.action.startsWith('task_type_'))
+    );
+    if (hasWork && confirmBeforeArchive && !window.confirm(copy(
+      lang,
+      'Start a new project? Your current project will be kept on this device.',
+      'هل تريد بدء مشروع جديد؟ سيُحفظ مشروعك الحالي على هذا الجهاز.'
+    ))) return;
+    const archived = hasWork
+      ? [{ ...active, title: active.title || copy(lang, 'Untitled project', 'مشروع بلا عنوان') }, ...latest.archived].slice(0, 50)
+      : latest.archived;
+    commit({ version: 1, current: createProjectDraft(), archived });
     setTab('prompt');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const startOverRef = useRef(startOver);
+  startOverRef.current = startOver;
+
+  useEffect(() => {
+    const handleNewProject = () => startOverRef.current(false);
+    window.addEventListener('lookers-ai:start-new', handleNewProject);
+    return () => window.removeEventListener('lookers-ai:start-new', handleNewProject);
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.startNewProject) {
+      startOverRef.current(false);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.key, location.pathname, location.state, navigate]);
+
   const copyPrompt = async () => {
     try {
       await navigator.clipboard.writeText(prompt);
@@ -315,8 +374,10 @@ const LookersAIPage: React.FC = () => {
                   <small>{copy(lang, 'Images, text, CSV, and project references', 'صور ونصوص وCSV ومراجع المشروع')}</small>
                 </button>
               : <div className="lai-file-list">{current.attachments.map((file) => <article className={`lai-file ${file.include ? '' : 'is-muted'}`} key={file.id}>
-                  {file.dataUrl ? <img src={file.dataUrl} alt="" /> : <span className="lai-file-icon">{file.kind === 'text' ? <FileText size={18} /> : <Paperclip size={18} />}</span>}
-                  <div className="lai-file-main"><b>{file.name}</b><small>{file.processing ? file.note : `${prettySize(file.size, lang)} · ${file.note || file.mime}`}</small>
+                  {file.dataUrl ? <img src={file.dataUrl} alt="" /> : <span className="lai-file-icon">{file.kind === 'text' || /\.(pdf|docx?|rtf)$/i.test(file.name)
+                    ? <FileText size={18} />
+                    : /\.(xlsx?|ods|csv)$/i.test(file.name) ? <FileSpreadsheet size={18} /> : <Paperclip size={18} />}</span>}
+                  <div className="lai-file-main"><b>{file.name}</b><small>{file.processing ? file.note : `${prettySize(file.size, lang)} · ${file.mime} · ${file.note}`}</small>
                     {!file.processing && <input type="text" value={file.note} aria-label={copy(lang, 'Reference note', 'ملاحظة على المرجع')}
                       placeholder={copy(lang, 'Add a note about this file', 'أضف ملاحظة عن هذا الملف')}
                       onChange={(event) => updateFileNote(file.id, event.target.value)} />}
@@ -361,7 +422,7 @@ const LookersAIPage: React.FC = () => {
               <div className="lai-card-heading">
                 <div className="lai-heading-icon"><ImagePlus size={19} /></div>
                 <div><h2>{copy(lang, 'Add useful references', 'أضف مراجع تساعد على فهم الفكرة')}</h2>
-                  <p>{copy(lang, 'Images and readable text are saved in local memory. Other files are kept as named references.', 'تُحفظ الصور والنصوص المقروءة في الذاكرة المحلية. وتُحفظ بقية الملفات كمرجع بالاسم.')}</p></div>
+                  <p>{copy(lang, 'Images and readable text are stored on this device. Other files are kept as named references.', 'تُحفظ الصور والنصوص المقروءة على هذا الجهاز. وتُحفظ بقية الملفات كمرجع بالاسم.')}</p></div>
               </div>
               <p className="lai-shared-files-note">{copy(lang, "Your references are available in the shared files panel above.", "مراجعك متاحة في لوحة الملفات الثابتة أعلى الخطوات.")}</p>
               <div className="lai-nav-buttons">
@@ -449,14 +510,10 @@ const LookersAIPage: React.FC = () => {
                 <small>{copy(lang, 'You can still continue; the prompt will clearly mark unknown information.', 'يمكنك المتابعة، وسيبقي الـPrompt المعلومات الناقصة واضحة دون اختراعها.')}</small>
               </div>}
               <div className="lai-review-list">
-                <div><b>{copy(lang, 'Idea', 'الفكرة')}</b><span>{String(answers.idea || '') || copy(lang, 'Not specified', 'غير محددة')}</span><button onClick={() => setStage('home')}>{copy(lang, 'Edit', 'تعديل')}</button></div>
-                <div><b>{copy(lang, 'Task type', 'نوع المهمة')}</b><span>{taskTypes.find((item) => item.id === current.taskType)?.title[lang]}</span><button onClick={() => setStage('details')}>{copy(lang, 'Edit', 'تعديل')}</button></div>
-                <div><b>{copy(lang, 'References', 'المراجع')}</b><span>{current.attachments.filter((file) => file.include).length} {copy(lang, 'included', 'مرفق')}</span><button onClick={() => setStage('files')}>{copy(lang, 'Edit', 'تعديل')}</button></div>
-                {[...questions[current.taskType]].map((field) => {
-                  const value = answers[field.id];
-                  const text = Array.isArray(value) ? value.map((item) => field.options?.find((option) => option.value === item)?.[lang] || item).join(ar ? '، ' : ', ') : String(value || '');
-                  return text ? <div key={field.id}><b>{field.label[lang]}</b><span>{text}</span><button onClick={() => setStage('details')}>{copy(lang, 'Edit', 'تعديل')}</button></div> : null;
-                })}
+                {reviewRows.map((row) => <div key={row.id}>
+                  <b>{row.label}</b><span>{row.value || copy(lang, 'Not specified', 'غير محدد')}</span>
+                  <button type="button" onClick={() => setStage(row.step)}>{copy(lang, 'Edit', 'تعديل')}</button>
+                </div>)}
               </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('details')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
@@ -472,7 +529,7 @@ const LookersAIPage: React.FC = () => {
               <div className="lai-result-heading">
                 <div className="lai-result-mark"><Sparkles size={21} /></div>
                 <div><h2>{copy(lang, 'Your prompt is ready', 'الـPrompt جاهز')}</h2>
-                  <p>{copy(lang, 'It is saved with this project in your browser memory.', 'تم حفظه مع المشروع في ذاكرة المتصفح.')}</p></div>
+                  <p>{copy(lang, 'It is saved with this project on this device.', 'تم حفظه مع المشروع على هذا الجهاز.')}</p></div>
               </div>
               <div className="lai-tabs" role="tablist" aria-label={copy(lang, 'Result views', 'طرق عرض النتيجة')}>
                 {(['prompt', 'summary'] as Tab[]).map((item) => <button key={item} type="button" role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>
@@ -497,7 +554,7 @@ const LookersAIPage: React.FC = () => {
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('review')}>{copy(lang, 'Edit project', 'عدّل المشروع')}</button>
               </div>
               <div className="lai-start-over">
-                <div><h3>{copy(lang, 'Start over', 'ابدأ من جديد')}</h3><p>{copy(lang, 'Save this project to your local archive and begin a clean brief.', 'احفظ هذا المشروع في الأرشيف المحلي وابدأ فكرة جديدة.')}</p></div>
+                <div><h3>{copy(lang, 'Start over', 'ابدأ من جديد')}</h3><p>{copy(lang, 'Keep this project on this device, then begin a clean brief.', 'احتفظ بهذا المشروع على جهازك ثم ابدأ فكرة جديدة.')}</p></div>
                 <button type="button" className="lai-reset-button" onClick={startOver}><RotateCcw size={16} />{copy(lang, 'Start over', 'ابدأ من جديد')}</button>
               </div>
             </section>
@@ -507,7 +564,7 @@ const LookersAIPage: React.FC = () => {
         <footer className="lookers-ai__footer"><span>{copy(lang, 'Your draft is saved privately on this device.', 'تُحفظ مسودتك بشكل خاص على هذا الجهاز.')}</span></footer>
       </div>
       <input ref={uploadRef} hidden type="file" multiple accept="image/*,.txt,.md,.csv,.tsv,.json,.pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ''; }} />
-      <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={(event) => void importMemory(event.target.files?.[0])} />
+      <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={(event) => void importProject(event.target.files?.[0])} />
     </div>
   );
 };

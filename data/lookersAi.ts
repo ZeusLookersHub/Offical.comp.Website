@@ -71,7 +71,7 @@ export const questions: Record<TaskType, Question[]> = {
   ]
 };
 
-export type AttachmentMemory = {
+export type ProjectAttachment = {
   id: string;
   name: string;
   mime: string;
@@ -84,7 +84,7 @@ export type AttachmentMemory = {
   processing?: boolean;
 };
 
-export type ProjectMemory = {
+export type ProjectDraft = {
   id: string;
   title: string;
   createdAt: string;
@@ -92,15 +92,15 @@ export type ProjectMemory = {
   step: 'home' | 'files' | 'details' | 'review' | 'result';
   taskType: TaskType;
   answers: Record<string, string | string[]>;
-  attachments: AttachmentMemory[];
+  attachments: ProjectAttachment[];
   activity: { at: string; action: string }[];
   generatedPrompt?: string;
 };
 
-export type LookersMemory = {
+export type UserProjectState = {
   version: 1;
-  current: ProjectMemory;
-  archived: ProjectMemory[];
+  current: ProjectDraft;
+  archived: ProjectDraft[];
 };
 
 export const detectTaskType = (idea: string): TaskType => {
@@ -110,12 +110,12 @@ export const detectTaskType = (idea: string): TaskType => {
   return 'general';
 };
 
-const readAnswer = (answers: ProjectMemory['answers'], key: string): string => {
+const readAnswer = (answers: ProjectDraft['answers'], key: string): string => {
   const value = answers[key];
   return Array.isArray(value) ? value.join(', ') : String(value || '');
 };
 
-export const compileLookersPrompt = (project: ProjectMemory, lang: Lang): string => {
+export const compileLookersPrompt = (project: ProjectDraft, lang: Lang): string => {
   const ar = lang === 'ar';
   const a = project.answers;
   const idea = readAnswer(a, 'idea').trim();
@@ -212,7 +212,7 @@ export const compileLookersPrompt = (project: ProjectMemory, lang: Lang): string
   return sections.filter((line) => line !== undefined && line !== null).join('\n');
 };
 
-export const createProjectMemory = (): ProjectMemory => {
+export const createProjectDraft = (): ProjectDraft => {
   const now = new Date().toISOString();
   return {
     id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
@@ -227,4 +227,4 @@ export const createProjectMemory = (): ProjectMemory => {
   };
 };
 
-export const emptyMemory = (): LookersMemory => ({ version: 1, current: createProjectMemory(), archived: [] });
+export const emptyProjectState = (): UserProjectState => ({ version: 1, current: createProjectDraft(), archived: [] });
