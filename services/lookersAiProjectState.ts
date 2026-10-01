@@ -1,7 +1,7 @@
 import {
   emptyProjectState, type Lang, type ProjectAttachment, type ProjectDraft, type TaskType, type UserProjectState,
 } from "../data/lookersAi";
-import { LocalStorageProjectRepository } from "../core/projects/repository";
+import { LocalStorageProjectRepository } from "./localStorageProjectRepository";
 import { ProjectStateManager } from "../core/projects/state";
 import { validateProjectWorkspaceState } from "../core/projects/validation";
 import type {
@@ -21,7 +21,7 @@ const answerText = (answers: ProjectDraft["answers"], key: string): string => {
   return Array.isArray(value) ? value.join(", ") : String(value || "");
 };
 
-const engineForTask = (task: TaskType): ProjectEngineId => {
+// Temporary compatibility translation for the First Draft UI; engine routing belongs to a later Brain/Router stage.\nconst engineForTask = (task: TaskType): ProjectEngineId => {
   if (task === "image") return "visual.image";
   if (task === "campaign") return "business";
   return "other";
@@ -134,40 +134,47 @@ const workspaceFromState = (state: UserProjectState, language: Lang): ProjectWor
   };
 };
 
+const isLegacyDraft = (value: unknown): value is ProjectDraft => {
+  if (!value || typeof value !== "object") return false;
+  const draft = value as Partial<ProjectDraft>;
+  const validSteps = ["home", "files", "details", "review", "result"];
+  const validTasks = ["image", "campaign", "dashboard", "general"];
+  const isTimestamp = (text: unknown) => typeof text === "string" && Number.isFinite(Date.parse(text));
+  const answersAreValid = !!draft.answers && typeof draft.answers === "object" &&
+    Object.values(draft.answers).every((answer) => typeof answer === "string" ||
+      (Array.isArray(answer) && answer.every((item) => typeof item === "string")));
+  const attachmentsAreValid = Array.isArray(draft.attachments) && draft.attachments.every((item) =>
+    !!item && typeof item.id === "string" && typeof item.name === "string" &&
+    typeof item.mime === "string" && typeof item.size === "number" && item.size >= 0 &&
+    ["image", "text", "file"].includes(item.kind) && typeof item.include === "boolean" &&
+    typeof item.note === "string" &&
+    (item.text === undefined || typeof item.text === "string") &&
+    (item.dataUrl === undefined || typeof item.dataUrl === "string"));
+  const activityIsValid = Array.isArray(draft.activity) && draft.activity.every((item) =>
+    !!item && isTimestamp(item.at) && typeof item.action === "string");
+  return typeof draft.id === "string" && !!draft.id &&
+    typeof draft.title === "string" && isTimestamp(draft.createdAt) && isTimestamp(draft.updatedAt) &&
+    validSteps.includes(String(draft.step)) && validTasks.includes(String(draft.taskType)) &&
+    answersAreValid && attachmentsAreValid && activityIsValid &&
+    (draft.generatedPrompt === undefined || typeof draft.generatedPrompt === "string");
+};
+
 const parseLegacyState = (storage: ReturnType<typeof browserStorage>): UserProjectState | null => {
   if (!storage) return null;
   for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
     try {
       const raw = storage.getItem(key);
       if (!raw) continue;
-      const value = JSON.parse(raw) as UserProjectState;
-      if (value?.version === 1 && value.current?.id && Array.isArray(value.archived)) return value;
+      const value = JSON.parse(raw) as Partial<UserProjectState>;
+      if (value?.version === 1 && isLegacyDraft(value.current) &&
+          Array.isArray(value.archived) && value.archived.every(isLegacyDraft)) {
+        const ids = [value.current.id, ...value.archived.map((item) => item.id)];
+        if (new Set(ids).size !== ids.length || value.archived.some((item) => item.id === value.current!.id)) continue;
+        return value as UserProjectState;
+      }
     } catch {
       // Try the other previous storage key.
     }
   }
   return null;
-};
-
-export const lookersAiProjectState = {
-  load(language: Lang): UserProjectState {
-    const saved = manager.load();
-    if (saved) return stateFromWorkspace(saved);
-    const legacy = parseLegacyState(browserStorage());
-    if (!legacy) return emptyProjectState();
-    try { manager.save(workspaceFromState(legacy, language)); } catch { /* Keep the legacy draft usable if storage is unavailable. */ }
-    return legacy;
-  },
-
-  save(state: UserProjectState, language: Lang): boolean {
-    try {
-      const workspace = workspaceFromState(state, language);
-      const validation = validateProjectWorkspaceState(workspace);
-      if (!validation.valid) return false;
-      manager.save(validation.value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
 };
