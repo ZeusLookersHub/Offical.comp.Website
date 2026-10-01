@@ -336,7 +336,7 @@ const LookersAIPage: React.FC = () => {
   };
 
   return (
-    <div className="lookers-ai" dir={ar ? 'rtl' : 'ltr'} lang={lang}>
+    <div className="lookers-ai" data-stage={stage} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
       <div className="lookers-ai__wrap">
         <div className="lookers-ai__bar">
           <div className="lookers-ai__brand">
