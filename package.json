@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:core": "esbuild tests/core-foundation.test.ts --bundle --platform=node --format=esm --outfile=.stage01-core-tests.mjs && node --test .stage01-core-tests.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.563.0",
