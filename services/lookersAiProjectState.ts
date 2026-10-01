@@ -21,7 +21,8 @@ const answerText = (answers: ProjectDraft["answers"], key: string): string => {
   return Array.isArray(value) ? value.join(", ") : String(value || "");
 };
 
-// Temporary compatibility translation for the First Draft UI; engine routing belongs to a later Brain/Router stage.\nconst engineForTask = (task: TaskType): ProjectEngineId => {
+// Temporary compatibility translation for the First Draft UI; engine routing belongs to a later Brain/Router stage.
+const engineForTask = (task: TaskType): ProjectEngineId => {
   if (task === "image") return "visual.image";
   if (task === "campaign") return "business";
   return "other";
