@@ -140,7 +140,7 @@ const isLegacyDraft = (value: unknown): value is ProjectDraft => {
   const draft = value as Partial<ProjectDraft>;
   const validSteps = ["home", "files", "details", "review", "result"];
   const validTasks = ["image", "campaign", "dashboard", "general"];
-  const isTimestamp = (text: unknown) => typeof text === "string" && Number.isFinite(Date.parse(text));
+  const isTimestamp = (text: unknown) => typeof text === "string" && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})$/.test(text) && Number.isFinite(Date.parse(text));
   const answersAreValid = !!draft.answers && typeof draft.answers === "object" &&
     Object.values(draft.answers).every((answer) => typeof answer === "string" ||
       (Array.isArray(answer) && answer.every((item) => typeof item === "string")));
