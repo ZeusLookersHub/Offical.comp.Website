@@ -179,3 +179,27 @@ const parseLegacyState = (storage: ReturnType<typeof browserStorage>): UserProje
   }
   return null;
 };
+
+
+export const lookersAiProjectState = {
+  load(language: Lang): UserProjectState {
+    const saved = manager.load();
+    if (saved) return stateFromWorkspace(saved);
+    const legacy = parseLegacyState(browserStorage());
+    if (!legacy) return emptyProjectState();
+    try { manager.save(workspaceFromState(legacy, language)); } catch { /* Keep the legacy draft usable if storage is unavailable. */ }
+    return legacy;
+  },
+
+  save(state: UserProjectState, language: Lang): boolean {
+    try {
+      const workspace = workspaceFromState(state, language);
+      const validation = validateProjectWorkspaceState(workspace);
+      if (!validation.valid) return false;
+      manager.save(validation.value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+};
