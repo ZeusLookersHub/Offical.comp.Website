@@ -30,11 +30,11 @@ export const questions: Record<TaskType, Question[]> = {
       option('remix', 'Combine references', 'دمج مراجع متعددة'),
       option('analyze', 'Analyze a reference only', 'تحليل الصورة فقط')
     ] },
-    { id: 'style', label: { en: 'How should it look?', ar: 'كيف تريد شكلها؟', example: { en: "Example: warm studio light, matte materials, and a calm premium mood.", ar: "مثال: إضاءة استوديو دافئة وخامات مطفأة وأجواء راقية هادئة." } }, kind: 'textarea', optional: true, placeholder: { en: 'Describe the visual style, materials, light, or mood.', ar: 'صف الأسلوب والخامات والإضاءة أو الإحساس العام.' } },
+    { id: 'style', label: { en: 'How should it look?', ar: 'كيف تريد شكلها؟' }, kind: 'textarea', example: { en: "Example: warm studio light, matte materials, and a calm premium mood.", ar: "مثال: إضاءة استوديو دافئة وخامات مطفأة وأجواء راقية هادئة." }, optional: true, placeholder: { en: 'Describe the visual style, materials, light, or mood.', ar: 'صف الأسلوب والخامات والإضاءة أو الإحساس العام.' } },
     { id: 'usage', label: { en: 'Where will you use it?', ar: 'أين ستُستخدم الصورة؟' }, kind: 'text', optional: true, placeholder: { en: 'For example: Instagram story, product page, poster.', ar: 'مثال: قصة إنستغرام، صفحة منتج، ملصق.' } },
-    { id: 'preserve', label: { en: 'What must stay recognizable?', ar: 'ما الذي يجب الحفاظ عليه؟', example: { en: "Example: keep the product shape, label, and brand colors unchanged.", ar: "مثال: حافظ على شكل المنتج وملصقه وألوان العلامة." } }, kind: 'textarea', optional: true, placeholder: { en: 'Subject, identity, layout, text, or key details.', ar: 'العنصر أو الهوية أو التكوين أو النص أو التفاصيل المهمة.' } },
-    { id: 'avoid', label: { en: 'What should be avoided?', ar: 'ما الذي يجب تجنبه؟', example: { en: "Example: avoid extra text, distorted packaging, and unrelated props.", ar: "مثال: تجنب النصوص الإضافية أو العبوة المشوهة أو العناصر غير المرتبطة." } }, kind: 'textarea', optional: true, placeholder: { en: 'Unwanted objects, colors, or exaggerations.', ar: 'عناصر أو ألوان أو مبالغات لا تريدها.' } },
-    { id: 'imageText', label: { en: 'Exact text to show in the image', ar: 'النص الحرفي داخل الصورة', example: { en: "Example: New season, same great taste.", ar: "مثال: مذاق رائع في كل موسم." } }, kind: 'text', optional: true }
+    { id: 'preserve', label: { en: 'What must stay recognizable?', ar: 'ما الذي يجب الحفاظ عليه؟' }, kind: 'textarea', example: { en: "Example: keep the product shape, label, and brand colors unchanged.", ar: "مثال: حافظ على شكل المنتج وملصقه وألوان العلامة." }, optional: true, placeholder: { en: 'Subject, identity, layout, text, or key details.', ar: 'العنصر أو الهوية أو التكوين أو النص أو التفاصيل المهمة.' } },
+    { id: 'avoid', label: { en: 'What should be avoided?', ar: 'ما الذي يجب تجنبه؟' }, kind: 'textarea', example: { en: "Example: avoid extra text, distorted packaging, and unrelated props.", ar: "مثال: تجنب النصوص الإضافية أو العبوة المشوهة أو العناصر غير المرتبطة." }, optional: true, placeholder: { en: 'Unwanted objects, colors, or exaggerations.', ar: 'عناصر أو ألوان أو مبالغات لا تريدها.' } },
+    { id: 'imageText', label: { en: 'Exact text to show in the image', ar: 'النص الحرفي داخل الصورة' }, kind: 'text', example: { en: "Example: New season, same great taste.", ar: "مثال: مذاق رائع في كل موسم." }, optional: true }
   ],
   campaign: [
     { id: 'product', label: { en: 'What is the product or offer?', ar: 'ما المنتج أو العرض؟' }, kind: 'textarea', example: { en: 'Example: a 3-month family membership with a free first consultation.', ar: 'مثال: اشتراك عائلي لمدة ٣ أشهر مع استشارة أولى مجانية.' } },
@@ -47,8 +47,8 @@ export const questions: Record<TaskType, Question[]> = {
       option('meta', 'Meta', 'Meta'), option('google', 'Google', 'Google'), option('tiktok', 'TikTok', 'TikTok'),
       option('whatsapp', 'WhatsApp', 'WhatsApp'), option('email', 'Email', 'البريد الإلكتروني'), option('linkedin', 'LinkedIn', 'LinkedIn')
     ] },
-    { id: 'budget', label: { en: 'Budget and campaign duration', ar: 'الميزانية ومدة الحملة', example: { en: "Example: 20,000 SAR over six weeks, if known.", ar: "مثال: ٢٠٬٠٠٠ ريال لمدة ستة أسابيع، إذا كانت المعلومة متاحة." } }, kind: 'text', optional: true },
-    { id: 'assets', label: { en: 'What assets are available?', ar: 'ما المواد المتاحة؟', example: { en: "Example: product photos, logo files, and approved offer wording.", ar: "مثال: صور المنتج وملفات الشعار وصياغة العرض المعتمدة." } }, kind: 'textarea', optional: true },
+    { id: 'budget', label: { en: 'Budget and campaign duration', ar: 'الميزانية ومدة الحملة' }, kind: 'text', example: { en: "Example: 20,000 SAR over six weeks, if known.", ar: "مثال: ٢٠٬٠٠٠ ريال لمدة ستة أسابيع، إذا كانت المعلومة متاحة." }, optional: true },
+    { id: 'assets', label: { en: 'What assets are available?', ar: 'ما المواد المتاحة؟' }, kind: 'textarea', example: { en: "Example: product photos, logo files, and approved offer wording.", ar: "مثال: صور المنتج وملفات الشعار وصياغة العرض المعتمدة." }, optional: true },
     { id: 'publishing', label: { en: 'Who will publish the campaign?', ar: 'من سيتولى نشر الحملة؟' }, kind: 'single', example: { en: "Choose who will publish or approve the campaign.", ar: "حدد من سينشر الحملة أو يعتمدها." }, options: [
       option('owner', 'I will publish it', 'سأتولى النشر بنفسي'),
       option('assisted', 'Prepare it for my approval', 'جهّزها لاعتمادها قبل النشر')
@@ -57,8 +57,8 @@ export const questions: Record<TaskType, Question[]> = {
   dashboard: [
     { id: 'decisions', label: { en: 'Which decisions should this dashboard support?', ar: 'ما القرارات التي ستدعمها لوحة البيانات؟' }, kind: 'textarea', example: { en: 'Example: compare weekly sales by branch and spot declining categories.', ar: 'مثال: مقارنة المبيعات الأسبوعية بين الفروع واكتشاف الفئات المتراجعة.' } },
     { id: 'users', label: { en: 'Who will use it?', ar: 'من سيستخدمها؟' }, kind: 'text', example: { en: 'Example: the sales manager and branch leads.', ar: 'مثال: مدير المبيعات ومسؤولو الفروع.' } },
-    { id: 'metrics', label: { en: 'Which metrics matter?', ar: 'ما المؤشرات المهمة؟', example: { en: "Example: revenue, conversion rate, and average order value.", ar: "مثال: الإيرادات ومعدل التحويل ومتوسط قيمة الطلب." } }, kind: 'textarea', optional: true },
-    { id: 'dataSource', label: { en: 'Where does the data come from?', ar: 'من أين تأتي البيانات؟', example: { en: "Example: monthly CSV exports with date, branch, category, and sales columns.", ar: "مثال: ملفات CSV شهرية تتضمن التاريخ والفرع والفئة والمبيعات." } }, kind: 'textarea', placeholder: { en: 'Files, database, or available columns.', ar: 'ملفات أو قاعدة بيانات أو أعمدة متاحة.' } },
+    { id: 'metrics', label: { en: 'Which metrics matter?', ar: 'ما المؤشرات المهمة؟' }, kind: 'textarea', example: { en: "Example: revenue, conversion rate, and average order value.", ar: "مثال: الإيرادات ومعدل التحويل ومتوسط قيمة الطلب." }, optional: true },
+    { id: 'dataSource', label: { en: 'Where does the data come from?', ar: 'من أين تأتي البيانات؟' }, kind: 'textarea', example: { en: "Example: monthly CSV exports with date, branch, category, and sales columns.", ar: "مثال: ملفات CSV شهرية تتضمن التاريخ والفرع والفئة والمبيعات." }, placeholder: { en: 'Files, database, or available columns.', ar: 'ملفات أو قاعدة بيانات أو أعمدة متاحة.' } },
     { id: 'format', label: { en: 'Preferred delivery format', ar: 'صيغة التسليم المفضلة' }, kind: 'single', optional: true, example: { en: "Choose the format your team can use and maintain.", ar: "اختر الصيغة التي يستطيع فريقك استخدامها وصيانتها." }, options: [
       option('excel', 'Excel workbook', 'ملف Excel'), option('html', 'Interactive web page', 'صفحة ويب تفاعلية'),
       option('bi', 'Power BI / Looker / Sheets', 'Power BI / Looker / Sheets'), option('recommend', 'Recommend a format', 'اقترح صيغة مناسبة')
@@ -66,8 +66,8 @@ export const questions: Record<TaskType, Question[]> = {
   ],
   general: [
     { id: 'outcome', label: { en: 'What should the finished work achieve?', ar: 'ما النتيجة التي تريد الوصول إليها؟' }, kind: 'textarea', example: { en: 'Example: explain the offer clearly and encourage qualified enquiries.', ar: 'مثال: شرح العرض بوضوح وتشجيع الاستفسارات المناسبة.' } },
-    { id: 'success', label: { en: 'How will you know it worked?', ar: 'كيف ستعرف أن النتيجة ناجحة؟', example: { en: "Example: the target audience understands the offer and knows the next step.", ar: "مثال: يفهم الجمهور المستهدف العرض ويعرف الخطوة التالية." } }, kind: 'textarea', optional: true },
-    { id: 'constraints', label: { en: 'Any constraints or things to avoid?', ar: 'هل توجد قيود أو أمور يجب تجنبها؟', example: { en: "Example: keep within the supplied brand guide and do not invent client names.", ar: "مثال: التزم بدليل الهوية المرفق ولا تخترع أسماء عملاء." } }, kind: 'textarea', optional: true }
+    { id: 'success', label: { en: 'How will you know it worked?', ar: 'كيف ستعرف أن النتيجة ناجحة؟' }, kind: 'textarea', example: { en: "Example: the target audience understands the offer and knows the next step.", ar: "مثال: يفهم الجمهور المستهدف العرض ويعرف الخطوة التالية." }, optional: true },
+    { id: 'constraints', label: { en: 'Any constraints or things to avoid?', ar: 'هل توجد قيود أو أمور يجب تجنبها؟' }, kind: 'textarea', example: { en: "Example: keep within the supplied brand guide and do not invent client names.", ar: "مثال: التزم بدليل الهوية المرفق ولا تخترع أسماء عملاء." }, optional: true }
   ]
 };
 
