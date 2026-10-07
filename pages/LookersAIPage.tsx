@@ -9,6 +9,7 @@ import {
 import { useLanguage } from '../LanguageContext';
 import BrandMark from '../components/BrandMark';
 import { lookersAiProjectState } from '../services/lookersAiProjectState';
+import { planDraftQuestions } from '../services/lookersAiQuestions';
 import {
   compileLookersPrompt, createProjectDraft, detectTaskType,
   questions, taskTypes, type ProjectAttachment, type Lang, type UserProjectState,
@@ -92,12 +93,7 @@ const LookersAIPage: React.FC = () => {
     })
   ];
 
-  const completeness = useMemo(() => {
-    const questionsForTask = questions[current.taskType];
-    const missing = questionsForTask.filter((question) => !question.optional && !String(answers[question.id] || '').trim());
-    if (!String(answers.idea || '').trim()) missing.unshift({ id: 'idea', label: { en: 'Project idea', ar: 'فكرة المشروع' }, kind: 'textarea' as const });
-    return { missing, percent: Math.round(((questionsForTask.length - missing.length + 1) / (questionsForTask.length + 1)) * 100) };
-  }, [answers, current.taskType]);
+  const completeness = useMemo(() => planDraftQuestions(current, lang), [current, lang]);
 
   const commit = (next: UserProjectState) => {
     projectStateRef.current = next;
@@ -472,7 +468,7 @@ const LookersAIPage: React.FC = () => {
               </details>
               <div className="lai-task-questions">
                 <h3>{copy(lang, 'Task-specific details', 'تفاصيل خاصة بنوع المهمة')}</h3>
-                {questions[current.taskType].map(renderField)}
+                {completeness.fields.map(renderField)}
               </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('files')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>

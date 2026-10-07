@@ -28,7 +28,7 @@ const engineForTask = (task: TaskType): ProjectEngineId => {
   return "other";
 };
 
-const projectFromDraft = (draft: ProjectDraft, status: Project["status"], language: Lang): Project => {
+export const projectFromDraft = (draft: ProjectDraft, status: Project["status"], language: Lang): Project => {
   const answers = draft.answers;
   const constraintAnswers = [answerText(answers, "constraints"), answerText(answers, "avoid")]
     .map((value) => value.trim()).filter(Boolean);
