@@ -1,0 +1,33 @@
+name: Lookers AI Stage 03 Validation
+
+on:
+  push:
+    branches: [stage01-core-foundation]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Stage 01 regression
+        run: npm run test:core
+      - name: Stage 02 regression
+        run: npm run test:brain
+      - name: Stage 03 Question Engine
+        run: npm run test:questions
+      - name: Production build
+        run: npm run build

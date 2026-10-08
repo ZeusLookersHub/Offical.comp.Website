@@ -1,0 +1,39 @@
+name: Lookers AI Stage 01 Validation
+
+on:
+  push:
+    branches:
+      - stage01-core-foundation
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Typecheck, Core tests, and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test Core foundation
+        run: npm run test:core
+
+      - name: Build production site
+        run: npm run build

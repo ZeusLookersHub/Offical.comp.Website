@@ -8,28 +8,20 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import BrandMark from '../components/BrandMark';
+import { lookersAiProjectState } from '../services/lookersAiProjectState';
+import { planDraftQuestions } from '../services/lookersAiQuestions';
 import {
-  compileLookersPrompt, createProjectDraft, detectTaskType, emptyProjectState,
+  compileLookersPrompt, createProjectDraft, detectTaskType,
   questions, taskTypes, type ProjectAttachment, type Lang, type UserProjectState,
   type ProjectDraft, type TaskType
 } from '../data/lookersAi';
 import './LookersAIPage.css';
 
-const STORAGE_KEY = 'lookers-ai-project-state-v1';
-const LEGACY_STORAGE_KEY = 'lookers-ai-memory-v1';
 const stages = ['home', 'files', 'details', 'review', 'result'] as const;
 type Stage = typeof stages[number];
 type Tab = 'prompt' | 'summary';
 
 const copy = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
-const loadProjectState = (): UserProjectState => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
-    const value = JSON.parse(stored || 'null');
-    if (value?.version === 1 && value.current?.id && Array.isArray(value.archived)) return value as UserProjectState;
-  } catch { /* A damaged draft starts a clean project. */ }
-  return emptyProjectState();
-};
 const toDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onload = () => resolve(String(reader.result || ''));
@@ -65,7 +57,7 @@ const LookersAIPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const ar = lang === 'ar';
-  const [projectState, setProjectState] = useState<UserProjectState>(loadProjectState);
+  const [projectState, setProjectState] = useState<UserProjectState>(() => lookersAiProjectState.load(lang));
   const projectStateRef = useRef(projectState);
   const [tab, setTab] = useState<Tab>('prompt');
   const [copied, setCopied] = useState(false);
@@ -101,20 +93,12 @@ const LookersAIPage: React.FC = () => {
     })
   ];
 
-  const completeness = useMemo(() => {
-    const questionsForTask = questions[current.taskType];
-    const missing = questionsForTask.filter((question) => !question.optional && !String(answers[question.id] || '').trim());
-    if (!String(answers.idea || '').trim()) missing.unshift({ id: 'idea', label: { en: 'Project idea', ar: 'فكرة المشروع' }, kind: 'textarea' as const });
-    return { missing, percent: Math.round(((questionsForTask.length - missing.length + 1) / (questionsForTask.length + 1)) * 100) };
-  }, [answers, current.taskType]);
+  const completeness = useMemo(() => planDraftQuestions(current, lang), [current, lang]);
 
   const commit = (next: UserProjectState) => {
     projectStateRef.current = next;
     setProjectState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-    }
+    lookersAiProjectState.save(next, lang);
   };
   const patchCurrent = (patch: Partial<ProjectDraft>, action?: string) => {
     const now = new Date().toISOString();
@@ -484,7 +468,7 @@ const LookersAIPage: React.FC = () => {
               </details>
               <div className="lai-task-questions">
                 <h3>{copy(lang, 'Task-specific details', 'تفاصيل خاصة بنوع المهمة')}</h3>
-                {questions[current.taskType].map(renderField)}
+                {completeness.fields.map(renderField)}
               </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('files')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
