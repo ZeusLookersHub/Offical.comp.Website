@@ -10,7 +10,9 @@
     "test:core": "esbuild tests/core-foundation.test.ts --bundle --platform=node --format=esm --outfile=.stage01-core-tests.mjs && node --test .stage01-core-tests.mjs",
     "test:brain": "esbuild tests/brain.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-brain/brain.test.mjs --log-level=warning && node node_modules/.cache/lookers-brain/brain.test.mjs",
     "test:questions": "esbuild tests/question-engine.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-questions/questions.test.mjs --log-level=warning && node node_modules/.cache/lookers-questions/questions.test.mjs",
-    "test:agent": "esbuild tests/agent.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-agent/agent.test.mjs --log-level=warning && node node_modules/.cache/lookers-agent/agent.test.mjs"
+    "test:agent": "esbuild tests/agent.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-agent/agent.test.mjs --log-level=warning && node node_modules/.cache/lookers-agent/agent.test.mjs",
+    "test:stage05": "esbuild tests/stage05.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-stage05/stage05.test.mjs --log-level=warning && node node_modules/.cache/lookers-stage05/stage05.test.mjs",
+    "build:ai-function": "esbuild supabase/functions/lookers-ai-generate/index.ts --bundle --platform=neutral --format=esm --external:jsr:* --outfile=node_modules/.cache/lookers-ai-function/index.ts --log-level=warning"
   },
   "dependencies": {
     "lucide-react": "^0.563.0",
