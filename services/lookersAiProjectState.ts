@@ -25,6 +25,7 @@ const answerText = (answers: ProjectDraft["answers"], key: string): string => {
 const engineForTask = (task: TaskType): ProjectEngineId => {
   if (task === "image") return "visual.image";
   if (task === "campaign") return "business";
+  if (task === "presentation") return "powerpoint";
   return "other";
 };
 
@@ -63,7 +64,9 @@ export const projectFromDraft = (draft: ProjectDraft, status: Project["status"],
       constraints: constraintAnswers,
       output: {
         description: deliverable,
-        ...(answerText(answers, "format") ? { format: answerText(answers, "format") } : {}),
+        ...(draft.taskType === "presentation"
+          ? (answerText(answers, "presentationFormat") ? { format: answerText(answers, "presentationFormat") } : {})
+          : (answerText(answers, "format") ? { format: answerText(answers, "format") } : {})),
         deliverables: deliverable ? [deliverable] : [],
       },
       language,
@@ -139,7 +142,7 @@ export const isLegacyDraft = (value: unknown): value is ProjectDraft => {
   if (!value || typeof value !== "object") return false;
   const draft = value as Partial<ProjectDraft>;
   const validSteps = ["home", "files", "details", "review", "result"];
-  const validTasks = ["image", "campaign", "dashboard", "general"];
+  const validTasks = ["image", "campaign", "dashboard", "presentation", "general"];
   const isTimestamp = (text: unknown) => typeof text === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(text) && Number.isFinite(Date.parse(text));
   const answersAreValid = !!draft.answers && typeof draft.answers === "object" &&
     Object.values(draft.answers).every((answer) => typeof answer === "string" ||

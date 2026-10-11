@@ -42,5 +42,7 @@ jobs:
         run: npm run test:library
       - name: Application Agent gate regression (offline)
         run: npm run test:application
+      - name: Universal tool directory and presentation regression (offline)
+        run: npm run test:tools
       - name: Production build
         run: npm run build

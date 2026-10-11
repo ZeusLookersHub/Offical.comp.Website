@@ -1,6 +1,6 @@
 import { routeDeterministic } from '../core/brain';
 export type Lang = 'en' | 'ar';
-export type TaskType = 'image' | 'campaign' | 'dashboard' | 'general';
+export type TaskType = 'image' | 'campaign' | 'dashboard' | 'presentation' | 'general';
 export type FieldKind = 'text' | 'textarea' | 'single' | 'multi';
 
 export type Option = { en: string; ar: string; value: string };
@@ -18,6 +18,7 @@ export const taskTypes: { id: TaskType; title: { en: string; ar: string }; descr
   { id: 'image', title: { en: 'Visual prompt', ar: 'Prompt بصري' }, description: { en: 'Plan a new image, transformation, or reference-led design.', ar: 'خطط لصورة جديدة أو تحويل بصري بالاعتماد على مراجع.' } },
   { id: 'campaign', title: { en: 'Campaign', ar: 'حملة إعلانية' }, description: { en: 'Organize the strategy and assets for a campaign.', ar: 'رتّب استراتيجية الحملة وموادها.' } },
   { id: 'dashboard', title: { en: 'Dashboard', ar: 'لوحة بيانات' }, description: { en: 'Define decisions, metrics, and data for a dashboard.', ar: 'حدّد القرارات والمؤشرات والبيانات للوحة.' } },
+  { id: 'presentation', title: { en: 'Presentation', ar: 'عرض تقديمي' }, description: { en: 'Structure a deck for your audience, purpose and format.', ar: 'رتّب العرض حسب جمهورك وهدفك وصيغة التسليم.' } },
   { id: 'general', title: { en: 'General task', ar: 'مهمة عامة' }, description: { en: 'Turn a brief into a clear, usable prompt.', ar: 'حوّل موجزًا إلى Prompt واضح وقابل للاستخدام.' } }
 ];
 
@@ -67,6 +68,126 @@ export const questions: Record<TaskType, Question[]> = {
       option('bi', 'Power BI / Looker / Sheets', 'Power BI / Looker / Sheets'), option('recommend', 'Recommend a format', 'اقترح صيغة مناسبة')
     ] }
   ],
+  presentation: [
+  {
+    "id": "presentationType",
+    "label": {
+      "en": "What kind of presentation?",
+      "ar": "العرض من أي نوع؟"
+    },
+    "kind": "single",
+    "options": [
+      {
+        "value": "business",
+        "en": "Business presentation",
+        "ar": "عرض للشركة"
+      },
+      {
+        "value": "pitch",
+        "en": "Pitch / investor deck",
+        "ar": "عرض فكرة أو استثمار"
+      },
+      {
+        "value": "sales",
+        "en": "Sales presentation",
+        "ar": "عرض مبيعات"
+      },
+      {
+        "value": "data",
+        "en": "Data storytelling",
+        "ar": "عرض بيانات"
+      },
+      {
+        "value": "education",
+        "en": "Educational presentation",
+        "ar": "عرض تعليمي"
+      },
+      {
+        "value": "training",
+        "en": "Training / workshop",
+        "ar": "تدريب أو ورشة"
+      }
+    ]
+  },
+  {
+    "id": "audience",
+    "label": {
+      "en": "Who is the presentation for?",
+      "ar": "مين هيشوف العرض؟"
+    },
+    "kind": "text"
+  },
+  {
+    "id": "slideCount",
+    "label": {
+      "en": "Approximate slide count or duration",
+      "ar": "تقريبًا كام شريحة أو كام دقيقة؟"
+    },
+    "kind": "text",
+    "optional": true
+  },
+  {
+    "id": "visualStyle",
+    "label": {
+      "en": "Visual style",
+      "ar": "تحب شكل العرض يكون عامل إزاي؟"
+    },
+    "kind": "text",
+    "optional": true
+  },
+  {
+    "id": "brandGuidelines",
+    "label": {
+      "en": "Brand guidelines",
+      "ar": "فيه هوية أو ألوان لازم نلتزم بيها؟"
+    },
+    "kind": "textarea",
+    "optional": true
+  },
+  {
+    "id": "dataAvailability",
+    "label": {
+      "en": "Available facts and data",
+      "ar": "إيه المعلومات والأرقام المتاحة فعلًا؟"
+    },
+    "kind": "textarea",
+    "optional": true
+  },
+  {
+    "id": "speakerNotes",
+    "label": {
+      "en": "Speaker notes",
+      "ar": "محتاج ملاحظات للمتحدث؟"
+    },
+    "kind": "single",
+    "optional": true,
+    "options": [
+      {
+        "value": "yes",
+        "en": "Include notes",
+        "ar": "أضف ملاحظات"
+      },
+      {
+        "value": "no",
+        "en": "Slides only",
+        "ar": "الشرائح بس"
+      }
+    ]
+  },
+  {
+    "id": "presentationFormat",
+    "label": {
+      "en": "Desired presentation output",
+      "ar": "تحب تستلم العرض بأي صيغة؟"
+    },
+    "kind": "text",
+    "optional": true,
+    "example": {
+      "en": "Editable slides, PDF, or an outline. Include 16:9, 4:3 or mobile only if relevant.",
+      "ar": "شرائح قابلة للتعديل، PDF، أو مخطط. حدّد 16:9 أو 4:3 أو موبايل لو ده مهم لاستخدامك."
+    }
+  }
+],
   general: [
     { id: 'outcome', label: { en: 'What should the finished work achieve?', ar: 'ما النتيجة التي تريد الوصول إليها؟' }, kind: 'textarea', example: { en: 'Example: explain the offer clearly and encourage qualified enquiries.', ar: 'مثال: شرح العرض بوضوح وتشجيع الاستفسارات المناسبة.' } },
     { id: 'success', label: { en: 'How will you know it worked?', ar: 'كيف ستعرف أن النتيجة ناجحة؟' }, kind: 'textarea', example: { en: "Example: the target audience understands the offer and knows the next step.", ar: "مثال: يفهم الجمهور المستهدف العرض ويعرف الخطوة التالية." }, optional: true },
@@ -107,6 +228,7 @@ export type UserProjectState = {
 };
 
 export const detectTaskType = (idea: string): TaskType => {
+  if (/presentation|pitch deck|slide deck|powerpoint|عرض تقديمي|شرائح|برزنتيشن|بريزنتيشن/i.test(idea)) return 'presentation';
   if (/داشبورد|dashboard|لوحة بيانات|تقرير|تحليل بيانات/i.test(idea)) return 'dashboard';
   if (/حملة|campaign|تسويق مدفوع|إعلانات ممولة|ad campaign/i.test(idea)) return 'campaign';
   const route = routeDeterministic({ input: idea, language: /[\u0600-\u06ff]/.test(idea) ? 'ar' : 'en' });
@@ -176,6 +298,21 @@ export const compileLookersPrompt = (project: ProjectDraft, lang: Lang): string 
       (readAnswer(a, 'imageText') ? (ar ? 'النص الحرفي داخل الصورة: ' : 'Exact text in image: ') + readAnswer(a, 'imageText') : ''),
       ar ? 'سلّم Prompt بصريًا جاهزًا للاستخدام. لا تقل إن الصورة أُنشئت ما لم تستخدم أداة صور فعلية.' : 'Deliver a ready-to-use visual prompt. Do not say an image was generated unless an image tool was actually used.'
     );
+  } else if (type === 'presentation') {
+    sections.push('', ar ? '## وحدة العرض التقديمي' : '## Presentation module');
+    for (const [key,en,arabic] of [
+      ['presentationType','Presentation type','نوع العرض'],['audience','Audience','الجمهور'],
+      ['slideCount','Approximate slides or duration','عدد الشرائح أو المدة التقريبية'],
+      ['visualStyle','Visual style','الأسلوب البصري'],['brandGuidelines','Brand guidelines','إرشادات الهوية'],
+      ['dataAvailability','Available facts and data','المعلومات والبيانات المتاحة'],
+      ['speakerNotes','Speaker notes','ملاحظات المتحدث'],['presentationFormat','Desired output format','صيغة التسليم المطلوبة'],
+    ]) {
+      const value = readAnswer(a,key);
+      if(value) sections.push((ar?arabic:en)+': '+value);
+    }
+    sections.push(ar
+      ? 'جهّز تسلسل الشرائح: عنوان ورسالة رئيسية ومحتوى موجز وفكرة بصرية لكل شريحة. أضف ملاحظات المتحدث لو مطلوبة. استخدم المعلومات المؤكدة فقط وعلّم البيانات الناقصة. حدّد أبعاد العرض فقط لو مهمة؛ لا تفترض صيغة ملف أو تدّعي إنشاء ملف عرض.'
+      : 'Prepare a slide sequence with a title, key message, concise content and visual direction for each slide. Include speaker notes if requested. Use confirmed facts and mark missing data. Specify deck dimensions only when relevant; do not assume a file format or claim a deck file was created.');
   } else if (type === 'campaign') {
     sections.push('', ar ? '## وحدة الحملة' : '## Campaign module',
       (ar ? 'المنتج أو العرض: ' : 'Product or offer: ') + readAnswer(a, 'product'),

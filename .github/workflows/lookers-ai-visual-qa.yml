@@ -22,6 +22,8 @@ jobs:
       - run: node scripts/visual-qa.mjs
       - name: Real application user journeys (offline, no paid inference)
         run: node scripts/user-journeys.mjs
+      - name: Universal tools and presentation user journeys (offline)
+        run: npm run test:tool-journeys
       - uses: actions/upload-artifact@v4
         if: always()
         with:

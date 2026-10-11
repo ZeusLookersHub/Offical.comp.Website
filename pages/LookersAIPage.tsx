@@ -4,11 +4,12 @@ import {
   ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2,
   Clipboard, Download, FileJson2, FileText, ImagePlus, Lightbulb,
   Film, BriefcaseBusiness, WandSparkles, FileSpreadsheet, LoaderCircle, MessageSquareText, Paperclip, RotateCcw, Sparkles, Target, Upload,
-  X
+  X, Presentation
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import BrandMark from '../components/BrandMark';
 import LookersPromptLibrary from '../components/LookersPromptLibrary';
+import LookersAIToolDirectory from '../components/LookersAIToolDirectory';
 import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProjectState';
 import { planDraftQuestions } from '../services/lookersAiQuestions';
 import { createApplicationGenerator } from '../services/lookersAiApplicationGeneration';
@@ -74,9 +75,10 @@ const LookersAIPage: React.FC = () => {
   const [externalReply, setExternalReply] = useState('');
   const [continuationMode, setContinuationMode] = useState('Improve');
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showTools, setShowTools] = useState(false);
   const [showHandoff, setShowHandoff] = useState(false);
   const [showProjectContext, setShowProjectContext] = useState(false);
-  const [handoffTool, setHandoffTool] = useState('ChatGPT');
+  const [handoffTool, setHandoffTool] = useState('');
   const generationRef = useRef<AbortController | null>(null);
   const languageRef = useRef(lang); languageRef.current = lang;
   useEffect(() => () => { generationRef.current?.abort(); generationRef.current = null; }, []);
@@ -407,7 +409,7 @@ const LookersAIPage: React.FC = () => {
             <span>LookersHub</span>
             <b>AI</b>
           </div>
-          <div className="lai-bar-actions"><button type="button" className="lai-secondary-button" aria-expanded={showLibrary} onClick={() => setShowLibrary(value => !value)}>{copy(lang, 'Prompt Library', 'مكتبة البرومبت')}</button><span className="lai-autosave-status" role="status"><CheckCircle2 size={14} />{saved ? copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز') : copy(lang, 'Could not save on this device. Export your project before leaving.', 'تعذر الحفظ على هذا الجهاز. صدّر مشروعك قبل المغادرة.')}</span></div>
+          <div className="lai-bar-actions"><button type="button" className="lai-secondary-button" aria-expanded={showTools} onClick={() => {setShowLibrary(false);setShowTools(value=>!value);}}>{copy(lang,'AI tools','أدوات AI')}</button><button type="button" className="lai-secondary-button" aria-expanded={showLibrary} onClick={() => {setShowTools(false);setShowLibrary(value => !value);}}>{copy(lang, 'Prompt Library', 'مكتبة البرومبت')}</button><span className="lai-autosave-status" role="status"><CheckCircle2 size={14} />{saved ? copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز') : copy(lang, 'Could not save on this device. Export your project before leaving.', 'تعذر الحفظ على هذا الجهاز. صدّر مشروعك قبل المغادرة.')}</span></div>
         </div>
 
         <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
@@ -417,7 +419,7 @@ const LookersAIPage: React.FC = () => {
           <p>{copy(lang, 'Write what you want. We’ll help you prepare the prompt.', 'قول لنا عايز تعمل إيه. هنساعدك تجهّز البرومبت.')}</p>
         </header>
 
-        {showLibrary ? <LookersPromptLibrary lang={lang} currentTask={current.taskType} onClose={() => setShowLibrary(false)} onUse={useLibraryDraft} /> : <>
+        {showTools ? <section className="lai-card"><LookersAIToolDirectory lang={lang} draft={current} selectedTool={handoffTool} onUse={setHandoffTool} onCopy={()=>void copyPrompt()} onClose={()=>setShowTools(false)} /></section> : showLibrary ? <LookersPromptLibrary lang={lang} currentTask={current.taskType} onClose={() => setShowLibrary(false)} onUse={useLibraryDraft} /> : <>
         <nav className="lai-steps" aria-label={copy(lang, 'Project steps', 'خطوات المشروع')}>
           {stages.map((item, index) => <div key={item} className={index === stepIndex ? 'is-active' : index < stepIndex ? 'is-done' : ''}>
             <span>{index < stepIndex ? <Check size={13} /> : index + 1}</span><small>{stageTitles[item][lang]}</small>
@@ -496,7 +498,7 @@ const LookersAIPage: React.FC = () => {
               <div className="lai-task-grid">
                 {taskTypes.map((task) => <button type="button" key={task.id} className={`lai-task-card ${current.taskType === task.id ? 'is-selected' : ''}`}
                   aria-pressed={current.taskType === task.id} onClick={() => setTask(task.id)}>
-                  <span>{task.id === 'image' ? <ImagePlus size={20} /> : task.id === 'campaign' ? <Sparkles size={20} /> : task.id === 'dashboard' ? <BarChart3 size={20} /> : <MessageSquareText size={20} />}</span>
+                  <span>{task.id === 'image' ? <ImagePlus size={20} /> : task.id === 'campaign' ? <Sparkles size={20} /> : task.id === 'dashboard' ? <BarChart3 size={20} /> : task.id === 'presentation' ? <Presentation size={20} /> : <MessageSquareText size={20} />}</span>
                   <b>{task.title[lang]}</b><small>{task.description[lang]}</small>
                 </button>)}
               </div>
@@ -618,13 +620,7 @@ const LookersAIPage: React.FC = () => {
               </div></details>
               {showHandoff && <section className="lai-handoff" aria-label={copy(lang, 'Tool handoff', 'استخدم البرومبت خارج المنصة')}>
                 <span className="lai-kicker">{copy(lang, 'PREPARED · NOT EXECUTED', 'جاهز للاستخدام · لم يُنفّذ')}</span>
-                <h3>{copy(lang, 'Use your prompt with:', 'استخدم البرومبت مع:')}</h3>
-                <div className="lai-tool-choices" role="group" aria-label={copy(lang, 'Choose your external tool', 'اختر أداتك الخارجية')}>
-                  {['ChatGPT', 'Claude', 'Gemini', 'Other'].map(tool => <button type="button" key={tool} className={`lai-option ${handoffTool === tool ? 'is-selected' : ''}`} aria-pressed={handoffTool === tool} onClick={() => setHandoffTool(tool)}>{tool === 'Other' ? copy(lang, 'Other', 'أخرى') : tool}</button>)}
-                </div>
-                <p className="lai-field-example">{copy(lang, 'Ready to copy into', 'جاهز للنسخ إلى')} {handoffTool === 'Other' ? copy(lang, 'your tool', 'أداتك') : handoffTool}. {copy(lang, 'Nothing is sent or executed here.', 'لا يتم الإرسال أو التنفيذ هنا.')}</p>
-                <ol><li>{copy(lang, 'Copy the prompt.', 'انسخ البرومبت.')}</li><li>{copy(lang, 'Paste it into your tool and add the same references.', 'الصقه في أداتك وأضف نفس المراجع.')}</li><li>{copy(lang, 'Run it there, then bring the result back here.', 'نفّذه هناك، وبعدها ارجع بالنتيجة هنا.')}</li></ol>
-                <button type="button" className="lai-primary-button" onClick={() => void copyPrompt()}>{copied ? copy(lang, 'Copied', 'تم النسخ') : copy(lang, 'Copy prompt', 'انسخ البرومبت')}</button>
+                <LookersAIToolDirectory lang={lang} draft={current} selectedTool={handoffTool} onUse={setHandoffTool} onCopy={()=>void copyPrompt()} />
               </section>}
               <section className="lai-continuation" aria-label={copy(lang, 'Continue this project', 'كمّل نفس المشروع')}>
                 <div className="lai-card-heading"><div className="lai-heading-icon"><WandSparkles size={22} /></div><div><h3>{copy(lang, 'Didn’t get what you expected?', 'النتيجة مش زي ما توقعت؟')}</h3><p>{copy(lang, 'Bring it back. Keep building from the same idea.', 'ارجع بالنتيجة وكمّل من نفس الفكرة.')}</p></div></div>

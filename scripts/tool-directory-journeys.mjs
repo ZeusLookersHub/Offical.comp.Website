@@ -1,0 +1,88 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+import {createServer} from 'vite';
+import {mkdir,writeFile} from 'node:fs/promises';
+
+const server=await createServer({server:{host:'127.0.0.1',port:5173,strictPort:true}});
+const browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']});
+await context.route('**/*.supabase.co/**',route=>route.abort('blockedbyclient'));
+const page=await context.newPage();page.setDefaultTimeout(30000);
+const errors=[],checks=[];
+page.on('pageerror',e=>errors.push(e.message));
+const button=name=>page.getByRole('button',{name,exact:true});
+const active=()=>page.evaluate(()=>{const w=JSON.parse(localStorage.getItem('lookers-ai-project-core-v1'));return {project:w.projects.find(p=>p.id===w.currentProjectId),session:w.sessions[w.currentProjectId]};});
+const check=name=>{checks.push(name);console.log('PASS '+name);};
+const out='visual-qa-artifacts/tool-journeys';
+try {
+ await mkdir(out,{recursive:true});await server.listen();
+ await page.goto('http://localhost:5173/#/lookers-ai',{waitUntil:'networkidle'});
+ await button('AI tools').click();await page.locator('.lai-tool-directory').waitFor();
+ assert.equal(await page.getByRole('button',{name:'Use with Gamma',exact:true}).first().isDisabled(),true);
+ const categories=await page.locator('#ai-tool-category option').evaluateAll(opts=>opts.map(o=>o.value).filter(v=>v!=='all'));
+ assert.equal(categories.length,16);
+ for(const family of categories) {
+   await page.locator('#ai-tool-category').selectOption(family);
+   assert.ok(await page.locator('[data-tool-section="all"] .lai-tool-card').count(),family);
+ }
+ await button('All AI tools').click();assert.equal(await page.locator('[data-tool-section="all"] .lai-tool-card').count(),17);
+ await page.locator('#ai-tool-search').fill('NO_SUCH_TOOL');
+ await page.getByText('No matching tools.',{exact:false}).waitFor();
+ await button('All AI tools').click();check('All sixteen task families, search, empty state and task-first disabled use');
+ await button('Back to my project').click();
+ await button('Prompt Library').click();await button('All').click();
+ await page.getByLabel('Category',{exact:true}).selectOption('presentations');
+ assert.equal(await page.locator('.lai-library-card').count(),17);
+ await page.locator('.lai-library-card').filter({hasText:'Marketing plan presentation'}).getByRole('button',{name:'Customize & use',exact:true}).click();
+ await page.locator('#library-topic').fill('Confirmed marketing plan: Cairo team launch, no invented budget');
+ await page.locator('#library-audience').fill('Company leadership: approve channel priorities');
+ await page.locator('#library-slides').fill('10');
+ assert.equal(await page.locator('#library-tool').count(),0);
+ await button('Use prompt').click();await page.getByRole('heading',{name:'Add useful references',exact:true}).waitFor();
+ const created=await active();assert.equal(created.session.taskType,'presentation');assert.equal(created.project.engineId,'powerpoint');
+ assert.deepEqual(created.project.schema.targetTools,[]);const id=created.project.id;
+ await button('Continue').click();
+ assert.equal(await page.getByText('Which aspect ratio should be used?',{exact:true}).count(),0);
+ await page.locator('#lai-purpose').fill('Present the marketing plan for leadership approval');
+ await button('Review brief').click();await button('Create my prompt').click();
+ await page.getByRole('heading',{name:'Your prompt is ready',exact:true}).waitFor();
+ await page.getByText('AI was unavailable.',{exact:false}).waitFor();
+ const prompt=await page.getByRole('textbox',{name:'Your prompt',exact:true}).inputValue();
+ assert.ok(prompt.includes('Confirmed marketing plan')&&prompt.includes('Company leadership')&&prompt.includes('10'));
+ check('Original presentation template completes canonical Agent generation with a labelled offline result');
+ await button('Use with your tool').click();
+ const recommended=page.locator('[data-tool-section="recommended"]');
+ assert.deepEqual(await recommended.locator('.lai-tool-card').evaluateAll(cards=>cards.slice(0,4).map(c=>c.dataset.toolId)),['gamma','canva','powerpoint','beautiful-ai']);
+ await page.getByRole('heading',{name:'Tools suited to your presentation',exact:true}).waitFor();
+ for(const link of await page.locator('.lai-tool-directory a').all()) {
+   assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener noreferrer');
+   assert.ok((await link.getAttribute('href')).startsWith('https://'));
+ }
+ await recommended.getByRole('button',{name:'Use with Gamma',exact:true}).click();
+ await page.getByText('Ready to copy into Gamma.',{exact:false}).waitFor();
+ await page.locator('.lai-tool-selected').getByRole('button',{name:'Copy prompt',exact:true}).click();
+ assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),prompt);
+ assert.equal((await active()).session.generatedPrompt,prompt);assert.equal((await active()).project.id,id);
+ check('Business intent recommendation order, safe official URLs, selected handoff and exact unchanged clipboard');
+ await recommended.getByRole('button',{name:'About Gamma',exact:true}).click();
+ await page.getByRole('heading',{name:'Why might it matter to you?',exact:true}).waitFor();
+ await page.locator('.lai-tool-detail').getByRole('button',{name:'Use the prompt',exact:true}).click();
+ assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),prompt);
+ assert.equal((await active()).session.generatedPrompt,prompt);check('Tool detail use copies the general prompt without execution or mutation');
+ await page.reload({waitUntil:'networkidle'});assert.equal((await active()).project.id,id);
+ assert.equal((await active()).session.generatedPrompt,prompt);
+ await button('AR').click();await page.setViewportSize({width:390,height:844});
+ await button('استخدمه مع أداتك').click();
+ await page.getByRole('heading',{name:'أدوات مناسبة للعرض',exact:true}).waitFor();
+ await page.getByRole('heading',{name:'جديد في الـAI',exact:true}).waitFor();
+ await page.locator('[data-tool-section="recommended"]').getByRole('button',{name:'عن Gamma',exact:true}).click();
+ await page.getByRole('heading',{name:'ليه ممكن تهمك؟',exact:true}).waitFor();
+ assert.equal(await page.locator('.lookers-ai').getAttribute('dir'),'rtl');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+ check('Persisted presentation result and Arabic mobile directory, New in AI detail and no horizontal overflow');
+ assert.deepEqual(errors,[]);
+ await writeFile(out+'/report.json',JSON.stringify({checks,runtimeErrors:errors,paidInference:false},null,2));
+ console.log('Completed '+checks.length+' tool-directory browser checkpoints.');
+} catch(e) {
+ await writeFile(out+'/failure.json',JSON.stringify({checks,runtimeErrors:errors,error:String(e)},null,2));throw e;
+} finally {await context.close();await browser.close();await server.close();}

@@ -59,18 +59,18 @@ try {
   await page.goto('http://localhost:5173/#/lookers-ai', { waitUntil: 'networkidle' });
   assert.equal(await button('Start building').isDisabled(), true); check('Empty idea blocks starting');
   await button('Prompt Library').click(); await page.locator('.lai-library-card').first().waitFor();
-  await button('All').click(); assert.equal(await page.locator('.lai-library-card').count(), 8);
+  await button('All').click(); assert.equal(await page.locator('.lai-library-card').count(), 24);
   await page.getByLabel('Category', { exact: true }).selectOption('productivity');
   await page.getByText('No prompts match yet.', { exact: false }).waitFor(); await button('Clear filters').click();
-  await button('Trending · curated').click(); await page.getByText('Editorial picks, not popularity metrics.', { exact: true }).waitFor();
+  await button('Editorial picks').click(); await page.getByText('Editorial picks, not popularity metrics.', { exact: true }).waitFor();
   await page.getByRole('searchbox', { name: 'Search prompts' }).fill('product photo');
   await page.locator('.lai-library-card').getByRole('button', { name: 'Details', exact: true }).click();
   assert.equal(await button('Use prompt').isDisabled(), true);
   await page.locator('#library-product').fill('Confirmed amber bottle with approved cream label');
-  await page.locator('#library-tool').selectOption('Gemini'); await button('Use prompt').click();
+  assert.equal(await page.locator('#library-tool').count(), 0); await button('Use prompt').click();
   await heading('Add useful references').waitFor();
   const initial = await active(); const projectId = initial.project.id;
-  assert.equal(initial.project.schema.targetTools[0], 'Gemini'); assert.equal(initial.session.generatedPrompt, undefined);
+  assert.deepEqual(initial.project.schema.targetTools, []); assert.equal(initial.session.generatedPrompt, undefined);
   check('Library search, categories, curated picks, validation and customized project creation');
   await page.locator('input[type=file][multiple]').setInputFiles([
     { name: 'approved.txt', mimeType: 'text/plain', buffer: Buffer.from('APPROVED_REFERENCE: preserve the real cream label') },
@@ -93,7 +93,7 @@ try {
   await page.reload({ waitUntil: 'networkidle' }); assert.equal((await active()).project.id, projectId);
   assert.ok((await active()).session.generatedPrompt.endsWith('USER_REVIEWED'));
   check('Actual result, clipboard, exact Markdown download, edits and persistence');
-  await button('Use with your tool').click(); await button('Claude').click(); await page.getByText('Ready to copy into Claude.', { exact: false }).waitFor();
+  await button('Use with your tool').click(); await button('All AI tools').click(); await page.locator('[data-tool-section="all"] [data-tool-id="claude"]').getByRole('button', {name:'Use with Claude',exact:true}).click(); await page.getByText('Ready to copy into Claude.', { exact: false }).waitFor();
   await page.locator('#lai-external-reply').fill('USER_FEEDBACK: Keep the cream label unchanged.'); await button('Fix').click(); await button('Review next step').click();
   const continued = await active(); assert.equal(continued.project.id, projectId); assert.ok(continued.project.schema.context.includes('USER_FEEDBACK'));
   assert.equal(continued.project.schema.references.find(r => r.name === 'excluded.txt').included, false);

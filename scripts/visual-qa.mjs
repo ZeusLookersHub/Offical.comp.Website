@@ -83,7 +83,8 @@ try {
   await page.getByRole('textbox',{name:'Your prompt',exact:true}).fill(promptBefore+'\nUser-reviewed prompt wording.');
   await page.getByRole('button',{name:'Finish editing',exact:true}).click();
   await page.getByRole('button',{name:'Use with your tool',exact:true}).click();
-  await page.getByRole('button',{name:'Claude',exact:true}).click();
+  await page.getByRole('button',{name:'All AI tools',exact:true}).click();
+  await page.locator('[data-tool-section="all"] [data-tool-id="claude"]').getByRole('button',{name:'Use with Claude',exact:true}).click();
   await page.getByText('Ready to copy into Claude.',{exact:false}).waitFor();
   await page.locator('#lai-external-reply').fill('QA example response: packaging is distorted. Keep the original label.');
   await page.getByRole('button',{name:'Fix',exact:true}).click();
