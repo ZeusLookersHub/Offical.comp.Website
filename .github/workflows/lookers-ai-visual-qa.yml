@@ -20,6 +20,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: node scripts/visual-qa.mjs
+      - name: Real application user journeys (offline, no paid inference)
+        run: node scripts/user-journeys.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

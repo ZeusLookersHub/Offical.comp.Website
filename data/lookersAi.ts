@@ -24,6 +24,8 @@ export const taskTypes: { id: TaskType; title: { en: string; ar: string }; descr
 const option = (value: string, en: string, ar: string): Option => ({ value, en, ar });
 export const questions: Record<TaskType, Question[]> = {
   image: [
+    { id: 'subject', label: { en: 'What subject or product should appear?', ar: 'ما العنصر أو المنتج المطلوب ظهوره؟' }, kind: 'textarea', example: { en: 'Describe the actual subject, product or person.', ar: 'صِف العنصر أو المنتج أو الشخص الفعلي.' } },
+    { id: 'format', label: { en: 'Which aspect ratio should be used?', ar: 'ما نسبة أبعاد الصورة؟' }, kind: 'single', options: [option('1:1', 'Square · 1:1', 'مربع · 1:1'), option('4:5', 'Portrait · 4:5', 'رأسي · 4:5'), option('9:16', 'Story · 9:16', 'قصة · 9:16'), option('16:9', 'Landscape · 16:9', 'أفقي · 16:9')] },
     { id: 'action', label: { en: 'What should happen to the image?', ar: 'ما المطلوب في الصورة؟' }, kind: 'single', example: { en: 'Choose “Create a new image” for a new visual.', ar: 'اختر «إنشاء صورة جديدة» إذا كنت تريد تصميمًا جديدًا.' }, options: [
       option('create', 'Create a new image', 'إنشاء صورة جديدة'),
       option('rebuild', 'Rebuild a reference', 'إعادة بناء صورة مرجعية'),
@@ -164,6 +166,8 @@ export const compileLookersPrompt = (project: ProjectDraft, lang: Lang): string 
       analyze: { en: 'Analyze only', ar: 'تحليل فقط' }
     };
     sections.push('', ar ? '## وحدة الصورة' : '## Image module',
+      (ar ? 'العنصر أو المنتج: ' : 'Subject or product: ') + (readAnswer(a, 'subject') || (ar ? 'غير محدد' : 'Not specified')),
+      (ar ? 'نسبة الأبعاد: ' : 'Aspect ratio: ') + (readAnswer(a, 'format') || (ar ? 'غير محددة' : 'Not specified')),
       (ar ? 'الإجراء: ' : 'Action: ') + (actionNames[action]?.[lang] || (ar ? 'يُحدَّد حسب الهدف' : 'Choose based on the goal')),
       (ar ? 'الأسلوب: ' : 'Visual style: ') + (readAnswer(a, 'style') || (ar ? 'اقترح أسلوبًا مناسبًا واذكر سبب الاختيار' : 'Recommend a suitable style and explain the choice')),
       (ar ? 'الاستخدام: ' : 'Usage: ') + (readAnswer(a, 'usage') || (ar ? 'غير محدد' : 'Not specified')),

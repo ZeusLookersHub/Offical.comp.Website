@@ -67,6 +67,8 @@ const LookersAIPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generationNotice, setGenerationNotice] = useState('');
+  const [saved, setSaved] = useState(true);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [externalReply, setExternalReply] = useState('');
@@ -113,12 +115,12 @@ const LookersAIPage: React.FC = () => {
   const activeQuestion = completeness.fields[Math.min(questionIndex, Math.max(0, completeness.fields.length - 1))];
   useEffect(() => { setQuestionIndex(0); }, [current.taskType]);
   useEffect(() => { setQuestionIndex(index => Math.min(index, Math.max(0, completeness.fields.length - 1))); }, [completeness.fields.length]);
-  useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); setShowProjectContext(false); }, [current.id]);
+  useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); setShowProjectContext(false); setGenerationNotice(''); }, [current.id]);
 
   const commit = (next: UserProjectState) => {
     projectStateRef.current = next;
     setProjectState(next);
-    lookersAiProjectState.save(next, lang);
+    setSaved(lookersAiProjectState.save(next, lang));
   };
   const useLibraryDraft = (draft: ProjectDraft) => {
     const latest = projectStateRef.current;
@@ -150,16 +152,29 @@ const LookersAIPage: React.FC = () => {
   };
   const createPrompt = async () => {
     if (generationRef.current) return;
-    const controller = new AbortController(); generationRef.current = controller; setGenerating(true);
+    const controller = new AbortController(); generationRef.current = controller; setGenerating(true); setGenerationNotice('');
     const snapshot = structuredClone(projectStateRef.current.current);
     try {
       const result = await generateDraft(snapshot, lang, controller.signal);
       // Navigation or edits while waiting must not overwrite a newer brief.
       if (controller.signal.aborted || languageRef.current !== lang || JSON.stringify(projectStateRef.current.current) !== JSON.stringify(snapshot)) return;
-      if (result.agent.decision.action !== 'complete') return;
+      if (result.agent.error || result.agent.decision.action !== 'complete' || result.enhancement.status !== 'ready') {
+        const field = result.agent.questionState?.question?.field;
+        const label = result.agent.questionState?.question?.label[lang];
+        setGenerationNotice(label ? copy(lang, 'Please answer: ', 'يرجى الإجابة: ') + label : copy(lang, 'Please review your project details before generating.', 'راجع تفاصيل مشروعك قبل إنشاء البرومبت.'));
+        setStage(field === 'intent' ? 'home' : 'details');
+        const aliases: Record<string, string> = { 'details.aspectRatio': 'format', 'details.businessFacts': 'product', 'details.exactText': 'imageText' };
+        const id = field && (aliases[field] || field.replace('details.', ''));
+        const index = questions[snapshot.taskType].findIndex(question => question.id === id);
+        if (index >= 0) setQuestionIndex(index);
+        return;
+      }
       patchCurrent({ step: 'result', generatedPrompt: result.prompt }, `prompt_generated_${result.source}`);
       setTab('prompt');
-    } catch { /* Cancelled requests never replace the current project. */ }
+    } catch {
+      if (!controller.signal.aborted && languageRef.current === lang && JSON.stringify(projectStateRef.current.current) === JSON.stringify(snapshot))
+        setGenerationNotice(copy(lang, 'Please review your project details before generating.', 'راجع تفاصيل مشروعك قبل إنشاء البرومبت.'));
+    }
     finally { if (generationRef.current === controller) { generationRef.current = null; setGenerating(false); } }
   };
 
@@ -392,7 +407,7 @@ const LookersAIPage: React.FC = () => {
             <span>LookersHub</span>
             <b>AI</b>
           </div>
-          <div className="lai-bar-actions"><button type="button" className="lai-secondary-button" aria-expanded={showLibrary} onClick={() => setShowLibrary(value => !value)}>{copy(lang, 'Prompt Library', 'مكتبة البرومبت')}</button><span className="lai-autosave-status"><CheckCircle2 size={14} />{copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز')}</span></div>
+          <div className="lai-bar-actions"><button type="button" className="lai-secondary-button" aria-expanded={showLibrary} onClick={() => setShowLibrary(value => !value)}>{copy(lang, 'Prompt Library', 'مكتبة البرومبت')}</button><span className="lai-autosave-status" role="status"><CheckCircle2 size={14} />{saved ? copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز') : copy(lang, 'Could not save on this device. Export your project before leaving.', 'تعذر الحفظ على هذا الجهاز. صدّر مشروعك قبل المغادرة.')}</span></div>
         </div>
 
         <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
@@ -412,6 +427,7 @@ const LookersAIPage: React.FC = () => {
 
         <div className="lai-workspace">
         <div className="lookers-ai__main">
+          {generationNotice && <p className="lai-notice" role="alert">{generationNotice}</p>}
           {stage === 'home' && (
             <section className="lai-card lai-brief-card">
               <div className="lai-card-heading">
@@ -567,7 +583,7 @@ const LookersAIPage: React.FC = () => {
               <div className="lai-result-heading">
                 <div className="lai-result-mark"><Sparkles size={21} /></div>
                 <div><h2>{copy(lang, 'Your prompt is ready', 'الـPrompt جاهز')}</h2>
-                  <p>{copy(lang, 'It is saved with this project on this device.', 'تم حفظه مع المشروع على هذا الجهاز.')}</p></div>
+                  <p>{saved ? copy(lang, 'It is saved with this project on this device.', 'تم حفظه مع المشروع على هذا الجهاز.') : copy(lang, 'Keep a copy or export your project before leaving.', 'احتفظ بنسخة أو صدّر مشروعك قبل المغادرة.')}</p></div>
               </div>
               {current.activity.findLast(entry => entry.action.startsWith('prompt_generated_'))?.action === 'prompt_generated_local' && <div className="lai-notice" role="status">
                 {copy(lang, 'AI was unavailable. This is the local draft based on your supplied details.', 'تعذر اتصال الذكاء الاصطناعي. هذه مسودة محلية مبنية على التفاصيل التي أدخلتها.')}
@@ -670,7 +686,7 @@ const LookersAIPage: React.FC = () => {
         </div>
         {projectState.archived.length > 0 && <details className="lai-advanced lai-history"><summary>{copy(lang, 'Saved projects on this device', 'مشاريع محفوظة على هذا الجهاز')} · {projectState.archived.length}</summary><div className="lai-history-grid">{projectState.archived.map(project => <button type="button" className="lai-secondary-button" key={project.id} onClick={() => restoreProject(project.id)}><span>{project.title || copy(lang, 'Untitled project', 'مشروع بلا عنوان')}</span><small>{new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')}</small></button>)}</div></details>}
         </>}
-        <footer className="lookers-ai__footer"><span>{copy(lang, 'Your draft is saved privately on this device.', 'تُحفظ مسودتك بشكل خاص على هذا الجهاز.')}</span></footer>
+        <footer className="lookers-ai__footer"><span>{saved ? copy(lang, 'Your draft is saved privately on this device.', 'تُحفظ مسودتك بشكل خاص على هذا الجهاز.') : copy(lang, 'Your draft is in memory only. Export it before leaving.', 'مسودتك في الذاكرة فقط. صدّرها قبل المغادرة.')}</span></footer>
       </div>
       <input ref={uploadRef} hidden type="file" multiple accept="image/*,.txt,.md,.csv,.tsv,.json,.pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ''; }} />
       <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={(event) => void importProject(event.target.files?.[0])} />

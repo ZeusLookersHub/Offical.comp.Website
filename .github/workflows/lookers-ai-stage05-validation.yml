@@ -40,5 +40,7 @@ jobs:
         run: npm run test:ui
       - name: Prompt Library regression (offline)
         run: npm run test:library
+      - name: Application Agent gate regression (offline)
+        run: npm run test:application
       - name: Production build
         run: npm run build

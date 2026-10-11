@@ -12,7 +12,7 @@ const CORE_STORAGE_KEY = "lookers-ai-project-core-v1";
 const STORAGE_KEY = "lookers-ai-project-state-v1";
 const LEGACY_STORAGE_KEY = "lookers-ai-memory-v1";
 
-const browserStorage = () => typeof window === "undefined" ? undefined : window.localStorage;
+const browserStorage = () => { try { return typeof window === "undefined" ? undefined : window.localStorage; } catch { return undefined; } };
 const repository = new LocalStorageProjectRepository(browserStorage, CORE_STORAGE_KEY);
 const manager = new ProjectStateManager(repository);
 

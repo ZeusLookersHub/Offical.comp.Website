@@ -54,6 +54,10 @@ try {
   await page.getByRole('button',{name:'Continue',exact:true}).click();
   await page.locator('#lai-purpose').fill('A premium portrait Instagram campaign image, with faithful packaging.');
   await shot('02-desktop-workspace','Workspace','.lai-card');
+  await page.locator('#lai-subject').fill('A premium skincare bottle on charcoal stone');
+  await page.getByRole('button',{name:'Next question',exact:true}).click();
+  await page.getByRole('button',{name:'Portrait · 4:5',exact:true}).click();
+  await page.getByRole('button',{name:'Next question',exact:true}).click();
   const question = page.locator('.lai-task-questions');
   const option = question.locator('.lai-option').first();
   if (await option.count()) await option.click();
