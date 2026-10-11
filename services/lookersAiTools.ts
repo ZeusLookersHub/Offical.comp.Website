@@ -45,7 +45,7 @@ export function deriveToolContext(draft: ProjectDraft): ToolContext {
     draft.taskType==='image' ? 'images' : draft.taskType==='dashboard' ? 'data' :
     draft.taskType==='campaign' ? 'marketing' : rules.find(([,pattern])=>pattern.test(text))?.[0] || 'writing';
   const outputFamily = rules.slice(0,3).find(([,pattern])=>pattern.test(desiredOutput))?.[0];
-  const modality = outputFamily ? defaultModality[outputFamily] : defaultModality[taskType];
+  const modality = taskType==='presentation' ? 'presentation' : outputFamily ? defaultModality[outputFamily] : defaultModality[taskType];
   const preferredTools = answer(draft,'tools').split(/[,\n]/).map(t=>t.trim()).filter(Boolean);
   let presentationIntent: ToolContext['presentationIntent'];
   if(taskType==='presentation') {
@@ -76,7 +76,10 @@ export function rankTools(context: ToolContext, catalog: readonly AITool[] = aiT
       const fit = order.indexOf(tool.id);
       const preferred = context.preferredTools.some(p=>p.toLocaleLowerCase()===tool.id.toLocaleLowerCase()||p.toLocaleLowerCase()===tool.name.toLocaleLowerCase());
       const outputFit = fit>=0 ? (order.length-fit)*20 : 0;
-      return {tool,index,score:100 + outputFit + (tool.modality.includes(context.modality)?80:0) +
+      const outputFormatFit = (/powerpoint|pptx/i.test(context.desiredOutput) && tool.capabilities.includes('powerpoint-workflow') ||
+        /google slides/i.test(context.desiredOutput) && tool.capabilities.includes('google-workflow') ||
+        /notion/i.test(context.desiredOutput) && tool.capabilities.includes('notion-workflow')) ? 100 : 0;
+      return {tool,index,score:100 + outputFit + outputFormatFit + (tool.modality.includes(context.modality)?80:0) +
         context.capabilities.filter(c=>tool.capabilities.includes(c)).length*12 +
         (preferred?150:0) + (tool.featured?6:0) + (tool.curated?3:0)};
     }).sort((a,b)=>b.score-a.score||a.index-b.index).map(({tool})=>tool);

@@ -43,3 +43,5 @@ Add a verified tool object in `data/aiTools.ts`, assign official URL, supported 
 ## Validation
 
 `npm run test:tools` checks all families, contextual presentation orders, user preferences, modality/output matching, freshness boundaries, safe URLs, bilingual rendering and all 16 original templates through the existing Agent gate. `npm run test:tool-journeys` runs actual React browser flows including template creation, generation with a disclosed offline fallback, recommendations, tool details, exact clipboard handoff, persistence and Arabic mobile layout. Existing regressions and browser journeys remain required. Public deployment stays manual and is never dispatched by this change.
+
+Additional verified capability evidence for Gemini file/data analysis: https://support.google.com/gemini/answer/14903178

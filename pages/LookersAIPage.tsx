@@ -117,7 +117,7 @@ const LookersAIPage: React.FC = () => {
   const activeQuestion = completeness.fields[Math.min(questionIndex, Math.max(0, completeness.fields.length - 1))];
   useEffect(() => { setQuestionIndex(0); }, [current.taskType]);
   useEffect(() => { setQuestionIndex(index => Math.min(index, Math.max(0, completeness.fields.length - 1))); }, [completeness.fields.length]);
-  useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); setShowProjectContext(false); setGenerationNotice(''); }, [current.id]);
+  useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); setHandoffTool(''); setShowProjectContext(false); setGenerationNotice(''); }, [current.id]);
 
   const commit = (next: UserProjectState) => {
     projectStateRef.current = next;

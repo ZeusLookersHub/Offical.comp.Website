@@ -47,6 +47,8 @@ test('output, modality, capabilities and explicit preferences affect task fit',(
  assert.equal(deriveToolContext(d).modality,'video');assert.equal(rankTools(deriveToolContext(d))[0].id,'runway');
  d.taskType='presentation';d.answers={idea:'Pitch deck',purpose:'Presentation',presentationType:'pitch',tools:'Prezi'};
  assert.equal(rankTools(deriveToolContext(d))[0].id,'prezi');
+ d.answers={idea:'Business presentation',purpose:'Editable PowerPoint PPTX',presentationType:'business'};
+ assert.equal(rankTools(deriveToolContext(d))[0].id,'powerpoint');
  d.taskType='general';d.answers={idea:'Create a song',purpose:'Music'};
  assert.equal(rankTools(deriveToolContext(d))[0].id,'suno');
  d.answers={idea:'Debug code',purpose:'Working code'};

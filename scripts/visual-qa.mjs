@@ -127,7 +127,7 @@ try {
   await page.getByRole('searchbox',{name:'Search prompts'}).fill('zzzz no match');
   await page.getByText('No prompts match yet.',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Clear filters',exact:true}).click();
-  await page.getByRole('button',{name:'Trending · curated',exact:true}).click();
+  await page.getByRole('button',{name:'Editorial picks',exact:true}).click();
   await page.getByText('Editorial picks, not popularity metrics.',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Back to my project',exact:true}).click();
   await page.getByRole('heading',{name:'A few details for a stronger result',exact:true}).waitFor();

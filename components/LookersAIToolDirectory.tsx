@@ -13,6 +13,7 @@ export default function LookersAIToolDirectory({lang,draft,selectedTool='',onUse
   const t=(en:string,ar:string)=>lang==='ar'?ar:en;
   const [query,setQuery]=useState(''),[category,setCategory]=useState('all'),[browse,setBrowse]=useState(false),[detail,setDetail]=useState<AITool|null>(null);
   const context=deriveToolContext(draft);
+  context.preferredTools=[...new Set([...context.preferredTools,selectedTool].filter(Boolean))];
   const recommended=rankTools(context).slice(0,5);
   const fresh=newInAITools();
   const canUse=Boolean(draft.generatedPrompt);
@@ -25,7 +26,7 @@ export default function LookersAIToolDirectory({lang,draft,selectedTool='',onUse
   const card=(tool:AITool)=>{
     const Icon=icons[tool.iconKey]||Sparkles;
     return <article key={tool.id} className={'lai-library-card lai-tool-card'+(selectedTool===tool.name?' is-selected':'')} data-tool-id={tool.id}>
-      <div className="lai-tool-card-top"><Icon size={20} aria-hidden="true"/>{isNewInAI(tool)&&<span className="lai-new-badge">{tool.newLabel[lang]}</span>}</div>
+      <div className="lai-tool-card-top"><Icon size={20} aria-hidden="true"/>{isNewInAI(tool)&&<span className="lai-new-badge" title={tool.newLabel[lang]}>{t('NEW','جديد')}</span>}</div>
       <h4>{tool.name}</h4><p>{tool.description[lang]}</p>
       <small>{toolCategories.find(c=>c.id===tool.category)?.label[lang]}</small>
       <div className="lai-library-card-actions">
@@ -46,7 +47,7 @@ export default function LookersAIToolDirectory({lang,draft,selectedTool='',onUse
       <button type="button" className="lai-primary-button" onClick={onCopy}>{t('Copy prompt','انسخ الـPrompt')}</button></div>}
     {detail&&<section className="lai-tool-detail" aria-label={t('Tool details','تفاصيل الأداة')}>
       <button type="button" className="lai-tool-detail-button" onClick={()=>setDetail(null)}>{t('Close details','اقفل التفاصيل')}</button>
-      {isNewInAI(detail)&&<span className="lai-new-badge">{detail.newLabel[lang]}</span>}
+      {isNewInAI(detail)&&<span className="lai-new-badge" title={detail.newLabel[lang]}>{t('NEW','جديد')}</span>}
       <h3>{detail.name}</h3><h4>{t('Why might it matter to you?','ليه ممكن تهمك؟')}</h4><p>{detail.description[lang]}</p>
       <b>{t('Suitable for:','مناسبة لـ:')}</b><p>{detail.supportedTaskTypes.map(id=>toolCategories.find(c=>c.id===id)?.label[lang]).join(' · ')}</p>
       <div className="lai-library-card-actions"><button type="button" className="lai-primary-button" disabled={!canUse}
