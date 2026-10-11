@@ -36,5 +36,7 @@ jobs:
         run: npm run test:stage05
       - name: Bundle tracked Edge Function source
         run: npm run build:ai-function
+      - name: Lookers AI UI render regression (offline, no live inference)
+        run: npm run test:ui
       - name: Production build
         run: npm run build
