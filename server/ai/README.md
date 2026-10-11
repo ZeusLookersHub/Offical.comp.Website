@@ -24,9 +24,12 @@ The original AIRequest, AIResponse and AIProvider contracts are retained in
   fallback remain in effect. Reasoning sees only the existing minimal request,
   not canonical project facts or references. It cannot write state.
 - `services/lookersAiAgentReasoner.ts` is a provider-neutral application bridge
-  for an injected authenticated transport. It does not initialize auth or make
-  direct provider calls. The existing First Draft UI is preserved; enabling an
-  authenticated transport in a UI is a separate application wiring choice.
+  for an injected authenticated transport. `lookersAiTransport.ts` supplies the
+  shared Supabase boundary, with anonymous Auth and no sign-in UI. The existing
+  First Draft button invokes generation through `lookersAiGeneration.ts`, shows
+  the saved AI result, and clearly labels a local fallback when unavailable.
+  Canonical answers remain unchanged; cancelled or stale results are discarded.
+  The public Supabase publishable key is client configuration, not a provider key.
 
 ## Real HTTP contract and additive operation
 

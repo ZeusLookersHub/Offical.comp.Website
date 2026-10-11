@@ -8,6 +8,9 @@ import { createServerAILayer } from '../server/ai/bootstrap';
 import { createAIHandler } from '../server/ai/handler';
 import { validAIResponse } from '../server/ai/validation';
 import { createAgentReasoner } from '../services/lookersAiAgentReasoner';
+import { createDraftGenerator } from '../services/lookersAiGeneration';
+import { createAnonymousAITransport } from '../services/lookersAiTransport';
+import { createProjectDraft, compileLookersPrompt } from '../data/lookersAi';
 import { validateEnhancement } from '../core/enhancement';
 import { Agent, AgentToolRegistry } from '../core/agent';
 import type { AgentReasoningRequest } from '../core/agent/types';
@@ -252,4 +255,45 @@ test('business modules and frontend imports have no provider or server dependenc
   for (const file of files('core')) assert.ok(!/deepseek|openrouter|DEEPSEEK_API_KEY|api\.deepseek|server\/ai/i.test(readFileSync(file, 'utf8')), file);
   for (const file of ['services', 'pages', 'components', 'data'].flatMap(files))
     assert.ok(!/DEEPSEEK_API_KEY|api\.deepseek|from\s+['"][^'"]*server\/ai/.test(readFileSync(file, 'utf8')), file);
+});
+test('First Draft generation uses the existing authenticated HTTP contract and preserves user data', async () => {
+  const draft = createProjectDraft(); draft.answers.idea = 'Translate supplied text'; const before = structuredClone(draft);
+  const c = new AbortController();
+  const generate = createDraftGenerator(async (body, signal) => {
+    assert.deepEqual(body, { prompt: compileLookersPrompt(draft, 'en'), language: 'en' }); assert.equal(signal, c.signal);
+    return { data: { id: 'result', output, provenance: { providerId: 'mock', modelId: 'test' } }, identity: { userId: 'anonymous', isAnonymous: true } };
+  });
+  assert.deepEqual(await generate(draft, 'en', c.signal), { prompt: output.prompt, source: 'ai' });
+  assert.deepEqual(draft, before);
+});
+test('First Draft generation uses an explicit local fallback for unavailable or malformed AI', async () => {
+  const draft = createProjectDraft(); draft.answers.idea = 'Supplied request';
+  for (const result of [null, { error: 'provider_timeout' }, { data: { output: { prompt: 'Injected incomplete output' } } }])
+    assert.deepEqual(await createDraftGenerator(async () => result)(draft, 'ar', new AbortController().signal),
+      { prompt: compileLookersPrompt(draft, 'ar'), source: 'local' });
+  assert.equal((await createDraftGenerator(async () => { throw new Error('private detail'); })(draft, 'en', new AbortController().signal)).source, 'local');
+});
+test('cancelled and oversized First Draft requests never trigger inference', async () => {
+  const draft = createProjectDraft(); const c = new AbortController(); c.abort(); let calls = 0;
+  const generate = createDraftGenerator(async () => { calls++; return null; });
+  await assert.rejects(generate(draft, 'en', c.signal), /aborted/);
+  draft.answers.idea = 'x'.repeat(15000);
+  assert.equal((await generate(draft, 'en', new AbortController().signal)).source, 'local'); assert.equal(calls, 0);
+});
+test('shared transport reuses anonymous sessions and never creates email/password sign-ins', async () => {
+  let signups = 0; let invoked = 0; let session: unknown = null;
+  const transport = createAnonymousAITransport(() => ({ auth: {
+    getSession: async () => ({ data: { session }, error: null }),
+    signInAnonymously: async () => { signups++; session = { user: { is_anonymous: true } }; return { data: { session }, error: null }; },
+  }, functions: { invoke: async (name, options) => { invoked++; assert.equal(name, 'lookers-ai-generate'); assert.deepEqual(options.body, { prompt: 'Request' }); assert.ok(options.signal instanceof AbortSignal); return { data: { result: 'ok' }, error: null }; } } } as never));
+  for (let i = 0; i < 2; i++) assert.deepEqual(await transport({ prompt: 'Request' }, new AbortController().signal), { result: 'ok' });
+  assert.equal(signups, 1); assert.equal(invoked, 2);
+});
+test('nonanonymous and cancelled identities never invoke the AI function', async () => {
+  let invoked = false;
+  const transport = createAnonymousAITransport(() => ({ auth: {
+    getSession: async () => ({ data: { session: { user: { is_anonymous: false } } }, error: null }),
+  }, functions: { invoke: async () => { invoked = true; } } } as never));
+  await assert.rejects(transport({}, new AbortController().signal), /ai_unavailable/);
+  const c = new AbortController(); c.abort(); await assert.rejects(transport({}, c.signal)); assert.equal(invoked, false);
 });

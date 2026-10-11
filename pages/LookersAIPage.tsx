@@ -10,6 +10,8 @@ import { useLanguage } from '../LanguageContext';
 import BrandMark from '../components/BrandMark';
 import { lookersAiProjectState } from '../services/lookersAiProjectState';
 import { planDraftQuestions } from '../services/lookersAiQuestions';
+import { createDraftGenerator } from '../services/lookersAiGeneration';
+import { lookersAiTransport } from '../services/lookersAiTransport';
 import {
   compileLookersPrompt, createProjectDraft, detectTaskType,
   questions, taskTypes, type ProjectAttachment, type Lang, type UserProjectState,
@@ -20,6 +22,7 @@ import './LookersAIPage.css';
 const stages = ['home', 'files', 'details', 'review', 'result'] as const;
 type Stage = typeof stages[number];
 type Tab = 'prompt' | 'summary';
+const generateDraft = createDraftGenerator(lookersAiTransport);
 
 const copy = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
 const toDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -62,12 +65,16 @@ const LookersAIPage: React.FC = () => {
   const [tab, setTab] = useState<Tab>('prompt');
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const generationRef = useRef<AbortController | null>(null);
+  const languageRef = useRef(lang); languageRef.current = lang;
+  useEffect(() => () => { generationRef.current?.abort(); generationRef.current = null; }, []);
   const uploadRef = useRef<HTMLInputElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
   const current = projectState.current;
   const answers = current.answers;
   const stage = current.step;
-  const prompt = useMemo(() => compileLookersPrompt(current, lang), [current, lang]);
+  const prompt = useMemo(() => current.generatedPrompt || compileLookersPrompt(current, lang), [current, lang]);
   const reviewRows = [
     { id: 'idea', label: copy(lang, 'Idea', 'الفكرة'), value: String(answers.idea || ''), step: 'home' as Stage },
     { id: 'task-type', label: copy(lang, 'Task type', 'نوع المهمة'), value: taskTypes.find((item) => item.id === current.taskType)?.title[lang] || '', step: 'details' as Stage },
@@ -103,7 +110,8 @@ const LookersAIPage: React.FC = () => {
   const patchCurrent = (patch: Partial<ProjectDraft>, action?: string) => {
     const now = new Date().toISOString();
     const latest = projectStateRef.current;
-    const project = { ...latest.current, ...patch, updatedAt: now };
+    const invalidatesResult = ['answers', 'taskType', 'attachments'].some(key => Object.hasOwn(patch, key));
+    const project = { ...latest.current, ...(invalidatesResult ? { generatedPrompt: undefined } : {}), ...patch, updatedAt: now };
     if (action) project.activity = [...project.activity, { at: now, action }].slice(-250);
     commit({ ...latest, current: project });
   };
@@ -118,6 +126,19 @@ const LookersAIPage: React.FC = () => {
   };
   const setTask = (taskType: TaskType) => {
     patchCurrent({ taskType }, `task_type_${taskType}`);
+  };
+  const createPrompt = async () => {
+    if (generationRef.current) return;
+    const controller = new AbortController(); generationRef.current = controller; setGenerating(true);
+    const snapshot = structuredClone(projectStateRef.current.current);
+    try {
+      const result = await generateDraft(snapshot, lang, controller.signal);
+      // Navigation or edits while waiting must not overwrite a newer brief.
+      if (controller.signal.aborted || languageRef.current !== lang || JSON.stringify(projectStateRef.current.current) !== JSON.stringify(snapshot)) return;
+      patchCurrent({ step: 'result', generatedPrompt: result.prompt }, `prompt_generated_${result.source}`);
+      setTab('prompt');
+    } catch { /* Cancelled requests never replace the current project. */ }
+    finally { if (generationRef.current === controller) { generationRef.current = null; setGenerating(false); } }
   };
 
   const addFiles = async (fileList: FileList | File[]) => {
@@ -501,8 +522,8 @@ const LookersAIPage: React.FC = () => {
               </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('details')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
-                <button type="button" className="lai-primary-button" onClick={() => { patchCurrent({ step: 'result', generatedPrompt: prompt }, 'prompt_generated'); setTab('prompt'); }}>
-                  <Sparkles size={16} />{copy(lang, 'Create my prompt', 'أنشئ الـPrompt')}
+                <button type="button" className="lai-primary-button" disabled={generating || busy} onClick={() => void createPrompt()}>
+                  {generating ? <LoaderCircle size={16} /> : <Sparkles size={16} />}{generating ? copy(lang, 'Preparing your result…', 'جارٍ تجهيز النتيجة…') : copy(lang, 'Create my prompt', 'أنشئ الـPrompt')}
                 </button>
               </div>
             </section>
@@ -515,6 +536,9 @@ const LookersAIPage: React.FC = () => {
                 <div><h2>{copy(lang, 'Your prompt is ready', 'الـPrompt جاهز')}</h2>
                   <p>{copy(lang, 'It is saved with this project on this device.', 'تم حفظه مع المشروع على هذا الجهاز.')}</p></div>
               </div>
+              {current.activity.at(-1)?.action === 'prompt_generated_local' && <div className="lai-notice" role="status">
+                {copy(lang, 'AI was unavailable. This is the local draft based on your supplied details.', 'تعذر اتصال الذكاء الاصطناعي. هذه مسودة محلية مبنية على التفاصيل التي أدخلتها.')}
+              </div>}
               <div className="lai-tabs" role="tablist" aria-label={copy(lang, 'Result views', 'طرق عرض النتيجة')}>
                 {(['prompt', 'summary'] as Tab[]).map((item) => <button key={item} type="button" role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>
                   {item === 'prompt' ? 'Prompt' : copy(lang, 'Project summary', 'ملخص المشروع')}
