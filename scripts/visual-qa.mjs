@@ -83,7 +83,8 @@ try {
   await page.getByRole('textbox',{name:'Your prompt',exact:true}).fill(promptBefore+'\nUser-reviewed prompt wording.');
   await page.getByRole('button',{name:'Finish editing',exact:true}).click();
   await page.getByRole('button',{name:'Use with your tool',exact:true}).click();
-  await page.getByRole('button',{name:'Claude',exact:true}).click();
+  await page.getByRole('button',{name:'All AI tools',exact:true}).click();
+  await page.locator('[data-tool-section="all"] [data-tool-id="claude"]').getByRole('button',{name:'Use with Claude',exact:true}).click();
   await page.getByText('Ready to copy into Claude.',{exact:false}).waitFor();
   await page.locator('#lai-external-reply').fill('QA example response: packaging is distorted. Keep the original label.');
   await page.getByRole('button',{name:'Fix',exact:true}).click();
@@ -126,7 +127,7 @@ try {
   await page.getByRole('searchbox',{name:'Search prompts'}).fill('zzzz no match');
   await page.getByText('No prompts match yet.',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Clear filters',exact:true}).click();
-  await page.getByRole('button',{name:'Trending · curated',exact:true}).click();
+  await page.getByRole('button',{name:'Editorial picks',exact:true}).click();
   await page.getByText('Editorial picks, not popularity metrics.',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Back to my project',exact:true}).click();
   await page.getByRole('heading',{name:'A few details for a stronger result',exact:true}).waitFor();

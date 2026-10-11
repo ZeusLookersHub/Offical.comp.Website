@@ -31,6 +31,7 @@ export function createApplicationGenerator(transport: AgentAITransport) {
         user('details.exactText', snapshot.answers.imageText);
       }
     }
+    if (snapshot.taskType === 'presentation') user('details.slideCount', snapshot.answers.slideCount);
     if (snapshot.taskType === 'campaign') user('details.businessFacts', snapshot.answers.product);
     const questionSession = { projectId: project.id, engineId: project.engineId, fields };
     const enhancement = validateEnhancement(project, questionSession);

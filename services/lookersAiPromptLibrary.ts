@@ -1,12 +1,13 @@
 import { createProjectDraft, type Lang, type ProjectDraft } from '../data/lookersAi';
+import { aiTools } from '../data/aiTools';
 import type { PromptTemplate } from '../data/promptLibrary';
 import { projectFromDraft } from './lookersAiProjectState';
 import { dataOnly, exact } from '../core/agent/validation';
 import { validateProject } from '../core/projects/validation';
 
-const bindings = new Set(['subject','usage','product','audience','outcome','decisions','dataSource']);
-const tasks = new Set(['image','campaign','dashboard','general']);
-const tools = new Set(['ChatGPT','Claude','Gemini','Midjourney','Runway','Other']);
+const bindings = new Set(['subject','usage','product','audience','outcome','decisions','dataSource','presentationType','slideCount','visualStyle','brandGuidelines','dataAvailability','speakerNotes','presentationFormat']);
+const tasks = new Set(['image','campaign','dashboard','presentation','general']);
+const tools = new Set([...aiTools.filter(t=>t.active).map(t=>t.name),'Other']);
 const plain = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && (Object.getPrototypeOf(v) === Object.prototype || Object.getPrototypeOf(v) === null);
 const localized = (v: unknown) => plain(v) && ['en','ar'].every(k => typeof v[k] === 'string' && (v[k] as string).trim().length > 0 && (v[k] as string).length < 5000);
 export function validPromptTemplate(raw: unknown): raw is PromptTemplate {
@@ -28,8 +29,8 @@ export async function loadPromptLibrary() {
   if (!catalog.promptTemplates.every(validPromptTemplate) || new Set(catalog.promptTemplates.map(t=>t.id)).size !== catalog.promptTemplates.length) throw new Error('invalid_catalog');
   return catalog;
 }
-export function initializeLibraryDraft(template: PromptTemplate, values: Record<string,string>, language: Lang, tool: string): ProjectDraft {
-  if (!validPromptTemplate(template) || !dataOnly(values) || !plain(values) || !template.tools.includes(tool) ||
+export function initializeLibraryDraft(template: PromptTemplate, values: Record<string,string>, language: Lang, tool: string = ''): ProjectDraft {
+  if (!validPromptTemplate(template) || !dataOnly(values) || !plain(values) || (tool !== '' && !template.tools.includes(tool)) ||
     Object.keys(values).some(k=>!template.inputs.some(i=>i.id===k)) || template.inputs.some(i=>i.required && !values[i.id]?.trim()) ||
     Object.values(values).some(v=>typeof v !== 'string' || v.length > 1500)) throw new Error('invalid_library_inputs');
   const render = (pair: Record<Lang,string>) => pair[language].replace(/\{\{([^}]+)\}\}/g, (_,id:string)=>values[id]?.trim() || '');

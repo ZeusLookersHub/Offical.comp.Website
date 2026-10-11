@@ -397,3 +397,21 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
   .lai-library-heading h2,.lai-library-detail h3{font-size:18px;}
   .lai-library-card{padding:16px;}.lai-library-detail>.lai-primary-button{width:100%;}
 }
+
+/* Universal task directory: keep the established card and gold accent language. */
+.lai-tool-directory { min-width: 0; }
+.lai-tool-directory > section { margin-block-start: 1.5rem; }
+.lai-tool-directory h3 { margin-block: 0 0.65rem; }
+.lai-tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; margin-block: 0.8rem; }
+.lai-tool-card { min-width: 0; overflow-wrap: anywhere; }
+.lai-tool-card h4 { margin: 0.25rem 0; font-size: 1rem; }
+.lai-tool-card.is-selected { border-color: var(--lai-gold, #bd9d61); }
+.lai-tool-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.lai-new-badge { display: inline-flex; border: 1px solid rgba(189,157,97,.4); border-radius: 999px; padding: .18rem .5rem; font-size: .7rem; color: #bd9d61; }
+.lai-tool-card .lai-library-card-actions { flex-wrap: wrap; }
+.lai-tool-card a { text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; }
+.lai-tool-detail-button { color: inherit; background: transparent; border: 0; cursor: pointer; padding: .4rem .15rem; text-decoration: underline; }
+.lai-tool-detail, .lai-tool-selected { padding: 1rem; border: 1px solid rgba(189,157,97,.3); border-radius: 14px; margin-block: 1rem; }
+.lai-tool-detail .lai-library-card-actions { flex-wrap: wrap; }
+.lai-bar-actions { flex-wrap: wrap; }
+@media (max-width: 620px) { .lai-tool-grid { grid-template-columns: minmax(0, 1fr); } }

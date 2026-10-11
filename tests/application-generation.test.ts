@@ -39,7 +39,7 @@ test('missing subject, ratio or objective asks for real input and makes zero pro
     assert.equal(calls, 0); assert.equal(result.source, 'local');
   }
 });
-test('all eight bilingual templates use the same Agent gate, retaining overrides and tool choice', async () => {
+test('all bilingual templates use the same Agent gate, retaining overrides and tool choice', async () => {
   for (const template of promptTemplates) for (const lang of ['en', 'ar'] as const) {
     const draft = initializeLibraryDraft(template, Object.fromEntries(template.inputs.map(i => [i.id, 'Verified user input'])), lang, template.tools[0]);
     if (draft.taskType === 'image') draft.answers.format = '1:1';
