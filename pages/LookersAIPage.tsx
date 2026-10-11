@@ -11,7 +11,7 @@ import BrandMark from '../components/BrandMark';
 import LookersPromptLibrary from '../components/LookersPromptLibrary';
 import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProjectState';
 import { planDraftQuestions } from '../services/lookersAiQuestions';
-import { createDraftGenerator } from '../services/lookersAiGeneration';
+import { createApplicationGenerator } from '../services/lookersAiApplicationGeneration';
 import { lookersAiTransport } from '../services/lookersAiTransport';
 import {
   compileLookersPrompt, createProjectDraft, detectTaskType,
@@ -23,7 +23,7 @@ import './LookersAIPage.css';
 const stages = ['home', 'files', 'details', 'review', 'result'] as const;
 type Stage = typeof stages[number];
 type Tab = 'prompt' | 'summary';
-const generateDraft = createDraftGenerator(lookersAiTransport);
+const generateDraft = createApplicationGenerator(lookersAiTransport);
 
 const copy = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
 const toDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -156,6 +156,7 @@ const LookersAIPage: React.FC = () => {
       const result = await generateDraft(snapshot, lang, controller.signal);
       // Navigation or edits while waiting must not overwrite a newer brief.
       if (controller.signal.aborted || languageRef.current !== lang || JSON.stringify(projectStateRef.current.current) !== JSON.stringify(snapshot)) return;
+      if (result.agent.decision.action !== 'complete') return;
       patchCurrent({ step: 'result', generatedPrompt: result.prompt }, `prompt_generated_${result.source}`);
       setTab('prompt');
     } catch { /* Cancelled requests never replace the current project. */ }
