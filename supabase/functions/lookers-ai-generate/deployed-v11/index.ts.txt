@@ -1,0 +1,230 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+type Locale = "en" | "ar";
+
+export interface AIRequest {
+  input: string;
+  locale: Locale;
+}
+
+export interface AIResponse {
+  id: string;
+  output: {
+    title: string;
+    prompt: string;
+    summary: string;
+  };
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+  };
+  provenance: {
+    providerId: string;
+    modelId: string;
+  };
+}
+
+export interface AIProvider {
+  readonly id: string;
+  generate(request: AIRequest): Promise<AIResponse>;
+}
+
+class ProviderRegistry {
+  private readonly providers = new Map<string, AIProvider>();
+
+  register(provider: AIProvider): void {
+    if (this.providers.has(provider.id)) throw new Error("duplicate_provider");
+    this.providers.set(provider.id, provider);
+  }
+
+  resolve(providerId: string): AIProvider {
+    const provider = this.providers.get(providerId);
+    if (!provider) throw new Error("provider_unavailable");
+    return provider;
+  }
+}
+
+// Provider-specific HTTP behavior and response parsing live only in this adapter.
+class OpenRouterAdapter implements AIProvider {
+  readonly id = "openrouter";
+
+  constructor(
+    private readonly apiKey: string,
+    private readonly modelId: string,
+  ) {}
+
+  async generate(request: AIRequest): Promise<AIResponse> {
+    const language = request.locale === "ar" ? "Arabic" : "English";
+    let response: Response;
+    for (let attempt = 0; ; attempt += 1) {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + this.apiKey,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://lookershub.com",
+          "X-Title": "Lookers AI",
+        },
+        body: JSON.stringify({
+          model: this.modelId,
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: "Return a JSON object with string fields title, prompt, summary. Write in " + language + ". Preserve user intent. Do not invent unspecified facts.",
+            },
+            { role: "user", content: request.input },
+          ],
+        }),
+        signal: AbortSignal.timeout(45000),
+      });
+      if (response.status !== 429 || attempt > 0) break;
+      const retryAfter = Number(response.headers.get("retry-after"));
+      const delayMs = Number.isFinite(retryAfter) && retryAfter > 0
+        ? Math.min(4000, Math.max(250, retryAfter * 1000))
+        : 1000;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    if (!response.ok) {
+      throw new ProviderRequestError(response.status);
+    }
+
+    const payload = await response.json();
+    const raw = payload?.choices?.[0]?.message?.content;
+    if (typeof raw !== "string") throw new Error("invalid_provider_response");
+
+    let parsed: unknown;
+    try { parsed = JSON.parse(raw); } catch { throw new Error("invalid_provider_response"); }
+    if (!parsed || typeof parsed !== "object") throw new Error("invalid_provider_response");
+
+    const output = parsed as Record<string, unknown>;
+    if (
+      typeof output.title !== "string" ||
+      typeof output.prompt !== "string" ||
+      typeof output.summary !== "string" ||
+      output.title.length > 500 ||
+      output.prompt.length > 20000 ||
+      output.summary.length > 4000
+    ) {
+      throw new Error("invalid_provider_response");
+    }
+
+    const usage = payload?.usage;
+    return {
+      id: crypto.randomUUID(),
+      output: { title: output.title, prompt: output.prompt, summary: output.summary },
+      usage: {
+        ...(Number.isInteger(usage?.prompt_tokens) ? { inputTokens: usage.prompt_tokens } : {}),
+        ...(Number.isInteger(usage?.completion_tokens) ? { outputTokens: usage.completion_tokens } : {}),
+      },
+      provenance: { providerId: this.id, modelId: this.modelId },
+    };
+  }
+}
+
+class ProviderRequestError extends Error {
+  constructor(readonly status: number) {
+    super("provider_request_failed");
+  }
+}
+
+class AILayer {
+  constructor(private readonly providers: ProviderRegistry) {}
+
+  generate(request: AIRequest): Promise<AIResponse> {
+    const providerId = Deno.env.get("AI_PROVIDER_ID") || "openrouter";
+    return this.providers.resolve(providerId).generate(request);
+  }
+}
+
+const registry = new ProviderRegistry();
+const openRouterKey = Deno.env.get("OPENROUTER_API_KEY");
+if (openRouterKey) {
+  const modelId = Deno.env.get("AI_MODEL_ID") || "google/gemma-4-31b-it:free";
+  registry.register(new OpenRouterAdapter(openRouterKey, modelId));
+}
+const aiLayer = new AILayer(registry);
+
+const allowedOrigins = new Set([
+  "https://lookershub.com",
+  "http://localhost:3000",
+  "http://localhost:5173",
+]);
+const corsHeaders = (origin: string | null): Record<string, string> => ({
+  ...(origin && allowedOrigins.has(origin) ? { "Access-Control-Allow-Origin": origin } : {}),
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+});
+
+const json = (body: unknown, status = 200, origin: string | null = null) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders(origin),
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+    },
+  });
+
+Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("Origin");
+  if (origin && !allowedOrigins.has(origin)) return json({ error: "origin_not_allowed" }, 403, null);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405, origin);
+  if (Number(req.headers.get("content-length") || 0) > 20000) return json({ error: "request_too_large" }, 413, origin);
+
+  const token = req.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!token) return json({ error: "unauthorized" }, 401, origin);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !supabaseAnonKey) return json({ error: "server_configuration_error" }, 503, origin);
+
+  let identity: { id: string; is_anonymous: boolean };
+  try {
+    const auth = await fetch(supabaseUrl + "/auth/v1/user", {
+      headers: { apikey: supabaseAnonKey, Authorization: "Bearer " + token },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!auth.ok) return json({ error: "unauthorized" }, 401, origin);
+    const user = await auth.json();
+    if (typeof user.id !== "string" || user.is_anonymous !== true) return json({ error: "unauthorized" }, 401, origin);
+    identity = { id: user.id, is_anonymous: true };
+  } catch {
+    return json({ error: "identity_verification_failed" }, 401, origin);
+  }
+  if (!openRouterKey) return json({ error: "server_secret_missing" }, 503, origin);
+
+  let body: { prompt?: unknown; language?: unknown };
+  try { body = await req.json(); } catch { return json({ error: "invalid_json" }, 400, origin); }
+  if (
+    typeof body.prompt !== "string" ||
+    body.prompt.trim().length < 3 ||
+    body.prompt.length > 12000 ||
+    (body.language !== undefined && body.language !== "en" && body.language !== "ar")
+  ) {
+    return json({ error: "invalid_request" }, 400, origin);
+  }
+
+  try {
+    const result = await aiLayer.generate({
+      input: body.prompt,
+      locale: body.language === "ar" ? "ar" : "en",
+    });
+    return json({
+      data: result,
+      identity: { userId: identity.id, isAnonymous: identity.is_anonymous },
+    }, 200, origin);
+  } catch (error) {
+    if (error instanceof ProviderRequestError) {
+      return json({ error: "provider_request_failed", providerStatus: error.status }, 502, origin);
+    }
+    if (error instanceof Error && error.message === "provider_unavailable") {
+      return json({ error: "provider_configuration_missing" }, 503, origin);
+    }
+    return json({ error: "generation_failed" }, 502, origin);
+  }
+});

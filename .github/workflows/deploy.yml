@@ -1,9 +1,7 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  # Public release is a separate, explicitly authorized action after merge.
   workflow_dispatch:
 
 permissions:

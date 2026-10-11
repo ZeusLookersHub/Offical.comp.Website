@@ -22,3 +22,7 @@ docs-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Browser QA output, generated from the tested application
+visual-qa-artifacts/
+.stage01-core-tests.mjs
