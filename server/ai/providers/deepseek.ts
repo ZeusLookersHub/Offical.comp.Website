@@ -12,7 +12,8 @@ export class DeepSeekAdapter implements AIReasoningProvider {
   #timeout: number;
   readonly modelId = 'deepseek-flash';
   constructor(key: string | undefined, options: { transport?: typeof fetch; timeoutMs?: number } = {}) {
-    if (typeof window !== 'undefined') throw new ProviderError('provider_unavailable');
+    // Supabase's Deno runtime also defines window; a DOM identifies a browser.
+    if (typeof document !== 'undefined') throw new ProviderError('provider_unavailable');
     this.#key = key?.trim() || '';
     this.#transport = options.transport || fetch;
     this.#timeout = options.timeoutMs ?? 8000;

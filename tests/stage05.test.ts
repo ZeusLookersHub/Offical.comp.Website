@@ -106,9 +106,16 @@ test('credentials cannot be serialized, echoed in output or exposed through brow
   // JSON escaping must not bypass the echo guard.
   const raw = JSON.stringify(completion({ ...output, prompt: secret })).replaceAll('TEST_ONLY', '\\u0054EST_ONLY');
   await rejectsCode(adapter(() => new Response(raw)).generate(request), 'invalid_provider_response');
-  Object.defineProperty(globalThis, 'window', { configurable: true, value: {} });
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: {} });
   try { assert.throws(() => new DeepSeekAdapter(secret), /provider_unavailable/); }
-  finally { Reflect.deleteProperty(globalThis, 'window'); }
+  finally { Reflect.deleteProperty(globalThis, 'document'); }
+});
+test('Supabase server window global does not prevent adapter startup', async () => {
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: globalThis });
+  try {
+    const ai = createServerAILayer(name => name === 'DEEPSEEK_API_KEY' ? secret : undefined, transport(() => response()));
+    assert.ok(validAIResponse(await ai.generate(request)));
+  } finally { Reflect.deleteProperty(globalThis, 'window'); }
 });
 test('AI Layer validates provider responses instead of trusting a custom adapter', async () => {
   const registry = new ProviderRegistry();
