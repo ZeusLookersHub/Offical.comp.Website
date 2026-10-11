@@ -21,7 +21,7 @@ export function createApplicationGenerator(transport: AgentAITransport) {
     user('intent', snapshot.answers.idea);
     user('objective', snapshot.answers.purpose || snapshot.answers.outcome);
     if (snapshot.taskType === 'image') {
-      user('details.subject', snapshot.answers.subject || snapshot.answers.idea);
+      user('details.subject', snapshot.answers.subject);
       user('details.usage', snapshot.answers.usage);
       user('details.style', snapshot.answers.style);
     }
