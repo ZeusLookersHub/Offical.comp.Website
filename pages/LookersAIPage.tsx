@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import BrandMark from '../components/BrandMark';
-import { lookersAiProjectState } from '../services/lookersAiProjectState';
+import LookersPromptLibrary from '../components/LookersPromptLibrary';
+import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProjectState';
 import { planDraftQuestions } from '../services/lookersAiQuestions';
 import { createDraftGenerator } from '../services/lookersAiGeneration';
 import { lookersAiTransport } from '../services/lookersAiTransport';
@@ -70,7 +71,10 @@ const LookersAIPage: React.FC = () => {
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [externalReply, setExternalReply] = useState('');
   const [continuationMode, setContinuationMode] = useState('Improve');
+  const [showLibrary, setShowLibrary] = useState(false);
   const [showHandoff, setShowHandoff] = useState(false);
+  const [showProjectContext, setShowProjectContext] = useState(false);
+  const [handoffTool, setHandoffTool] = useState('ChatGPT');
   const generationRef = useRef<AbortController | null>(null);
   const languageRef = useRef(lang); languageRef.current = lang;
   useEffect(() => () => { generationRef.current?.abort(); generationRef.current = null; }, []);
@@ -109,12 +113,20 @@ const LookersAIPage: React.FC = () => {
   const activeQuestion = completeness.fields[Math.min(questionIndex, Math.max(0, completeness.fields.length - 1))];
   useEffect(() => { setQuestionIndex(0); }, [current.taskType]);
   useEffect(() => { setQuestionIndex(index => Math.min(index, Math.max(0, completeness.fields.length - 1))); }, [completeness.fields.length]);
-  useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); }, [current.id]);
+  useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); setShowProjectContext(false); }, [current.id]);
 
   const commit = (next: UserProjectState) => {
     projectStateRef.current = next;
     setProjectState(next);
     lookersAiProjectState.save(next, lang);
+  };
+  const useLibraryDraft = (draft: ProjectDraft) => {
+    const latest = projectStateRef.current;
+    const active = latest.current;
+    const hasWork = Boolean(String(active.answers.idea || '').trim() || active.attachments.length || active.generatedPrompt || Object.keys(active.answers).length);
+    commit({ version: 1, current: draft, archived: hasWork ? [active, ...latest.archived].slice(0, 50) : latest.archived });
+    setShowLibrary(false); setQuestionIndex(0); setTab('prompt');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const patchCurrent = (patch: Partial<ProjectDraft>, action?: string) => {
     const now = new Date().toISOString();
@@ -232,7 +244,7 @@ const LookersAIPage: React.FC = () => {
     try {
       const parsed = JSON.parse(await file.text()) as { version?: number; project?: ProjectDraft };
       const imported = parsed?.version === 1 ? parsed.project : undefined;
-      if (!imported?.id || !imported.answers || !Array.isArray(imported.attachments)) throw new Error('Invalid project file');
+      if (!isLegacyDraft(imported) || projectStateRef.current.archived.some(project => project.id === imported.id)) throw new Error('Invalid project file');
       patchCurrent(imported);
       setTab('prompt');
 
@@ -308,10 +320,10 @@ const LookersAIPage: React.FC = () => {
     : ['Create a premium family hotel ad in Dubai', 'Plan a launch campaign for a new app', 'Build a sales performance dashboard', 'Design a visual for a new product'];
 
   const quickStarts = [
-    { icon: ImagePlus, accent: 'cyan', title: copy(lang, 'Create an image', 'صمّم صورة'), detail: copy(lang, 'Turn a scene into a clear brief', 'حوّل المشهد الذي تتخيله إلى وصف واضح'), idea: copy(lang, 'I want a product image for Instagram', 'عايز صورة لمنتجي على إنستجرام') },
-    { icon: Film, accent: 'violet', title: copy(lang, 'Plan a video', 'خطّط لفيديو'), detail: copy(lang, 'Shape a story, scene by scene', 'رتّب قصتك مشهدًا بمشهد'), idea: copy(lang, 'Help me plan a short video for my product', 'ساعدني أخطط لفيديو قصير لمنتجي') },
-    { icon: MessageSquareText, accent: 'magenta', title: copy(lang, 'Write something', 'اكتب محتوى'), detail: copy(lang, 'Find the words for your idea', 'اختار الكلمات المناسبة لفكرتك'), idea: copy(lang, 'Help me write a CV from my experience', 'ساعدني أكتب سيرة ذاتية من خبراتي') },
-    { icon: BriefcaseBusiness, accent: 'teal', title: copy(lang, 'Build a plan', 'ابنِ خطة'), detail: copy(lang, 'Give your next project structure', 'رتّب الخطوات لمشروعك القادم'), idea: copy(lang, 'Help me build a business plan for my idea', 'ساعدني أبني خطة عمل لفكرتي') }
+    { icon: ImagePlus, accent: 'cyan', title: copy(lang, 'Create an image', 'صمّم صورة'), detail: copy(lang, 'Describe your scene', 'صِف المشهد'), idea: copy(lang, 'I want a product image for Instagram', 'عايز صورة لمنتجي على إنستجرام') },
+    { icon: Film, accent: 'violet', title: copy(lang, 'Plan a video', 'خطّط لفيديو'), detail: copy(lang, 'Outline your story', 'رتّب قصتك'), idea: copy(lang, 'Help me plan a short video for my product', 'ساعدني أخطط لفيديو قصير لمنتجي') },
+    { icon: MessageSquareText, accent: 'magenta', title: copy(lang, 'Write something', 'اكتب محتوى'), detail: copy(lang, 'Shape your message', 'رتّب رسالتك'), idea: copy(lang, 'Help me write a CV from my experience', 'ساعدني أكتب سيرة ذاتية من خبراتي') },
+    { icon: BriefcaseBusiness, accent: 'teal', title: copy(lang, 'Build a plan', 'ابنِ خطة'), detail: copy(lang, 'Organize your next steps', 'رتّب خطواتك'), idea: copy(lang, 'Help me build a business plan for my idea', 'ساعدني أبني خطة عمل لفكرتي') }
   ];
   const openFilePicker = () => uploadRef.current?.click();
   const restoreProject = (id: string) => {
@@ -379,16 +391,17 @@ const LookersAIPage: React.FC = () => {
             <span>LookersHub</span>
             <b>AI</b>
           </div>
-          <span className="lai-autosave-status"><CheckCircle2 size={14} />{copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز')}</span>
+          <div className="lai-bar-actions"><button type="button" className="lai-secondary-button" aria-expanded={showLibrary} onClick={() => setShowLibrary(value => !value)}>{copy(lang, 'Prompt Library', 'مكتبة البرومبت')}</button><span className="lai-autosave-status"><CheckCircle2 size={14} />{copy(lang, 'Saved on this device', 'محفوظ على هذا الجهاز')}</span></div>
         </div>
 
-        <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[155,190],[230,70],[310,110],[285,285],[905,65],[980,150],[1090,90],[1040,270],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4" />)}</svg></div>
+        <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
         <header className="lookers-ai__hero">
           <span className="lai-kicker"><Sparkles size={15} />{copy(lang, 'YOUR IDEA. YOUR NEXT POSSIBILITY.', 'فكرتك. وبداية شيء جديد.')}</span>
           <h1>{copy(lang, 'Big ideas start with', 'كل فكرة كبيرة تبدأ بـ')}<br /><em>{copy(lang, 'a few words.', 'كلمات بسيطة.')}</em></h1>
-          <p>{copy(lang, 'Tell us what you want. We’ll help you shape it into a prompt you can take anywhere.', 'قول لنا عايز تعمل إيه. هنساعدك ترتّب فكرتك وتجهّز برومبت تستخدمه في أداتك المفضلة.')}</p>
+          <p>{copy(lang, 'Write what you want. We’ll help you prepare the prompt.', 'قول لنا عايز تعمل إيه. هنساعدك تجهّز البرومبت.')}</p>
         </header>
 
+        {showLibrary ? <LookersPromptLibrary lang={lang} currentTask={current.taskType} onClose={() => setShowLibrary(false)} onUse={useLibraryDraft} /> : <>
         <nav className="lai-steps" aria-label={copy(lang, 'Project steps', 'خطوات المشروع')}>
           {stages.map((item, index) => <div key={item} className={index === stepIndex ? 'is-active' : index < stepIndex ? 'is-done' : ''}>
             <span>{index < stepIndex ? <Check size={13} /> : index + 1}</span><small>{stageTitles[item][lang]}</small>
@@ -406,24 +419,26 @@ const LookersAIPage: React.FC = () => {
                   <p>{copy(lang, 'Start with a sentence. Lookers AI will organize the brief with you.', 'ابدأ بجملة واحدة، وLookers AI هيرتّب معك تفاصيل الفكرة.')}</p></div>
               </div>
               <label className="lai-sr-only" htmlFor="lai-idea">{copy(lang, 'Project idea', 'فكرة المشروع')}</label>
-              <textarea id="lai-idea" className="lai-idea-input" rows={4} value={String(answers.idea || '')}
+              <textarea id="lai-idea" className="lai-idea-input" rows={3} value={String(answers.idea || '')}
                 placeholder={copy(lang, 'Describe your idea, goal, or the thing you want to improve…', 'اكتب فكرتك أو هدفك أو الشيء الذي تريد تطويره…')}
                 onChange={(event) => setAnswer('idea', event.target.value)} />
-              <div className="lai-quick-starts" aria-label={copy(lang, 'Idea shortcuts', 'أفكار للبداية')}>
-                {quickStarts.map(item => <button key={item.accent} type="button" className={`lai-quick-card lai-accent-${item.accent}`} onClick={() => { setAnswer('idea', item.idea); document.getElementById('lai-idea')?.focus(); }}>
-                  <item.icon size={25} /><b>{item.title}</b><small>{item.detail}</small>
-                </button>)}
-              </div>
-              <div className="lai-examples-label">{copy(lang, 'QUICK STARTS', 'أفكار سريعة')}</div>
-              <div className="lai-examples">
-                {exampleIdeas.map((example) => <button type="button" key={example} onClick={() => setAnswer('idea', example)}>{example}</button>)}
-              </div>
               <div className="lai-brief-footer">
                 <button type="button" className="lai-primary-button" disabled={!String(answers.idea || '').trim()}
-                  onClick={() => { const inferred = detectTaskType(String(answers.idea || '')); patchCurrent({ taskType: inferred, step: 'files' }, 'brief_started'); }}>
+                  onClick={() => { const explicit = current.activity.some(entry => entry.action.startsWith('task_type_') || entry.action.startsWith('library_prompt_selected:')); const inferred = explicit ? current.taskType : detectTaskType(String(answers.idea || '')); patchCurrent({ taskType: inferred, step: 'files' }, 'brief_started'); }}>
                   {copy(lang, 'Start building', 'ابدأ التجهيز')}<ArrowUpRight size={17} />
                 </button>
               </div>
+              <div className="lai-quick-starts" aria-label={copy(lang, 'Idea shortcuts', 'أفكار للبداية')}>
+                {quickStarts.map(item => <button key={item.accent} type="button" className={`lai-quick-card lai-accent-${item.accent}`} onClick={() => { setAnswer('idea', item.idea); document.getElementById('lai-idea')?.focus(); }}>
+                  <item.icon size={19} /><b>{item.title}</b><small>{item.detail}</small>
+                </button>)}
+              </div>
+              <details className="lai-more-examples"><summary>{copy(lang, 'More examples', 'أمثلة إضافية')}</summary>
+              <div className="lai-examples">
+                {exampleIdeas.map((example) => <button type="button" key={example} onClick={() => setAnswer('idea', example)}>{example}</button>)}
+              </div>
+              </details>
+
             </section>
           )}
 
@@ -448,6 +463,17 @@ const LookersAIPage: React.FC = () => {
                 <div className="lai-heading-icon"><Target size={19} /></div>
                 <div><h2>{copy(lang, 'A few details for a stronger result', 'تفاصيل بسيطة لنتيجة أدق')}</h2>
                   <p>{copy(lang, 'The task type is suggested from your idea. You can change it at any time.', 'اقترحنا نوع المهمة بناءً على فكرتك، ويمكنك تغييره في أي وقت.')}</p></div>
+              </div>
+              <div className="lai-task-questions">
+                <h3>{copy(lang, 'Task-specific details', 'تفاصيل خاصة بنوع المهمة')}</h3>
+                {activeQuestion && <>
+                  <p className="lai-question-position">{copy(lang, 'Question', 'سؤال')} {Math.min(questionIndex + 1, completeness.fields.length)} / {completeness.fields.length}</p>
+                  {renderField(activeQuestion)}
+                  <div className="lai-question-navigation">
+                    <button type="button" className="lai-secondary-button" disabled={questionIndex === 0} onClick={() => setQuestionIndex(index => Math.max(0, index - 1))}>{copy(lang, 'Previous question', 'السؤال السابق')}</button>
+                    <button type="button" className="lai-primary-button" disabled={questionIndex >= completeness.fields.length - 1} onClick={() => setQuestionIndex(index => Math.min(completeness.fields.length - 1, index + 1))}>{copy(lang, 'Next question', 'السؤال التالي')}</button>
+                  </div>
+                </>}
               </div>
               <details className="lai-advanced lai-task-selector"><summary>{copy(lang, 'Suggested direction — change it', 'الاتجاه المقترح — تقدر تغيّره')}: {taskTypes.find(task => task.id === current.taskType)?.title[lang]}</summary>
               <div className="lai-task-grid">
@@ -497,17 +523,6 @@ const LookersAIPage: React.FC = () => {
                     <textarea id="lai-stop" rows={2} value={String(answers.stopConditions || '')} onChange={(event) => setAnswer('stopConditions', event.target.value)} /></div>
                 </div>
               </details>
-              <div className="lai-task-questions">
-                <h3>{copy(lang, 'Task-specific details', 'تفاصيل خاصة بنوع المهمة')}</h3>
-                {activeQuestion && <>
-                  <p className="lai-question-position">{copy(lang, 'Question', 'سؤال')} {Math.min(questionIndex + 1, completeness.fields.length)} / {completeness.fields.length}</p>
-                  {renderField(activeQuestion)}
-                  <div className="lai-question-navigation">
-                    <button type="button" className="lai-secondary-button" disabled={questionIndex === 0} onClick={() => setQuestionIndex(index => Math.max(0, index - 1))}>{copy(lang, 'Previous question', 'السؤال السابق')}</button>
-                    <button type="button" className="lai-secondary-button" disabled={questionIndex >= completeness.fields.length - 1} onClick={() => setQuestionIndex(index => Math.min(completeness.fields.length - 1, index + 1))}>{copy(lang, 'Next question', 'السؤال التالي')}</button>
-                  </div>
-                </>}
-              </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('files')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
                 <button type="button" className="lai-primary-button" onClick={() => setStage('review')}>{copy(lang, 'Review brief', 'راجع تفاصيلك')}<ArrowRight size={16} /></button>
@@ -560,10 +575,14 @@ const LookersAIPage: React.FC = () => {
                 {(['prompt', 'summary'] as Tab[]).map((item) => <button key={item} type="button" role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>
                   {item === 'prompt' ? 'Prompt' : copy(lang, 'Project summary', 'ملخص المشروع')}
                 </button>)}
-                {tab === 'prompt' && <button type="button" className="lai-copy-button" onClick={() => void copyPrompt()}>{copied ? <Check size={15} /> : <Clipboard size={15} />}{copied ? copy(lang, 'Copied', 'تم النسخ') : copy(lang, 'Copy', 'انسخ')}</button>}
               </div>
               {tab === 'prompt' && <textarea className="lookers-ai__prompt-output" aria-label={copy(lang, 'Your prompt', 'البرومبت الخاص بك')} dir={ar ? 'rtl' : 'ltr'} readOnly={!editingPrompt} value={prompt} onChange={event => patchCurrent({ generatedPrompt: event.target.value }, 'prompt_edited')} />}
-              <div className="lai-built-from"><b>{copy(lang, 'Built from your brief', 'مبني على تفاصيلك')}</b><p>{copy(lang, 'Your goal, choices and included references give the next tool context. Review unknown details before use.', 'هدفك واختياراتك ومراجعك المرفقة تساعد الأداة التالية تفهم المطلوب. راجع التفاصيل الناقصة قبل الاستخدام.')}</p></div>
+              <div className="lai-result-actions">
+                {tab === 'prompt' && <button type="button" className="lai-copy-button lai-primary-button" onClick={() => void copyPrompt()}>{copied ? <Check size={15} /> : <Clipboard size={15} />}{copied ? copy(lang, 'Copied', 'تم النسخ') : copy(lang, 'Copy', 'انسخ')}</button>}
+                <button type="button" className="lai-secondary-button" onClick={() => { setTab('prompt'); setEditingPrompt(value => !value); }}>{editingPrompt ? copy(lang, 'Finish editing', 'احفظ التعديل') : copy(lang, 'Edit', 'عدّل')}</button>
+                <button type="button" className="lai-secondary-button" onClick={() => setStage('review')}>{copy(lang, 'Improve', 'حسّن')}</button>
+                <button type="button" className="lai-secondary-button" onClick={downloadPrompt}><Download size={16} />{copy(lang, 'Download', 'نزّل')}</button>
+              </div>
               {tab === 'summary' && <div className="lai-summary">
                 <div><b>{copy(lang, 'Project idea', 'فكرة المشروع')}</b><p>{String(answers.idea || '') || copy(lang, 'Not specified', 'غير محددة')}</p></div>
                 <div><b>{copy(lang, 'Task type', 'نوع المهمة')}</b><p>{taskTypes.find((item) => item.id === current.taskType)?.title[lang]}</p></div>
@@ -571,19 +590,22 @@ const LookersAIPage: React.FC = () => {
                 <div><b>{copy(lang, 'Project files', 'ملفات المشروع')}</b><p>{current.attachments.filter((file) => file.include).map((file) => file.name).join(ar ? '، ' : ', ') || copy(lang, 'No references attached', 'لا توجد مراجع مرفقة')}</p></div>
                 <div><b>{copy(lang, 'Last saved', 'آخر حفظ')}</b><p>{new Date(current.updatedAt).toLocaleString(ar ? 'ar-EG' : 'en-US')}</p></div>
               </div>}
-              <div className="lai-result-actions">
-                <button type="button" className="lai-secondary-button" onClick={() => { setTab('prompt'); setEditingPrompt(value => !value); }}>{editingPrompt ? copy(lang, 'Finish editing', 'احفظ التعديل') : copy(lang, 'Edit prompt', 'عدّل البرومبت')}</button>
-                <button type="button" className="lai-secondary-button" aria-expanded={showHandoff} onClick={() => setShowHandoff(value => !value)}><ArrowUpRight size={16} />{copy(lang, 'Use with your tool', 'استخدمه مع أداتك')}</button>
-                <button type="button" className="lai-primary-button" onClick={downloadPrompt}><Download size={16} />{copy(lang, 'Download prompt', 'نزّل الـPrompt')}</button>
-                <button type="button" className="lai-secondary-button" onClick={() => exportJson(`${safeFileName(current.title || 'LookersAI-project')}.json`, { version: 1, project: current })}>
-                  <FileJson2 size={16} />{copy(lang, 'Export project', 'صدّر المشروع')}
-                </button>
+              <details className="lai-result-context"><summary>{copy(lang, 'Built from your brief', 'مبني على تفاصيلك')}</summary>
+                <p>{copy(lang, 'Your goal, choices and included references shape this prompt. Review unknown details before use.', 'هدفك واختياراتك ومراجعك المرفقة هي أساس البرومبت. راجع التفاصيل الناقصة قبل الاستخدام.')}</p>
+              </details>
+              <button type="button" className="lai-secondary-button lai-handoff-toggle" aria-expanded={showHandoff} onClick={() => setShowHandoff(value => !value)}><ArrowUpRight size={16} />{copy(lang, 'Use with your tool', 'استخدمه مع أداتك')}</button>
+              <details className="lai-project-actions"><summary>{copy(lang, 'Project options', 'خيارات المشروع')}</summary><div className="lai-result-actions">
+                <button type="button" className="lai-secondary-button" onClick={() => exportJson(`${safeFileName(current.title || 'LookersAI-project')}.json`, { version: 1, project: current })}><FileJson2 size={16} />{copy(lang, 'Export project', 'صدّر المشروع')}</button>
                 <button type="button" className="lai-secondary-button" onClick={() => importRef.current?.click()}><Upload size={16} />{copy(lang, 'Import project', 'استورد مشروعًا')}</button>
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('review')}>{copy(lang, 'Edit project', 'عدّل المشروع')}</button>
-              </div>
+              </div></details>
               {showHandoff && <section className="lai-handoff" aria-label={copy(lang, 'Tool handoff', 'استخدم البرومبت خارج المنصة')}>
                 <span className="lai-kicker">{copy(lang, 'PREPARED · NOT EXECUTED', 'جاهز للاستخدام · لم يُنفّذ')}</span>
-                <h3>{copy(lang, 'Take it to your chosen AI tool.', 'خُد البرومبت لأداة الذكاء الاصطناعي المفضلة.')}</h3>
+                <h3>{copy(lang, 'Use your prompt with:', 'استخدم البرومبت مع:')}</h3>
+                <div className="lai-tool-choices" role="group" aria-label={copy(lang, 'Choose your external tool', 'اختر أداتك الخارجية')}>
+                  {['ChatGPT', 'Claude', 'Gemini', 'Other'].map(tool => <button type="button" key={tool} className={`lai-option ${handoffTool === tool ? 'is-selected' : ''}`} aria-pressed={handoffTool === tool} onClick={() => setHandoffTool(tool)}>{tool === 'Other' ? copy(lang, 'Other', 'أخرى') : tool}</button>)}
+                </div>
+                <p className="lai-field-example">{copy(lang, 'Ready to copy into', 'جاهز للنسخ إلى')} {handoffTool === 'Other' ? copy(lang, 'your tool', 'أداتك') : handoffTool}. {copy(lang, 'Nothing is sent or executed here.', 'لا يتم الإرسال أو التنفيذ هنا.')}</p>
                 <ol><li>{copy(lang, 'Copy the prompt.', 'انسخ البرومبت.')}</li><li>{copy(lang, 'Paste it into your tool and add the same references.', 'الصقه في أداتك وأضف نفس المراجع.')}</li><li>{copy(lang, 'Run it there, then bring the result back here.', 'نفّذه هناك، وبعدها ارجع بالنتيجة هنا.')}</li></ol>
                 <button type="button" className="lai-primary-button" onClick={() => void copyPrompt()}>{copied ? copy(lang, 'Copied', 'تم النسخ') : copy(lang, 'Copy prompt', 'انسخ البرومبت')}</button>
               </section>}
@@ -619,10 +641,13 @@ const LookersAIPage: React.FC = () => {
                   {file.dataUrl ? <img src={file.dataUrl} alt="" /> : <span className="lai-file-icon">{file.kind === 'text' || /\.(pdf|docx?|rtf)$/i.test(file.name)
                     ? <FileText size={18} />
                     : /\.(xlsx?|ods|csv)$/i.test(file.name) ? <FileSpreadsheet size={18} /> : <Paperclip size={18} />}</span>}
-                  <div className="lai-file-main"><b>{file.name}</b><small>{file.processing ? file.note : `${prettySize(file.size, lang)} · ${file.mime} · ${file.note}`}</small>
-                    {!file.processing && <input type="text" value={file.note} aria-label={copy(lang, 'Reference note', 'ملاحظة على المرجع')}
-                      placeholder={copy(lang, 'Add a note about this file', 'أضف ملاحظة عن هذا الملف')}
-                      onChange={(event) => updateFileNote(file.id, event.target.value)} />}
+                  <div className="lai-file-main"><b>{file.name}</b>
+                    <details className="lai-reference-details"><summary>{copy(lang, 'Details & note', 'تفاصيل وملاحظة')}</summary>
+                      <small>{`${prettySize(file.size, lang)} · ${file.mime} · ${file.note}`}</small>
+                      {!file.processing && <input type="text" value={file.note} aria-label={copy(lang, 'Reference note', 'ملاحظة على المرجع')}
+                        placeholder={copy(lang, 'Add a note about this file', 'أضف ملاحظة عن هذا الملف')}
+                        onChange={(event) => updateFileNote(file.id, event.target.value)} />}
+                    </details>
                   </div>
                   <span className={`lai-upload-state ${file.processing ? 'is-processing' : ''}`} aria-label={file.processing ? copy(lang, 'Processing', 'قيد التجهيز') : copy(lang, 'Uploaded', 'تم الرفع')}>
                     {file.processing ? <LoaderCircle className="lai-spinner" size={15} /> : <CheckCircle2 size={15} />}
@@ -635,13 +660,15 @@ const LookersAIPage: React.FC = () => {
           </div>
         </section>
         {stage !== 'home' && <aside className="lai-project-plan" aria-label={copy(lang, 'Your project', 'مشروعك')}>
-          <span className="lai-kicker">{copy(lang, 'YOUR PROJECT', 'مشروعك')}</span>
+          <button type="button" className="lai-context-toggle lai-secondary-button" aria-expanded={showProjectContext} aria-controls="lai-project-context" onClick={() => setShowProjectContext(value => !value)}>{copy(lang, 'Project context', 'ملخص المشروع')}</button>
+          <span className="lai-kicker lai-context-desktop-title">{copy(lang, 'YOUR PROJECT', 'مشروعك')}</span>
           <h2>{current.title || copy(lang, 'An idea in progress', 'فكرة بتتكوّن')}</h2>
-          <dl>{reviewRows.filter(row => ['idea', 'purpose', 'context', 'constraints', 'deliverable'].includes(row.id) && row.value).map(row => <div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
-          <p>{copy(lang, 'Your choices stay with this project. You can change them at any time.', 'اختياراتك محفوظة مع المشروع. تقدر تغيّرها في أي وقت.')}</p>
+          <div id="lai-project-context" className={showProjectContext ? 'lai-context-body is-open' : 'lai-context-body'}><dl>{reviewRows.filter(row => ['idea', 'purpose', 'context', 'constraints', 'deliverable'].includes(row.id) && row.value).map(row => <div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
+          <p>{copy(lang, 'Your choices stay with this project. You can change them at any time.', 'اختياراتك محفوظة مع المشروع. تقدر تغيّرها في أي وقت.')}</p></div>
         </aside>}
         </div>
         {projectState.archived.length > 0 && <details className="lai-advanced lai-history"><summary>{copy(lang, 'Saved projects on this device', 'مشاريع محفوظة على هذا الجهاز')} · {projectState.archived.length}</summary><div className="lai-history-grid">{projectState.archived.map(project => <button type="button" className="lai-secondary-button" key={project.id} onClick={() => restoreProject(project.id)}><span>{project.title || copy(lang, 'Untitled project', 'مشروع بلا عنوان')}</span><small>{new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')}</small></button>)}</div></details>}
+        </>}
         <footer className="lookers-ai__footer"><span>{copy(lang, 'Your draft is saved privately on this device.', 'تُحفظ مسودتك بشكل خاص على هذا الجهاز.')}</span></footer>
       </div>
       <input ref={uploadRef} hidden type="file" multiple accept="image/*,.txt,.md,.csv,.tsv,.json,.pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ''; }} />

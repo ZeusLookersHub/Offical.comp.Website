@@ -1,3 +1,4 @@
+import { routeDeterministic } from '../core/brain';
 export type Lang = 'en' | 'ar';
 export type TaskType = 'image' | 'campaign' | 'dashboard' | 'general';
 export type FieldKind = 'text' | 'textarea' | 'single' | 'multi';
@@ -106,7 +107,9 @@ export type UserProjectState = {
 export const detectTaskType = (idea: string): TaskType => {
   if (/داشبورد|dashboard|لوحة بيانات|تقرير|تحليل بيانات/i.test(idea)) return 'dashboard';
   if (/حملة|campaign|تسويق مدفوع|إعلانات ممولة|ad campaign/i.test(idea)) return 'campaign';
-  if (/صور|صورة|تصميم|إعلان بصري|إعلان|اعلان|بوستر|لوجو|image|poster|visual/i.test(idea)) return 'image';
+  const route = routeDeterministic({ input: idea, language: /[\u0600-\u06ff]/.test(idea) ? 'ar' : 'en' });
+  if (route.decision.engineId === 'visual.image') return 'image';
+  if (/صور|صورة|تصميم|إعلان بصري|إعلان|اعلان|بوستر|لوجو|image|photo|poster|visual/i.test(idea)) return 'image';
   return 'general';
 };
 

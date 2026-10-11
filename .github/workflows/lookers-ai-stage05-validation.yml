@@ -38,5 +38,7 @@ jobs:
         run: npm run build:ai-function
       - name: Lookers AI UI render regression (offline, no live inference)
         run: npm run test:ui
+      - name: Prompt Library regression (offline)
+        run: npm run test:library
       - name: Production build
         run: npm run build

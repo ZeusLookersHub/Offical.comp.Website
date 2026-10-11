@@ -135,7 +135,7 @@ const workspaceFromState = (state: UserProjectState, language: Lang): ProjectWor
   };
 };
 
-const isLegacyDraft = (value: unknown): value is ProjectDraft => {
+export const isLegacyDraft = (value: unknown): value is ProjectDraft => {
   if (!value || typeof value !== "object") return false;
   const draft = value as Partial<ProjectDraft>;
   const validSteps = ["home", "files", "details", "review", "result"];

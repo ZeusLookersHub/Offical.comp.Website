@@ -13,9 +13,13 @@
     "test:agent": "esbuild tests/agent.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-agent/agent.test.mjs --log-level=warning && node node_modules/.cache/lookers-agent/agent.test.mjs",
     "test:stage05": "esbuild tests/stage05.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-stage05/stage05.test.mjs --log-level=warning && node node_modules/.cache/lookers-stage05/stage05.test.mjs",
     "build:ai-function": "esbuild supabase/functions/lookers-ai-generate/index.ts --bundle --platform=neutral --format=esm --external:jsr:* --outfile=node_modules/.cache/lookers-ai-function/index.ts --log-level=warning",
-    "test:ui": "esbuild tests/lookers-ai-ui.test.tsx --bundle --platform=node --format=esm --packages=external --loader:.css=empty --outfile=node_modules/.cache/lookers-ui/ui.test.mjs --log-level=warning && node node_modules/.cache/lookers-ui/ui.test.mjs"
+    "test:ui": "esbuild tests/lookers-ai-ui.test.tsx --bundle --platform=node --format=esm --packages=external --loader:.css=empty --outfile=node_modules/.cache/lookers-ui/ui.test.mjs --log-level=warning && node node_modules/.cache/lookers-ui/ui.test.mjs",
+    "test:library": "esbuild tests/prompt-library.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-library/library.test.mjs --log-level=warning && node node_modules/.cache/lookers-library/library.test.mjs",
+    "test:visual": "node scripts/visual-qa.mjs"
   },
   "dependencies": {
+    "@fontsource/almarai": "5.3.0",
+    "@fontsource/outfit": "5.3.0",
     "@supabase/supabase-js": "2.117.3",
     "lucide-react": "^0.563.0",
     "react": "^19.2.3",
@@ -25,6 +29,10 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "10.6.1",
+    "playwright": "1.62.1",
+    "postcss": "8.5.29",
+    "tailwindcss": "3.4.17",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
