@@ -10,6 +10,7 @@ await context.route('**/*.supabase.co/**',route=>route.abort('blockedbyclient'))
 const page=await context.newPage();page.setDefaultTimeout(30000);
 const errors=[],checks=[];
 page.on('pageerror',e=>errors.push(e.message));
+page.on('dialog',dialog=>dialog.accept());
 const button=name=>page.getByRole('button',{name,exact:true});
 const active=()=>page.evaluate(()=>{const w=JSON.parse(localStorage.getItem('lookers-ai-project-core-v1'));return {project:w.projects.find(p=>p.id===w.currentProjectId),session:w.sessions[w.currentProjectId]};});
 const check=name=>{checks.push(name);console.log('PASS '+name);};
@@ -30,6 +31,19 @@ try {
  await page.getByText('No matching tools.',{exact:false}).waitFor();
  await button('All AI tools').click();check('All sixteen task families, search, empty state and task-first disabled use');
  await button('Back to my project').click();
+ await page.locator('#lai-idea').fill('عايز أعمل presentation للشركة عشان أعرض خطة التسويق.');
+ await button('Start building').click();await button('Continue').click();
+ assert.equal((await active()).session.taskType,'presentation');
+ await button('Business presentation').click();await button('Next question').click();
+ await page.locator('#lai-audience').fill('Company leadership');
+ await page.locator('#lai-purpose').fill('Approve marketing priorities');
+ await button('Review brief').click();await button('Create my prompt').click();
+ await page.getByRole('heading',{name:'Your prompt is ready',exact:true}).waitFor();
+ await button('Use with your tool').click();
+ await page.getByRole('heading',{name:'Tools suited to your presentation',exact:true}).waitFor();
+ assert.deepEqual(await page.locator('[data-tool-section="recommended"] .lai-tool-card').evaluateAll(cards=>cards.slice(0,4).map(c=>c.dataset.toolId)),['gamma','canva','powerpoint','beautiful-ai']);
+ check('Actual Egyptian company presentation request routes correctly and completes with only the two necessary task questions');
+ await button('Start over').click();await page.getByRole('heading',{name:'What would you like to make?',exact:true}).waitFor();
  await button('Prompt Library').click();await button('All').click();
  await page.getByLabel('Category',{exact:true}).selectOption('presentations');
  assert.equal(await page.locator('.lai-library-card').count(),17);
