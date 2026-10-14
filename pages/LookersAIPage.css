@@ -415,3 +415,25 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lai-tool-detail .lai-library-card-actions { flex-wrap: wrap; }
 .lai-bar-actions { flex-wrap: wrap; }
 @media (max-width: 620px) { .lai-tool-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Motion and prompt discovery — transitions only on transform and opacity. */
+@keyframes lai-page-enter {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.lookers-ai .lai-card,.lookers-ai .lai-library,.lookers-ai .lai-tool-directory,.lookers-ai .lai-starter-panel {animation:lai-page-enter .34s ease-out both}
+.lookers-ai button:not(:disabled){transition:transform .18s ease,box-shadow .2s ease,border-color .2s ease,background-color .2s ease}
+.lookers-ai button svg,.lookers-ai .lai-quick-card svg,.lookers-ai .lai-task-card svg {transition:transform .24s ease}
+.lookers-ai button:not(:disabled):active{transform:scale(.97)}
+@media(hover:hover) and (pointer:fine){
+.lookers-ai button:not(:disabled):hover{transform:translateY(-2px)}
+.lookers-ai button:not(:disabled):hover svg{transform:translateY(-2px) rotate(-7deg) scale(1.08)}
+.lookers-ai .lai-quick-card:hover svg,.lookers-ai .lai-task-card:hover svg{transform:translateY(-3px) rotate(-8deg) scale(1.12)}
+}
+.lookers-ai button:focus-visible{outline:2px solid var(--lai-gold);outline-offset:3px}
+.lai-starter-panel{margin:18px 0;padding:17px;border:1px solid rgba(230,193,90,.23);border-radius:15px;background:rgba(230,193,90,.035)}
+.lai-starter-heading{display:flex;align-items:center;gap:9px;color:var(--lai-gold);margin-bottom:12px}
+.lai-starter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.lai-starter-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:start;min-height:120px;padding:14px;border:1px solid var(--lai-border);border-radius:12px;background:rgba(255,255,255,.025);color:var(--lai-ink);cursor:pointer;font:inherit;font-size:12px;line-height:1.6}
+.lai-starter-card svg{margin-inline-start:auto;color:var(--lai-gold)}
+.lai-starter-number{font-size:11px;font-weight:800;color:var(--lai-gold)}
+.lai-starter-panel>p{margin:12px 0 0;font-size:11px;color:var(--lai-muted)}
+@media(max-width:650px){.lai-starter-grid{grid-template-columns:1fr}.lai-starter-card{min-height:0}}
+@media(prefers-reduced-motion:reduce){.lookers-ai *,.lookers-ai *::before,.lookers-ai *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.lookers-ai button:hover,.lookers-ai button:active{transform:none!important}}
