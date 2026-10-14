@@ -337,6 +337,34 @@ const LookersAIPage: React.FC = () => {
     ? ['إعلان فاخر لفندق عائلي في دبي', 'حملة إعلانية لإطلاق تطبيق جديد', 'لوحة بيانات لمتابعة المبيعات', 'أريد تصميم صورة لمنتج جديد']
     : ['Create a premium family hotel ad in Dubai', 'Plan a launch campaign for a new app', 'Build a sales performance dashboard', 'Design a visual for a new product'];
 
+  // Three editorial starter ideas for each task. These are suggestions, not popularity claims.
+  const starterIdeas: Record<TaskType, {en:string;ar:string}[]> = {
+    image: [
+      {en:'Create a cinematic product photograph with realistic lighting and faithful packaging.',ar:'صمّم صورة سينمائية لمنتج بإضاءة واقعية مع الحفاظ على شكل العبوة.'},
+      {en:'Design a premium 3D brand mascot with a distinctive visual identity.',ar:'صمّم شخصية ثلاثية الأبعاد للعلامة التجارية بهوية بصرية مميزة.'},
+      {en:'Create a luxury editorial poster with bold typography and a refined color palette.',ar:'صمّم بوستر إعلاني فاخر بخطوط جريئة وألوان متناسقة.'}
+    ],
+    campaign: [
+      {en:'Plan a 30-day short-form video campaign for my brand with hooks and measurable goals.',ar:'خطّط لحملة فيديوهات قصيرة لمدة 30 يوم لعلامتي التجارية مع أفكار جذب وأهداف قابلة للقياس.'},
+      {en:'Create a creator-led product launch campaign with content concepts and a realistic timeline.',ar:'جهّز حملة إطلاق منتج بالتعاون مع صناع محتوى مع أفكار وجدول زمني واقعي.'},
+      {en:'Build a community-first marketing campaign with audience segments and engagement ideas.',ar:'ابنِ حملة تسويق تركز على المجتمع مع تقسيم الجمهور وأفكار التفاعل.'}
+    ],
+    dashboard: [
+      {en:'Design an executive KPI dashboard with revenue trends, conversion and clear metric definitions.',ar:'صمّم لوحة مؤشرات للإدارة تعرض اتجاهات الإيرادات والتحويل وتعريف كل مؤشر.'},
+      {en:'Plan a customer retention dashboard with cohorts, churn and data-quality checks.',ar:'خطّط للوحة متابعة الاحتفاظ بالعملاء ومجموعاتهم والتسرب وجودة البيانات.'},
+      {en:'Create a campaign performance dashboard brief with channel comparisons and ROI assumptions labeled.',ar:'جهّز وصف لوحة أداء الحملات مع مقارنة القنوات وتوضيح افتراضات العائد.'}
+    ],
+    presentation: [
+      {en:'Outline a visually compelling startup pitch deck using verified business facts.',ar:'جهّز مخطط عرض استثماري جذاب لشركة ناشئة باستخدام حقائق مؤكدة.'},
+      {en:'Plan a concise quarterly business review with KPIs, lessons and next steps.',ar:'خطّط لعرض مراجعة أعمال ربع سنوي بمؤشرات الأداء والدروس والخطوات القادمة.'},
+      {en:'Create a storytelling-led product launch presentation for potential customers.',ar:'جهّز عرض إطلاق منتج بأسلوب قصصي للعملاء المحتملين.'}
+    ],
+    general: [
+      {en:'Build a practical AI-assisted workflow for a repetitive business task, with human approval steps.',ar:'صمّم سير عمل يساعد فيه الذكاء الاصطناعي على مهمة متكررة مع مراحل موافقة بشرية.'},
+      {en:'Research a business idea and separate verified facts, assumptions and next experiments.',ar:'ادرس فكرة مشروع مع الفصل بين الحقائق والافتراضات والتجارب القادمة.'},
+      {en:'Draft a clear customer-facing message in a friendly professional tone without invented promises.',ar:'اكتب رسالة للعملاء بأسلوب مهني وودود دون وعود غير مؤكدة.'}
+    ]
+  };
   const quickStarts = [
     { icon: ImagePlus, accent: 'cyan', title: copy(lang, 'Create an image', 'صمّم صورة'), detail: copy(lang, 'Describe your scene', 'صِف المشهد'), idea: copy(lang, 'I want a product image for Instagram', 'عايز صورة لمنتجي على إنستجرام') },
     { icon: Film, accent: 'violet', title: copy(lang, 'Plan a video', 'خطّط لفيديو'), detail: copy(lang, 'Outline your story', 'رتّب قصتك'), idea: copy(lang, 'Help me plan a short video for my product', 'ساعدني أخطط لفيديو قصير لمنتجي') },
@@ -503,6 +531,15 @@ const LookersAIPage: React.FC = () => {
                 </button>)}
               </div>
               </details>
+              <section className="lai-starter-panel" aria-label={copy(lang,'Three prompt ideas for this category','ثلاث أفكار برومبت لهذه الفئة')}>
+                <div className="lai-starter-heading"><Sparkles size={17} aria-hidden="true" /><strong>{copy(lang,'3 prompt ideas to get started','٣ أفكار برومبت للبدء')}</strong></div>
+                <div className="lai-starter-grid">
+                  {starterIdeas[current.taskType].map((idea,index)=><button type="button" className="lai-starter-card" key={index} onClick={()=>{setAnswer('idea',idea[lang]);setStage('home');}}>
+                    <span className="lai-starter-number">0{index+1}</span><span>{idea[lang]}</span><ArrowUpRight size={17} aria-hidden="true"/>
+                  </button>)}
+                </div>
+                <p>{copy(lang,'Choose an idea to edit it in your brief. Nothing is generated or sent yet.','اختر فكرة لتعديلها في وصف مشروعك. لن يتم إنشاء أو إرسال أي شيء الآن.')}</p>
+              </section>
               <div className="lai-universal-fields">
                 <div className="lai-field"><label htmlFor="lai-purpose">{copy(lang, 'Desired result', 'النتيجة التي تريدها')}</label>
                   <textarea id="lai-purpose" rows={3} value={String(answers.purpose || '')} onChange={(event) => setAnswer('purpose', event.target.value)}
