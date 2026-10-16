@@ -9,6 +9,7 @@ const server = await createServer({ server: { host: '127.0.0.1', port: 5182, str
 const browser = await chromium.launch({ headless: true, executablePath: process.env.QA_BROWSER_EXECUTABLE || undefined, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce', permissions: ['clipboard-read', 'clipboard-write'] });
 const page = await context.newPage();
+page.setDefaultTimeout(30000);
 const errors = [], checks = [];
 let inferenceRequests = 0;
 page.on('pageerror', error => errors.push(error.message));

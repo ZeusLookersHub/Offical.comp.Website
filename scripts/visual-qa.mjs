@@ -26,8 +26,8 @@ async function ready() {
   await page.waitForFunction(() => {
     const shell = document.querySelector('#root > .min-h-screen');
     const header = document.querySelector('#root > .min-h-screen > header');
-    return shell && Number(getComputedStyle(shell).opacity) > .99 && (scrollY <= 50 || header?.className.includes('bg-navy/95'));
-  });
+    return shell && Number(getComputedStyle(shell).opacity) > .99 && (scrollY <= 50 || header?.className.includes('bg-navy/95') || Boolean(document.querySelector('.lai-trends-header')));
+  }, undefined, { timeout: 30000 });
   await page.evaluate(async () => { await document.fonts.ready; await Promise.all(document.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => {}))); await Promise.all([...document.images].map(img => img.complete ? Promise.resolve() : new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }))); });
 }
 async function shot(name, state, focus) {

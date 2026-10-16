@@ -19,6 +19,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Bilingual trends header and project-preservation checks
+        run: node scripts/trends-header-qa.mjs
+        env:
+          TRENDS_QA_OUTPUT: visual-qa-artifacts/trends-header
       - run: node scripts/visual-qa.mjs
       - name: Real application user journeys (offline, no paid inference)
         run: node scripts/user-journeys.mjs
