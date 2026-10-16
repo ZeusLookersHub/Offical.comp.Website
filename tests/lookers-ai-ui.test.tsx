@@ -26,10 +26,11 @@ test('home puts the idea before optional references in reading order, with guida
   assert.equal((html.match(/class="lai-quick-card /g) || []).length, 4);
   assert.ok(!html.includes('type="password"'));
 });
-test('Arabic renders true RTL while brand remains English', () => {
+test('Arabic renders true RTL with translated trend navigation and the AI mark', () => {
   const html = render(createProjectDraft(), 'ar');
   assert.ok(html.includes('dir="rtl" lang="ar"'));
-  assert.ok(html.includes('LookersHub'));
+  assert.ok(html.includes('aria-label="AI"'));
+  for (const title of ['ترندات صور AI','ترندات فيديو AI','ترندات السوشيال ميديا','ترندات البرومبتات','تجارب إبداعية','مكتبة البرومبت']) assert.ok(html.includes(title));
   assert.ok(html.includes('كلمات بسيطة'));
 });
 test('details shows one accessible task question while preserving existing user choices', () => {
