@@ -58,7 +58,7 @@ export const projectFromDraft = (draft: ProjectDraft, status: Project["status"],
     schema: {
       intent: answerText(answers, "idea"),
       objective: answerText(answers, "purpose") || answerText(answers, "outcome"),
-      context: answerText(answers, "context"),
+      context: [answerText(answers, "context"), answerText(answers, "taskDescription")].filter(Boolean).join("\n\n"),
       audience: answerText(answers, "audience") || answerText(answers, "users"),
       references,
       constraints: constraintAnswers,

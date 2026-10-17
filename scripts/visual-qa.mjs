@@ -1,3 +1,4 @@
+import {walkToQuestion,completeBrief,openContinuation} from './qa-card-helpers.mjs';
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'vite';
@@ -18,7 +19,7 @@ const network = [];
 let resultSource = 'local';
 const context = await browser.newContext({ ignoreHTTPSErrors: Boolean(proxy), viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
 const page = await context.newPage();
-page.on('pageerror', error => errors.push(error.message));
+page.on('pageerror', error => errors.push(error.message));page.on('dialog',dialog=>dialog.accept());
 if (!live) await context.route('**/*.supabase.co/**', route => route.abort('blockedbyclient'));
 page.on('requestfailed', request => {if(request.url().includes('.supabase.co/')) requestFailures.push({endpoint:new URL(request.url()).pathname,error:request.failure()?.errorText});});
 page.on('response', response => { if(response.url().includes('.supabase.co/')) network.push({ endpoint:new URL(response.url()).pathname, status:response.status() }); });
@@ -26,8 +27,8 @@ async function ready() {
   await page.waitForFunction(() => {
     const shell = document.querySelector('#root > .min-h-screen');
     const header = document.querySelector('#root > .min-h-screen > header');
-    return shell && Number(getComputedStyle(shell).opacity) > .99 && (scrollY <= 50 || header?.className.includes('bg-navy/95'));
-  });
+    return shell && Number(getComputedStyle(shell).opacity) > .99 && (scrollY <= 50 || header?.className.includes('bg-navy/95') || Boolean(document.querySelector('.lai-trends-header')));
+  }, undefined, { timeout: 30000 });
   await page.evaluate(async () => { await document.fonts.ready; await Promise.all(document.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => {}))); await Promise.all([...document.images].map(img => img.complete ? Promise.resolve() : new Promise(resolve => { img.onload = resolve; img.onerror = resolve; }))); });
 }
 async function shot(name, state, focus) {
@@ -52,21 +53,19 @@ try {
   ]);
   await page.locator('.lai-file').nth(1).getByRole('checkbox').uncheck();
   await page.getByRole('button',{name:'Continue',exact:true}).click();
-  await page.locator('#lai-purpose').fill('A premium portrait Instagram campaign image, with faithful packaging.');
+  await walkToQuestion(page,'subject');
   await shot('02-desktop-workspace','Workspace','.lai-card');
   await page.locator('#lai-subject').fill('A premium skincare bottle on charcoal stone');
   await page.getByRole('button',{name:'Next question',exact:true}).click();
-  await page.getByRole('button',{name:'Portrait · 4:5',exact:true}).click();
+  await page.locator('#lai-format').fill('Portrait 4:5 for Instagram');
   await page.getByRole('button',{name:'Next question',exact:true}).click();
-  const question = page.locator('.lai-task-questions');
-  const option = question.locator('.lai-option').first();
-  if (await option.count()) await option.click();
-  else await question.locator('input,textarea').first().fill('A premium skincare bottle on charcoal stone');
-  await shot('03-desktop-question','Question','.lai-task-questions');
-  await page.getByRole('button',{name:'Back',exact:true}).click();
+  const question = page.locator('.lai-question-card');
+  await page.locator('#lai-action').fill('Create a new image preserving the actual packaging');
+  await shot('03-desktop-question','Question','.lai-question-card');
+  await page.locator('.lai-steps button').nth(1).click();
   await shot('04-desktop-references','References','.lai-card');
   await page.getByRole('button',{name:'Continue',exact:true}).click();
-  await page.getByRole('button',{name:'Review brief',exact:true}).click();
+  await completeBrief(page,{purpose:'A premium portrait Instagram campaign image, with faithful packaging.'});
   await page.getByRole('button',{name:'Create my prompt',exact:true}).click();
   await page.getByRole('heading',{name:'Your prompt is ready',exact:true}).waitFor();
   resultSource = await page.getByText('AI was unavailable.',{exact:false}).count() ? 'local' : 'ai';
@@ -86,15 +85,14 @@ try {
   await page.getByRole('button',{name:'All AI tools',exact:true}).click();
   await page.locator('[data-tool-section="all"] [data-tool-id="claude"]').getByRole('button',{name:'Use with Claude',exact:true}).click();
   await page.getByText('Ready to copy into Claude.',{exact:false}).waitFor();
-  await page.locator('#lai-external-reply').fill('QA example response: packaging is distorted. Keep the original label.');
+  await openContinuation(page);await page.locator('#lai-external-reply').fill('QA example response: packaging is distorted. Keep the original label.');
   await page.getByRole('button',{name:'Fix',exact:true}).click();
   await page.getByRole('button',{name:'Review next step',exact:true}).click();
   const savedAfterContinuation = await page.evaluate(()=>JSON.parse(localStorage.getItem('lookers-ai-project-core-v1')));
   if(!JSON.stringify(savedAfterContinuation).includes('packaging is distorted')) throw new Error('Continuation context was lost');
   await page.getByRole('button',{name:'Back',exact:true}).click();
-  await shot('07-mobile-question','Question','.lai-task-questions');
-  await page.getByRole('button',{name:'Back',exact:true}).click();
-  await page.getByRole('button',{name:'Back',exact:true}).click();
+  await shot('07-mobile-question','Question','.lai-question-card');
+  await page.locator('.lai-steps button').first().click();
   await shot('06-mobile-home','Home');
   // Switch the actual mobile navigation language, not a fabricated state.
   await page.setViewportSize({width:1440,height:900});
@@ -103,9 +101,10 @@ try {
   await page.getByRole('button',{name:'ابدأ التجهيز',exact:true}).click();
   await page.getByRole('button',{name:'تابع',exact:true}).click();
   await page.setViewportSize({width:390,height:844});
-  await shot('10-arabic-mobile-question','Arabic Question','.lai-task-questions');
+  await shot('10-arabic-mobile-question','Arabic Question','.lai-question-card');
   await page.setViewportSize({width:1440,height:900});
   await page.getByRole('button',{name:'EN',exact:true}).click();
+  const originalProjectId=await page.evaluate(()=>JSON.parse(localStorage.getItem('lookers-ai-project-core-v1')).currentProjectId);
   await page.getByRole('button',{name:'Prompt Library',exact:true}).click();
   await page.getByRole('heading',{name:'A starting point for your idea',exact:true}).waitFor();
   await page.locator('.lai-library-card').first().waitFor();
@@ -130,14 +129,14 @@ try {
   await page.getByRole('button',{name:'Editorial picks',exact:true}).click();
   await page.getByText('Editorial picks, not popularity metrics.',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Back to my project',exact:true}).click();
-  await page.getByRole('heading',{name:'A few details for a stronger result',exact:true}).waitFor();
+  await page.getByRole('heading',{name:'Build your brief, one answer at a time',exact:true}).waitFor();
   await page.reload({waitUntil:'networkidle'});
   await ready();
-  await page.getByRole('heading',{name:'A few details for a stronger result',exact:true}).waitFor();
-  await page.locator('.lai-history > summary').click();
-  await page.locator('.lai-history-grid button').first().click();
+  await page.getByRole('heading',{name:'Build your brief, one answer at a time',exact:true}).waitFor();
+  await page.locator('.lai-history-toggle').click();
+  await page.locator(`.lai-history-grid button[data-project-id="${originalProjectId}"]`).click();
   const restored = await page.evaluate(()=>JSON.parse(localStorage.getItem('lookers-ai-project-core-v1')));
-  if(!JSON.stringify(restored).includes('packaging is distorted') || !JSON.stringify(restored).includes('old-lighting-notes.txt')) throw new Error('Archived project restore lost context or references');
+  if(restored.currentProjectId!==originalProjectId || !JSON.stringify(restored).includes('packaging is distorted') || !JSON.stringify(restored).includes('old-lighting-notes.txt')) throw new Error('Archived project restore lost context or references');
   await writeFile(`${out}/manifest.json`,JSON.stringify({screenshots:manifest, runtimeErrors:errors, providerCalls:network.filter(n=>n.endpoint.includes('/functions/')).length, network, requestFailures, live, resultSource, appOrigin:'http://localhost:5173',notes:'Screenshots are raw browser viewports. Result is generated by the application fallback, not invented.'},null,2));
   if (errors.length) throw new Error(`Browser runtime errors: ${errors.join('; ')}`);
   console.log(`Captured ${manifest.length} actual application viewports; live mode: ${live}; result: ${resultSource}.`);

@@ -1,0 +1,26 @@
+.lai-trends-header{position:relative;z-index:25;width:calc(100% - 100px);max-width:660px;margin:0 auto 12px;color:var(--lai-ink)}
+.lai-trends-header button{font:inherit;cursor:pointer}
+.lai-trends-topline{display:grid;grid-template-columns:90px minmax(0,1fr) 90px;align-items:center;gap:4px;min-height:38px;padding:3px 9px;border:1px solid #35434a;border-radius:25px;background:linear-gradient(100deg,#11242e,#181e27 50%,#252015)}
+.lai-trends-nav{display:flex;align-items:center;justify-content:center;gap:9px;min-width:0}
+.lai-trends-header .lai-trends-headline{display:flex;align-items:center;gap:3px;white-space:nowrap;border:0;border-radius:12px;padding:7px 3px;font-size:11px;background:transparent;color:#c3d1dc;transition:transform .2s,background .2s,box-shadow .2s}
+.lai-trends-header .lai-trends-headline[aria-expanded=true]{background:#ffffff0c;color:#f2f6fa;box-shadow:inset 0 1px 0 #ffffff20,0 7px 18px #00000025;transform:translateY(-3px) scale(1.045)}
+.lai-trends-library,.lai-trends-tools{font-size:10px!important;background:#ffffff06;border:1px solid #ffffff15;color:#d6e4eb;border-radius:20px;padding:6px 8px;min-height:30px;white-space:nowrap;box-shadow:inset 0 1px 0 #ffffff08}
+.lai-trends-library{justify-self:start}.lai-trends-tools{justify-self:end}
+.lai-trends-popover{position:absolute;top:calc(100% + 9px);inset-inline:0;z-index:30}.lai-trends-popover[hidden],.lai-trends-prompt[hidden]{display:none}
+.lai-trends-panel{display:grid;grid-template-columns:1fr 1.2fr;gap:16px;padding:17px;border:1px solid #3d4a55;border-radius:20px;background:#171e27;box-shadow:0 24px 50px #00000090;animation:lai-trends-open .25s ease both}
+.lai-trends-section-label{font-size:13px;font-weight:700;color:#d8e7ef;margin-bottom:14px}
+.lai-trends-item{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:12px 10px;margin-bottom:8px;text-align:start;border:1px solid #323c47;border-radius:11px;background:#202936;color:#d7e1eb;font-size:12px!important;transition:transform .2s}
+.lai-trends-item[aria-pressed=true]{background:#ffffff0a;color:#f3f7fa;border-color:#ffffff24;box-shadow:inset 0 1px 0 #ffffff0c}
+.lai-trends-preview{position:relative;min-width:0;padding-top:25px}.lai-trends-close{position:absolute;inset-inline-end:0;top:0;display:grid;place-items:center;border:0;background:transparent;color:#b6c7d2;width:28px;height:28px}
+.lai-trend-art{display:block;width:100%;height:auto;max-height:145px;border-radius:12px}
+.lai-trends-preview h2{font-size:16px;color:#d8e7ef;margin:12px 0 7px}.lai-trends-preview p{font-size:12px;line-height:1.8;color:#a9bac8;overflow-wrap:anywhere}
+.lai-trends-preview-button,.lai-trends-prompt button{display:inline-flex;align-items:center;gap:7px;background:#ffffff09;color:#e2ebf2;border:1px solid #ffffff18;border-radius:10px;padding:8px 11px;font-size:12px!important}
+.lai-trends-prompt{padding:8px 0}.lai-trends-prompt p{user-select:text;color:#e1e8ef}.lai-trends-prompt [role=status]{display:block;font-size:11px;margin-top:6px}
+@keyframes lai-trends-open{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media(hover:hover){.lai-trends-header .lai-trends-headline:hover{background:#ffffff0c;color:#f2f6fa;box-shadow:inset 0 1px 0 #ffffff20,0 7px 18px #00000025;transform:translateY(-3px) scale(1.045)}.lai-trends-item:hover{transform:translateX(-3px) scale(1.02)}}
+@media(max-width:730px){.lai-trends-header{width:calc(100% - 60px)}.lai-trends-nav{gap:5px}.lai-trends-header .lai-trends-headline{font-size:10px;padding-inline:2px}.lai-trends-topline{grid-template-columns:80px minmax(0,1fr) 80px}}
+@media(max-width:560px){.lai-trends-header{max-width:330px;width:calc(100% - 36px)}.lai-trends-topline{grid-template-columns:1fr 1fr;padding:5px 10px;border-radius:20px;gap:3px}.lai-trends-nav{grid-column:1/-1;grid-row:2;gap:4px}.lai-trends-header .lai-trends-headline{font-size:11px;min-height:36px}.lai-trends-tools{grid-column:2;grid-row:1}.lai-trends-library{grid-column:1;grid-row:1}.lai-trends-panel{grid-template-columns:1fr}.lai-trend-art{max-height:110px}.lai-trends-item{padding:10px;min-height:40px}}
+@media(pointer:coarse){.lai-trends-header .lai-trends-headline{min-height:44px}.lai-trends-item{min-height:44px}.lai-trends-close{width:40px;height:40px}.lai-trends-preview{padding-top:40px}}
+@media(prefers-reduced-motion:reduce){.lai-trends-panel{animation:none}.lai-trends-header *{transition:none!important}}
+
+@media(max-width:359px){.lai-trends-nav{gap:2px}.lai-trends-header .lai-trends-headline{font-size:9px;gap:1px;padding-inline:0}.lai-trends-headline svg{width:10px;height:10px}}

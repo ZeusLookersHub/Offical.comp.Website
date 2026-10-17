@@ -1,7 +1,7 @@
 name: Lookers AI Visual QA
 on:
   push:
-    branches: [stage01-core-foundation]
+    branches: [stage01-core-foundation, abdo]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -19,11 +19,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Bilingual trends header and project-preservation checks
+        run: node scripts/trends-header-qa.mjs
+        env:
+          TRENDS_QA_OUTPUT: visual-qa-artifacts/trends-header
       - run: node scripts/visual-qa.mjs
       - name: Real application user journeys (offline, no paid inference)
         run: node scripts/user-journeys.mjs
       - name: Universal tools and presentation user journeys (offline)
         run: npm run test:tool-journeys
+      - name: Studio composer, written questions, references and history
+        run: npm run test:studio-journeys
+        env:
+          STUDIO_QA_OUTPUT: visual-qa-artifacts/studio
+      - name: Equal cards, task routing and real document extraction
+        run: npm run test:cards
+        env:
+          CARDS_QA_OUTPUT: visual-qa-artifacts/cards
       - uses: actions/upload-artifact@v4
         if: always()
         with:

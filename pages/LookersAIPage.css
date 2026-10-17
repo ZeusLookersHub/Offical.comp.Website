@@ -415,3 +415,126 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lai-tool-detail .lai-library-card-actions { flex-wrap: wrap; }
 .lai-bar-actions { flex-wrap: wrap; }
 @media (max-width: 620px) { .lai-tool-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Motion and prompt discovery — transitions only on transform and opacity. */
+@keyframes lai-page-enter {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.lookers-ai .lai-card,.lookers-ai .lai-library,.lookers-ai .lai-tool-directory,.lookers-ai .lai-starter-panel {animation:lai-page-enter .34s ease-out both}
+.lookers-ai button:not(:disabled){transition:transform .18s ease,box-shadow .2s ease,border-color .2s ease,background-color .2s ease}
+.lookers-ai button svg,.lookers-ai .lai-quick-card svg,.lookers-ai .lai-task-card svg {transition:transform .24s ease}
+.lookers-ai button:not(:disabled):active{transform:scale(.97)}
+@media(hover:hover) and (pointer:fine){
+.lookers-ai button:not(:disabled):hover{transform:translateY(-2px)}
+.lookers-ai button:not(:disabled):hover svg{transform:translateY(-2px) rotate(-7deg) scale(1.08)}
+.lookers-ai .lai-quick-card:hover svg,.lookers-ai .lai-task-card:hover svg{transform:translateY(-3px) rotate(-8deg) scale(1.12)}
+}
+.lookers-ai button:focus-visible{outline:2px solid var(--lai-gold);outline-offset:3px}
+.lai-starter-panel{margin:18px 0;padding:17px;border:1px solid rgba(230,193,90,.23);border-radius:15px;background:rgba(230,193,90,.035)}
+.lai-starter-heading{display:flex;align-items:center;gap:9px;color:var(--lai-gold);margin-bottom:12px}
+.lai-starter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.lai-starter-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:start;min-height:120px;padding:14px;border:1px solid var(--lai-border);border-radius:12px;background:rgba(255,255,255,.025);color:var(--lai-ink);cursor:pointer;font:inherit;font-size:12px;line-height:1.6}
+.lai-starter-card svg{margin-inline-start:auto;color:var(--lai-gold)}
+.lai-starter-number{font-size:11px;font-weight:800;color:var(--lai-gold)}
+.lai-starter-panel>p{margin:12px 0 0;font-size:11px;color:var(--lai-muted)}
+@media(max-width:650px){.lai-starter-grid{grid-template-columns:1fr}.lai-starter-card{min-height:0}}
+@media(prefers-reduced-motion:reduce){.lookers-ai *,.lookers-ai *::before,.lookers-ai *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.lookers-ai button:hover,.lookers-ai button:active{transform:none!important}}
+
+/* Studio: one centered workspace, contextual choices below the brief, references in their step. */
+.lookers-ai{--lai-bg:#0b0d10;--lai-surface:#181b20;--lai-surface-raised:#20242a;--lai-ink:#f1eee6;--lai-muted:#a6a8ad;--lai-border:#35383f;--lai-gold:#e7c25c;padding:14px 22px 42px;overflow:visible;background:radial-gradient(ellipse at 49% 12%,#242217 0%,#121417 35%,#0b0d10 75%)}
+.lookers-ai__wrap{width:min(100%,1180px)}
+.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{padding:22px 12px 26px}
+.lai-constellation{width:min(100%,560px);margin:0 auto 4px}.lai-constellation canvas{display:block;width:100%;height:auto}
+.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{font-size:29px;line-height:1.5;letter-spacing:0;margin:0 auto 7px}
+.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1 br{display:block}
+.lookers-ai__hero>p{font-size:13px;color:#aaadb4}
+.lai-workspace,.lookers-ai[data-stage=home] .lai-workspace{display:block;max-width:780px;margin:0 auto}
+.lookers-ai__main{position:relative;isolation:isolate;animation:lai-studio-arrive .5s cubic-bezier(.16,1,.3,1) both}
+.lookers-ai__main::before,.lookers-ai__main::after{content:'';position:absolute;inset:-13px 14px auto;height:80px;border:1px solid #514b36;background:linear-gradient(140deg,#353326,#24272c);border-radius:20px;z-index:-1;pointer-events:none}
+.lookers-ai__main::after{inset:-23px 30px auto;opacity:.4;z-index:-2}
+.lookers-ai .lai-card{padding:23px;border-radius:22px;border-color:#424238;background:linear-gradient(160deg,#24251f 0%,#1b1e23 28%,#171a1f 100%);box-shadow:inset 0 1px 0 #ffffff0d,0 26px 55px #00000045;animation:none}
+.lai-card-heading{align-items:center;padding-bottom:17px;margin-bottom:18px;border-bottom:1px solid #34362f}
+.lai-card-heading h2{font-size:18px}.lai-card-heading p{font-size:12px}.lai-heading-icon{width:29px;height:29px;background:transparent;border:0;border-radius:0}.lai-heading-icon svg{width:17px;height:17px;filter:drop-shadow(.7px 1px 0 #648194) drop-shadow(1.4px 2px 1px #00000080)}
+.lai-steps,.lookers-ai[data-stage=home] .lai-steps{display:flex;justify-content:center;align-items:center;gap:8px;border:0;background:transparent;padding:8px 0;margin:0 auto 39px;max-width:780px}
+.lai-steps>button{display:flex;align-items:center;gap:5px;color:#aeb0b6;font:inherit;font-size:11px;border:0;background:transparent;padding:0}
+.lai-steps>button:not(:last-child)::after{content:'';display:block;width:20px;height:1px;background:#35383f;margin-inline-start:3px}
+.lai-steps>button>span{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:#18202a;font-size:11px}
+.lai-steps>button small{font-size:11px;white-space:nowrap}.lai-steps .is-active>span{color:#243b46;background:#e7c25c;border:0}.lai-steps .is-done>span{background:#252a28;color:#d2c294}
+.lookers-ai button{touch-action:manipulation}.lookers-ai button:focus-visible,.site-header a:focus-visible,.site-header button:focus-visible{outline:2px solid #9edce6;outline-offset:3px}
+.lookers-ai .lai-primary-button{border-radius:25px;min-height:42px;background:linear-gradient(135deg,#efd27e,#d9b34f);color:#1a1913;box-shadow:inset 0 1px 0 #fff4ca70,0 5px 17px #00000030}
+.lookers-ai .lai-secondary-button{font-size:12px;min-height:38px;border-color:#3b4149;border-radius:12px;background:#ffffff04}
+.lai-field input,.lai-field textarea,.lai-idea-input{background:#101216;border-color:#353b44;font-size:16px;line-height:1.8;border-radius:12px}
+.lai-idea-input{min-height:155px}.lai-field textarea{min-height:110px}.lai-field{margin:18px 0}
+.lai-field-heading{display:flex;align-items:center;gap:8px;margin-bottom:9px;position:relative}.lai-field-heading label{margin:0!important;font-size:14px;color:#dae4ed}
+.lai-question-help{position:relative;display:inline-flex;flex:none}.lai-help-button{display:grid;place-items:center;width:24px;height:24px;min-height:24px;padding:0;font:inherit;font-size:13px;font-weight:700;border:1px solid #71818d;border-radius:50%;color:#c5dce8;background:#ffffff07}
+.lai-help-copy{position:absolute;top:calc(100% + 9px);inset-inline-end:0;width:min(340px,75vw);z-index:28;background:#23303b;border:1px solid #4a5c69;border-radius:12px;color:#d0dee8;padding:12px;font-size:12px;line-height:1.9;box-shadow:0 15px 30px #00000060}
+.lai-help-copy>span{display:block;margin:4px 0}.lai-help-copy b{color:#eff5f9}
+.lookers-ai .lai-suggestion{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:12px;min-height:36px;border:1px solid #ffffff18;border-radius:18px;padding:8px 11px;background:#ffffff05;color:#dbe6ed;transition:transform .18s,background .18s}
+.lai-suggestion svg{width:14px;height:14px;filter:drop-shadow(.7px 1px 0 #648194) drop-shadow(1.4px 2px 1px #00000080)}
+.lai-vision-choices{margin:12px 0 5px}.lai-vision-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;color:#aabac7;font-size:12px}.lai-vision-caption button{display:flex;align-items:center;gap:5px;background:transparent;border:0;padding:5px 0;font:inherit;font-size:11px;color:inherit}
+.lai-vision-options{display:flex;gap:7px;flex-wrap:wrap;align-items:center;animation:lai-choices-arrive .22s ease both}
+.lai-vision-more{display:flex;align-items:center;gap:4px;padding:8px;background:none;color:#a5d7df;border:0;font:inherit;font-size:12px}
+.lai-question-suggestions{margin-top:10px}.lai-question-suggestions>small{font-size:11px;color:#9fafbc}.lai-question-suggestions>div{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.lai-question-suggestions p{font-size:12px;line-height:1.8;color:#b7ccd8;margin:10px 0}
+.lookers-ai .lai-task-questions{border:0;padding:0;background:none}.lai-task-questions>h3{font-size:16px}.lai-question-position{font-size:11px}
+.lai-starter-panel{background:transparent;border:0;padding:0;margin:16px 0}.lai-starter-grid{gap:8px}.lai-starter-card{padding:10px;font-size:11px!important;min-height:80px}
+.lookers-ai .lai-attachments,.lookers-ai[data-stage=files] .lai-attachments{width:100%;margin:15px 0;padding:16px;background:#ffffff02;border:1px dashed #56606b;border-radius:15px}.lai-attachments-heading small{font-size:12px}.lai-empty-upload{min-height:140px}.lai-file{min-width:0}.lai-file-main>b{white-space:normal;overflow-wrap:anywhere}.lai-file img{object-fit:contain}
+.lookers-ai__footer{max-width:780px;margin:24px auto 0;text-align:center;font-size:12px;color:#aeb0b6}.lai-history-toggle{display:inline-flex;align-items:center;gap:7px;padding:9px 0;background:none;border:0;color:#c6d2df;font:inherit;font-size:12px}.lai-history{margin-top:12px;text-align:start}.lai-history h2{font-size:18px;margin-bottom:16px}.lai-history-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.lai-history-grid button{display:flex;flex-direction:column;align-items:flex-start;text-align:start;min-width:0;overflow-wrap:anywhere}.lai-history-grid small{font-size:11px;color:#aeb0b6}
+.lookers-ai .lai-card .lai-tool-directory{animation:none}
+@keyframes lai-studio-arrive{from{opacity:0;transform:translateY(42px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes lai-choices-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(hover:hover){.lookers-ai .lai-suggestion:hover{background:#ffffff0c;transform:translateY(-2px)}}
+.lookers-ai button:active{transform:scale(.97)}
+@media(max-width:800px){.lookers-ai{padding:14px 16px 36px}.lai-steps{gap:6px}.lai-steps>button:not(:last-child)::after{width:10px}.lai-steps>button small{font-size:11px}}
+@media(max-width:520px){.lookers-ai{padding:12px 13px 32px}.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{padding:12px 0 23px}.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{font-size:23px}.lookers-ai__hero>p{font-size:12px}.lookers-ai .lai-card{padding:16px}.lai-card-heading{gap:8px}.lai-card-heading h2{font-size:16px}.lai-card-heading p{font-size:12px}.lai-steps,.lookers-ai[data-stage=home] .lai-steps{gap:4px}.lai-steps>button{gap:3px}.lai-steps>button:not(:last-child)::after{width:4px;margin-inline-start:1px}.lai-steps>button>span{min-width:19px;height:19px}.lai-steps>button small{font-size:10px}.lookers-ai .lai-suggestion{font-size:11px;padding:8px 9px;min-height:40px}.lai-vision-caption{font-size:12px}.lai-field-heading label{font-size:13px}.lai-starter-grid{grid-template-columns:1fr}.lai-starter-card{min-height:55px}.lai-question-navigation{flex-wrap:wrap}.lai-question-navigation>button{min-width:0}.lai-file-main{flex-basis:120px}.lai-history-grid{grid-template-columns:1fr}.lai-brief-footer .lai-primary-button{width:auto}.lai-result-actions>button{flex-basis:auto}}
+@media(pointer:coarse){.lai-help-button{width:32px;height:32px;margin:6px}.lai-vision-options .lai-suggestion,.lai-vision-more{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.lookers-ai__main,.lai-vision-options{animation:none!important}.lookers-ai button:hover,.lookers-ai button:active{transform:none!important}}
+/* Anchor explanations to the full label row so they fit on narrow RTL screens. */
+.lai-field-heading .lai-question-help{position:static}
+
+@media(max-width:359px){.lai-steps,.lookers-ai[data-stage=home] .lai-steps{gap:2px}.lai-steps>button{gap:2px}.lai-steps>button:not(:last-child)::after{width:2px;margin-inline-start:0}.lai-steps>button>span{min-width:18px;height:18px}}
+/* The wizard occupies the available viewport; only its content scrolls. */
+.lookers-ai{height:calc(100svh - 82px);min-height:490px;padding:8px 20px 6px;display:flex;flex-direction:column;overflow:visible}
+.lookers-ai__wrap{display:flex;flex-direction:column;flex:1;width:100%;min-height:0}
+.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{flex:none;padding:2px 0 8px}
+.lookers-ai__hero .lai-constellation{width:210px;height:44px;margin:0 auto}
+.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{font-size:18px;line-height:1.3;margin:0}
+.lookers-ai__hero h1 br{display:none!important}.lookers-ai__hero h1 em{margin-inline-start:6px}
+.lookers-ai__hero>p{display:none}
+.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{display:none}
+.lai-steps,.lookers-ai[data-stage=home] .lai-steps{flex:none;margin:0 auto 25px;padding:2px 0}
+.lai-workspace,.lookers-ai[data-stage=home] .lai-workspace{flex:1;min-height:0;width:100%;max-width:780px;display:flex}
+.lookers-ai__main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;width:100%;height:100%}
+.lookers-ai__main>.lai-notice{flex:none;margin:0 0 8px;max-height:56px;overflow:auto;font-size:12px}
+.lookers-ai .lai-flow-card,.lookers-ai .lai-question-card{display:flex;flex-direction:column;flex:1;min-height:0;height:100%;margin:0;padding:20px;overflow:visible}
+.lai-card-heading{flex:none;margin:0 0 12px;padding-bottom:10px}.lai-card-heading p{margin:4px 0 0}
+.lai-card-scroll,.lai-question-card-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 4px 10px}
+.lai-question-card-body{animation:lai-card-turn .35s cubic-bezier(.16,1,.3,1) both}
+.lai-question-card .lai-field{margin:10px 0}.lai-question-card textarea{min-height:120px;max-height:180px;resize:vertical}
+.lai-question-position{margin:0 0 14px;color:#9fb2c0}.lai-question-navigation,.lai-flow-card>.lai-nav-buttons,.lai-brief-footer{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #ffffff12;padding-top:12px;margin:10px 0 0}
+.lai-question-navigation button{min-height:44px}.lai-flow-card .lai-idea-input{min-height:95px;height:120px;max-height:190px}.lai-more-examples{margin:12px 0 0}
+.lai-card-scroll .lai-attachments{margin:0!important;padding:12px!important}.lai-file-list{max-height:none}.lai-upload-state{max-width:160px;white-space:normal;line-height:1.6}
+.lai-extracted-preview{font-size:12px;margin-top:8px;color:#bad4df}.lai-extracted-preview pre{max-height:160px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#d1dde5;font-size:11px;line-height:1.7;direction:ltr;text-align:start}
+.lookers-ai__footer{flex:none;margin:0;padding:6px 0 0;min-height:25px}.lai-history{position:fixed;inset:15vh max(16px,calc((100vw - 800px)/2)) auto;max-height:72vh;overflow:auto;z-index:80;box-shadow:0 0 0 100vmax #0009!important}
+.lookers-ai[data-stage=result] .lai-workspace{max-width:1160px}.lookers-ai[data-stage=result] .lookers-ai__main::before,.lookers-ai[data-stage=result] .lookers-ai__main::after{display:none}
+.lai-result-card{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 280px;grid-template-rows:auto auto minmax(0,1fr);gap:12px 24px;min-height:0;border:0;background:transparent;box-shadow:none;padding:0}
+.lai-result-heading{grid-column:1/-1;margin:0;padding:0;border:0}.lai-result-heading h2{font-size:21px}.lai-result-heading p{font-size:12px;margin:3px 0}.lai-result-card>.lai-notice{grid-column:1/-1;padding:8px 12px;margin:0;font-size:12px}
+.lai-result-editor{grid-column:1;grid-row:3;display:flex;flex-direction:column;min-height:0;padding:16px;border:1px solid #343c48;border-radius:18px;background:#10151b}
+.lai-result-editor .lai-tabs{flex:none;margin:0 0 10px}.lai-result-editor .lookers-ai__prompt-output{flex:1;height:auto;min-height:100px;max-height:none;resize:none;margin:0;padding:14px;font-size:14px;line-height:1.8}
+.lai-result-editor .lai-result-actions{flex:none;margin:12px 0 0;display:flex;flex-wrap:wrap}.lai-result-editor .lai-summary{flex:1;min-height:0;overflow:auto;grid-template-columns:1fr}
+.lai-result-sidebar{grid-column:2;grid-row:3;min-height:0;overflow:auto;border-inline-start:1px solid #ffffff15;padding-inline-start:18px;scrollbar-width:thin}
+.lai-result-sidebar>details,.lai-result-sidebar>button{margin:0 0 14px;width:100%;font-size:13px}.lai-result-sidebar summary{cursor:pointer;min-height:38px;display:flex;align-items:center}.lai-result-sidebar .lai-start-over{display:block;margin:12px 0;padding:12px 0}.lai-start-over p{display:none}
+.lai-result-sidebar .lai-handoff{position:fixed;inset:12vh max(16px,calc((100vw - 1000px)/2)) auto;max-height:78vh;overflow:auto;background:#151d27;padding:20px;border:1px solid #425266;border-radius:18px;z-index:45;box-shadow:0 0 0 100vmax #000b}
+@keyframes lai-card-turn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+@media(max-width:659px){.lookers-ai{height:calc(100svh - 118px);min-height:430px;padding:8px 12px 5px}.lookers-ai .lai-flow-card,.lookers-ai .lai-question-card{padding:15px}.lai-card-heading h2{font-size:15px}.lai-card-heading p{font-size:11px}.lai-question-card textarea{min-height:100px}.lai-result-card{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px}.lai-result-sidebar{grid-row:4;grid-column:1;display:flex;gap:8px;align-items:start;border:0;padding:0;max-height:120px;overflow:auto}.lai-result-sidebar>details,.lai-result-sidebar>button{width:auto;flex:1;min-width:100px;margin:0;font-size:11px}.lai-result-sidebar .lai-start-over{margin:0;padding:0;min-width:100px}.lai-result-sidebar .lai-start-over h3{display:none}.lai-result-editor{padding:12px}.lai-result-heading h2{font-size:18px}.lai-result-heading p{font-size:11px}.lai-result-editor .lai-result-actions{gap:5px}.lai-result-editor .lai-result-actions button{font-size:11px;padding:8px;min-height:40px}.lai-question-navigation{flex-wrap:nowrap}.lai-question-navigation>button{font-size:11px;flex:1;padding:8px;gap:4px}.lai-question-navigation svg{width:12px}.lai-steps{margin-bottom:23px!important}.lookers-ai__hero .lai-constellation{height:35px;width:170px}.lookers-ai__hero h1{font-size:14px!important}.lai-help-copy{width:min(300px,76vw)}}
+@media(prefers-reduced-motion:reduce){.lai-question-card-body{animation:none}}
+.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{height:82px}
+.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{margin-inline:auto}
+.lai-file-error{color:#e5b7a0;font-size:12px;line-height:1.7;margin:7px 0}
+@media(max-width:659px){.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{height:66px}}
+@media(max-width:659px){.lai-result-sidebar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:132px;overflow-x:hidden}.lai-result-sidebar>details,.lai-result-sidebar>button,.lai-result-sidebar .lai-start-over{min-width:0;width:100%;margin:0;font-size:10px}.lai-result-sidebar summary{min-height:42px;overflow-wrap:anywhere}.lai-result-sidebar .lai-start-over button{padding:7px;font-size:10px;min-height:42px;width:100%}.lai-result-sidebar .lai-start-over>div{display:none}.lai-handoff-toggle{font-size:10px!important;padding:7px!important}.lai-result-sidebar .lai-continuation[open]{grid-column:1/-1}.lai-result-sidebar .lai-project-actions[open]{grid-column:1/-1}}
+.lai-handoff-close{position:sticky;top:0;display:flex;margin-inline-start:auto;background:#253242!important;z-index:2}
+/* Lift the tool overlay above navigation without inheriting the card transform. */
+.lai-workspace:has(.lai-handoff){position:relative;z-index:65}
+.lookers-ai__main:has(.lai-handoff){animation:none;transform:none;isolation:auto}
+.lai-result-sidebar:has(.lai-handoff){overflow:visible}
+.lookers-ai .lai-question-card{animation:lai-card-turn .38s cubic-bezier(.16,1,.3,1) both}
+.lookers-ai[data-stage=result] .lookers-ai__main{animation:none}
+@media(prefers-reduced-motion:reduce){.lookers-ai .lai-question-card{animation:none!important}}
