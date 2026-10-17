@@ -490,3 +490,51 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lai-field-heading .lai-question-help{position:static}
 
 @media(max-width:359px){.lai-steps,.lookers-ai[data-stage=home] .lai-steps{gap:2px}.lai-steps>button{gap:2px}.lai-steps>button:not(:last-child)::after{width:2px;margin-inline-start:0}.lai-steps>button>span{min-width:18px;height:18px}}
+/* The wizard occupies the available viewport; only its content scrolls. */
+.lookers-ai{height:calc(100svh - 82px);min-height:490px;padding:8px 20px 6px;display:flex;flex-direction:column;overflow:visible}
+.lookers-ai__wrap{display:flex;flex-direction:column;flex:1;width:100%;min-height:0}
+.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{flex:none;padding:2px 0 8px}
+.lookers-ai__hero .lai-constellation{width:210px;height:44px;margin:0 auto}
+.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{font-size:18px;line-height:1.3;margin:0}
+.lookers-ai__hero h1 br{display:none!important}.lookers-ai__hero h1 em{margin-inline-start:6px}
+.lookers-ai__hero>p{display:none}
+.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{display:none}
+.lai-steps,.lookers-ai[data-stage=home] .lai-steps{flex:none;margin:0 auto 25px;padding:2px 0}
+.lai-workspace,.lookers-ai[data-stage=home] .lai-workspace{flex:1;min-height:0;width:100%;max-width:780px;display:flex}
+.lookers-ai__main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;width:100%;height:100%}
+.lookers-ai__main>.lai-notice{flex:none;margin:0 0 8px;max-height:56px;overflow:auto;font-size:12px}
+.lookers-ai .lai-flow-card,.lookers-ai .lai-question-card{display:flex;flex-direction:column;flex:1;min-height:0;height:100%;margin:0;padding:20px;overflow:visible}
+.lai-card-heading{flex:none;margin:0 0 12px;padding-bottom:10px}.lai-card-heading p{margin:4px 0 0}
+.lai-card-scroll,.lai-question-card-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 4px 10px}
+.lai-question-card-body{animation:lai-card-turn .35s cubic-bezier(.16,1,.3,1) both}
+.lai-question-card .lai-field{margin:10px 0}.lai-question-card textarea{min-height:120px;max-height:180px;resize:vertical}
+.lai-question-position{margin:0 0 14px;color:#9fb2c0}.lai-question-navigation,.lai-flow-card>.lai-nav-buttons,.lai-brief-footer{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #ffffff12;padding-top:12px;margin:10px 0 0}
+.lai-question-navigation button{min-height:44px}.lai-flow-card .lai-idea-input{min-height:95px;height:120px;max-height:190px}.lai-more-examples{margin:12px 0 0}
+.lai-card-scroll .lai-attachments{margin:0!important;padding:12px!important}.lai-file-list{max-height:none}.lai-upload-state{max-width:160px;white-space:normal;line-height:1.6}
+.lai-extracted-preview{font-size:12px;margin-top:8px;color:#bad4df}.lai-extracted-preview pre{max-height:160px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#d1dde5;font-size:11px;line-height:1.7;direction:ltr;text-align:start}
+.lookers-ai__footer{flex:none;margin:0;padding:6px 0 0;min-height:25px}.lai-history{position:fixed;inset:15vh max(16px,calc((100vw - 800px)/2)) auto;max-height:72vh;overflow:auto;z-index:80;box-shadow:0 0 0 100vmax #0009!important}
+.lookers-ai[data-stage=result] .lai-workspace{max-width:1160px}.lookers-ai[data-stage=result] .lookers-ai__main::before,.lookers-ai[data-stage=result] .lookers-ai__main::after{display:none}
+.lai-result-card{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 280px;grid-template-rows:auto auto minmax(0,1fr);gap:12px 24px;min-height:0;border:0;background:transparent;box-shadow:none;padding:0}
+.lai-result-heading{grid-column:1/-1;margin:0;padding:0;border:0}.lai-result-heading h2{font-size:21px}.lai-result-heading p{font-size:12px;margin:3px 0}.lai-result-card>.lai-notice{grid-column:1/-1;padding:8px 12px;margin:0;font-size:12px}
+.lai-result-editor{grid-column:1;grid-row:3;display:flex;flex-direction:column;min-height:0;padding:16px;border:1px solid #343c48;border-radius:18px;background:#10151b}
+.lai-result-editor .lai-tabs{flex:none;margin:0 0 10px}.lai-result-editor .lookers-ai__prompt-output{flex:1;height:auto;min-height:100px;max-height:none;resize:none;margin:0;padding:14px;font-size:14px;line-height:1.8}
+.lai-result-editor .lai-result-actions{flex:none;margin:12px 0 0;display:flex;flex-wrap:wrap}.lai-result-editor .lai-summary{flex:1;min-height:0;overflow:auto;grid-template-columns:1fr}
+.lai-result-sidebar{grid-column:2;grid-row:3;min-height:0;overflow:auto;border-inline-start:1px solid #ffffff15;padding-inline-start:18px;scrollbar-width:thin}
+.lai-result-sidebar>details,.lai-result-sidebar>button{margin:0 0 14px;width:100%;font-size:13px}.lai-result-sidebar summary{cursor:pointer;min-height:38px;display:flex;align-items:center}.lai-result-sidebar .lai-start-over{display:block;margin:12px 0;padding:12px 0}.lai-start-over p{display:none}
+.lai-result-sidebar .lai-handoff{position:fixed;inset:12vh max(16px,calc((100vw - 1000px)/2)) auto;max-height:78vh;overflow:auto;background:#151d27;padding:20px;border:1px solid #425266;border-radius:18px;z-index:45;box-shadow:0 0 0 100vmax #000b}
+@keyframes lai-card-turn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+@media(max-width:659px){.lookers-ai{height:calc(100svh - 118px);min-height:430px;padding:8px 12px 5px}.lookers-ai .lai-flow-card,.lookers-ai .lai-question-card{padding:15px}.lai-card-heading h2{font-size:15px}.lai-card-heading p{font-size:11px}.lai-question-card textarea{min-height:100px}.lai-result-card{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px}.lai-result-sidebar{grid-row:4;grid-column:1;display:flex;gap:8px;align-items:start;border:0;padding:0;max-height:120px;overflow:auto}.lai-result-sidebar>details,.lai-result-sidebar>button{width:auto;flex:1;min-width:100px;margin:0;font-size:11px}.lai-result-sidebar .lai-start-over{margin:0;padding:0;min-width:100px}.lai-result-sidebar .lai-start-over h3{display:none}.lai-result-editor{padding:12px}.lai-result-heading h2{font-size:18px}.lai-result-heading p{font-size:11px}.lai-result-editor .lai-result-actions{gap:5px}.lai-result-editor .lai-result-actions button{font-size:11px;padding:8px;min-height:40px}.lai-question-navigation{flex-wrap:nowrap}.lai-question-navigation>button{font-size:11px;flex:1;padding:8px;gap:4px}.lai-question-navigation svg{width:12px}.lai-steps{margin-bottom:23px!important}.lookers-ai__hero .lai-constellation{height:35px;width:170px}.lookers-ai__hero h1{font-size:14px!important}.lai-help-copy{width:min(300px,76vw)}}
+@media(prefers-reduced-motion:reduce){.lai-question-card-body{animation:none}}
+.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{height:82px}
+.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{margin-inline:auto}
+.lai-file-error{color:#e5b7a0;font-size:12px;line-height:1.7;margin:7px 0}
+@media(max-width:659px){.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{height:66px}}
+@media(max-width:659px){.lai-result-sidebar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:132px;overflow-x:hidden}.lai-result-sidebar>details,.lai-result-sidebar>button,.lai-result-sidebar .lai-start-over{min-width:0;width:100%;margin:0;font-size:10px}.lai-result-sidebar summary{min-height:42px;overflow-wrap:anywhere}.lai-result-sidebar .lai-start-over button{padding:7px;font-size:10px;min-height:42px;width:100%}.lai-result-sidebar .lai-start-over>div{display:none}.lai-handoff-toggle{font-size:10px!important;padding:7px!important}.lai-result-sidebar .lai-continuation[open]{grid-column:1/-1}.lai-result-sidebar .lai-project-actions[open]{grid-column:1/-1}}
+.lai-handoff-close{position:sticky;top:0;display:flex;margin-inline-start:auto;background:#253242!important;z-index:2}
+/* Lift the tool overlay above navigation without inheriting the card transform. */
+.lai-workspace:has(.lai-handoff){position:relative;z-index:65}
+.lookers-ai__main:has(.lai-handoff){animation:none;transform:none;isolation:auto}
+.lai-result-sidebar:has(.lai-handoff){overflow:visible}
+.lookers-ai .lai-question-card{animation:lai-card-turn .38s cubic-bezier(.16,1,.3,1) both}
+.lookers-ai[data-stage=result] .lookers-ai__main{animation:none}
+@media(prefers-reduced-motion:reduce){.lookers-ai .lai-question-card{animation:none!important}}

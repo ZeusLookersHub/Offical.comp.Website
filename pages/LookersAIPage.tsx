@@ -23,6 +23,7 @@ import './LookersAIPage.css';
 import ConstellationName from '../components/ConstellationName';
 import LookersVisionChoices from '../components/LookersVisionChoices';
 import LookersQuestionField, { QuestionHelp } from '../components/LookersQuestionField';
+import { extractAttachment } from '../services/lookersAiAttachments';
 import { questionCopy } from '../data/lookersAiQuestionCopy';
 
 const stages = ['home', 'files', 'details', 'review', 'result'] as const;
@@ -119,9 +120,13 @@ const LookersAIPage: React.FC = () => {
   ];
 
   const completeness = useMemo(() => planDraftQuestions(current, lang), [current, lang]);
-  const activeQuestion = completeness.fields[Math.min(questionIndex, Math.max(0, completeness.fields.length - 1))];
+  const taskQuestion = {id:'taskDescription',label:{en:'Describe the task in your own words',ar:'نوع المهمة — اوصفه بطريقتك'},kind:'textarea' as const,optional:true,options:taskTypes.map(task=>({value:task.id,en:task.title.en,ar:task.title.ar}))};
+  const purposeQuestion = {id:'purpose',label:{en:'Desired result',ar:'عايز توصل لإيه؟'},kind:'textarea' as const};
+  const extraQuestions = [['context','Helpful context'],['constraints','Constraints'],['deliverable','Deliverable'],['successCriteria','Success criteria'],['location','Execution location'],['tools','Available tools'],['permissions','Permissions or approvals'],['size','Expected size'],['stopConditions','Stop and ask when']].filter(([id])=>!completeness.fields.some(f=>f.id===id)).map(([id,en])=>({id,label:{en,ar:questionCopy[id]?.[0]||en},kind:'textarea' as const,optional:true}));
+  const cardQuestions = [taskQuestion,...completeness.fields.filter(f=>!f.optional),purposeQuestion,...completeness.fields.filter(f=>f.optional),...extraQuestions];
+  const activeQuestion = cardQuestions[Math.min(questionIndex,cardQuestions.length-1)];
   useEffect(() => { setQuestionIndex(0); }, [current.taskType]);
-  useEffect(() => { setQuestionIndex(index => Math.min(index, Math.max(0, completeness.fields.length - 1))); }, [completeness.fields.length]);
+  useEffect(() => { setQuestionIndex(index => Math.min(index, Math.max(0, cardQuestions.length - 1))); }, [cardQuestions.length]);
   useEffect(() => { setExternalReply(''); setEditingPrompt(false); setShowHandoff(false); setHandoffTool(''); setShowProjectContext(false); setGenerationNotice(''); }, [current.id]);
 
   const commit = (next: UserProjectState) => {
@@ -146,10 +151,12 @@ const LookersAIPage: React.FC = () => {
     commit({ ...latest, current: project });
   };
   const setStage = (next: Stage) => {
+    if(next==='details')setQuestionIndex(0);
     patchCurrent({ step: next }, `opened_${next}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const setAnswer = (id: string, value: string | string[]) => {
+    setGenerationNotice('');
     const nextAnswers = { ...answers, [id]: value };
     const title = id === 'idea' ? (String(value).trim().slice(0, 64) || '') : current.title;
     patchCurrent({ answers: nextAnswers, title });
@@ -184,6 +191,7 @@ const LookersAIPage: React.FC = () => {
 
   const addFiles = async (fileList: FileList | File[]) => {
     const files = Array.from(fileList);
+    const uploadProjectId=projectStateRef.current.current.id;
     if (!files.length) return;
     setBusy(true);
     const additions: ProjectAttachment[] = files.map((file) => {
@@ -203,27 +211,19 @@ const LookersAIPage: React.FC = () => {
       const attachment = additions[index];
       const extension = file.name.split('.').pop()?.toLowerCase() || '';
       const image = attachment.kind === 'image';
-      const textLike = attachment.kind === 'text';
       let text: string | undefined;
       let dataUrl: string | undefined;
       let note = '';
       if (image) {
         try { dataUrl = await storeImageReference(file); }
         catch { note = copy(lang, 'Image reference saved by name; a preview could not be stored on this device.', 'حُفظ اسم الصورة كمرجع، لكن تعذر حفظ معاينتها على هذا الجهاز.'); }
-      } else if (textLike) {
-        try {
-          const source = await file.text();
-          if (['csv', 'tsv'].includes(extension)) {
-            const lines = source.split(/\r?\n/).filter(Boolean);
-            text = [copy(lang, 'Columns: ', 'الأعمدة: ') + (lines[0] || ''), copy(lang, 'Rows: ', 'الصفوف: ') + Math.max(0, lines.length - 1), ...lines.slice(1, 5)].join('\n').slice(0, 5000);
-          } else text = source.slice(0, 5000);
-          note = copy(lang, `${source.length} characters read`, `تمت قراءة ${source.length} حرفًا`);
-        } catch { note = copy(lang, 'Could not read text content.', 'تعذرت قراءة محتوى النص.'); }
       } else {
-        note = copy(lang, 'Saved as a file reference; its contents are not read in this browser.', 'حُفظ كمرجع للملف؛ لا يقرأ المتصفح محتواه تلقائيًا.');
+        const extracted = await extractAttachment(file,lang);
+        text=extracted.text; note=extracted.note;
       }
+      if(projectStateRef.current.current.id!==uploadProjectId){setBusy(false);return;}
       const latestAttachments = projectStateRef.current.current.attachments.map((item) => item.id === attachment.id
-        ? { ...item, note, text, dataUrl, processing: false }
+        ? { ...item, note, text, dataUrl, processing: false,include:Boolean(text||dataUrl) && item.include }
         : item);
       patchCurrent({ attachments: latestAttachments });
     }
@@ -339,34 +339,6 @@ const LookersAIPage: React.FC = () => {
     ? ['إعلان فاخر لفندق عائلي في دبي', 'حملة إعلانية لإطلاق تطبيق جديد', 'لوحة بيانات لمتابعة المبيعات', 'أريد تصميم صورة لمنتج جديد']
     : ['Create a premium family hotel ad in Dubai', 'Plan a launch campaign for a new app', 'Build a sales performance dashboard', 'Design a visual for a new product'];
 
-  // Three editorial starter ideas for each task. These are suggestions, not popularity claims.
-  const starterIdeas: Record<TaskType, {en:string;ar:string}[]> = {
-    image: [
-      {en:'Create a cinematic product photograph with realistic lighting and faithful packaging.',ar:'صمّم صورة سينمائية لمنتج بإضاءة واقعية مع الحفاظ على شكل العبوة.'},
-      {en:'Design a premium 3D brand mascot with a distinctive visual identity.',ar:'صمّم شخصية ثلاثية الأبعاد للعلامة التجارية بهوية بصرية مميزة.'},
-      {en:'Create a luxury editorial poster with bold typography and a refined color palette.',ar:'صمّم بوستر إعلاني فاخر بخطوط جريئة وألوان متناسقة.'}
-    ],
-    campaign: [
-      {en:'Plan a 30-day short-form video campaign for my brand with hooks and measurable goals.',ar:'خطّط لحملة فيديوهات قصيرة لمدة 30 يوم لعلامتي التجارية مع أفكار جذب وأهداف قابلة للقياس.'},
-      {en:'Create a creator-led product launch campaign with content concepts and a realistic timeline.',ar:'جهّز حملة إطلاق منتج بالتعاون مع صناع محتوى مع أفكار وجدول زمني واقعي.'},
-      {en:'Build a community-first marketing campaign with audience segments and engagement ideas.',ar:'ابنِ حملة تسويق تركز على المجتمع مع تقسيم الجمهور وأفكار التفاعل.'}
-    ],
-    dashboard: [
-      {en:'Design an executive KPI dashboard with revenue trends, conversion and clear metric definitions.',ar:'صمّم لوحة مؤشرات للإدارة تعرض اتجاهات الإيرادات والتحويل وتعريف كل مؤشر.'},
-      {en:'Plan a customer retention dashboard with cohorts, churn and data-quality checks.',ar:'خطّط للوحة متابعة الاحتفاظ بالعملاء ومجموعاتهم والتسرب وجودة البيانات.'},
-      {en:'Create a campaign performance dashboard brief with channel comparisons and ROI assumptions labeled.',ar:'جهّز وصف لوحة أداء الحملات مع مقارنة القنوات وتوضيح افتراضات العائد.'}
-    ],
-    presentation: [
-      {en:'Outline a visually compelling startup pitch deck using verified business facts.',ar:'جهّز مخطط عرض استثماري جذاب لشركة ناشئة باستخدام حقائق مؤكدة.'},
-      {en:'Plan a concise quarterly business review with KPIs, lessons and next steps.',ar:'خطّط لعرض مراجعة أعمال ربع سنوي بمؤشرات الأداء والدروس والخطوات القادمة.'},
-      {en:'Create a storytelling-led product launch presentation for potential customers.',ar:'جهّز عرض إطلاق منتج بأسلوب قصصي للعملاء المحتملين.'}
-    ],
-    general: [
-      {en:'Build a practical AI-assisted workflow for a repetitive business task, with human approval steps.',ar:'صمّم سير عمل يساعد فيه الذكاء الاصطناعي على مهمة متكررة مع مراحل موافقة بشرية.'},
-      {en:'Research a business idea and separate verified facts, assumptions and next experiments.',ar:'ادرس فكرة مشروع مع الفصل بين الحقائق والافتراضات والتجارب القادمة.'},
-      {en:'Draft a clear customer-facing message in a friendly professional tone without invented promises.',ar:'اكتب رسالة للعملاء بأسلوب مهني وودود دون وعود غير مؤكدة.'}
-    ]
-  };
   const openFilePicker = () => uploadRef.current?.click();
   const restoreProject = (id: string) => {
     const latest = projectStateRef.current;
@@ -387,22 +359,33 @@ const LookersAIPage: React.FC = () => {
     void addFiles(event.dataTransfer.files);
   };
 
-  const renderField = (field: (typeof questions)[TaskType][number]) => <LookersQuestionField key={`${current.id}-${current.taskType}-${field.id}`} field={field} value={answers[field.id]} lang={lang} onChange={setAnswer} />;
+  const useSuggestion = (id:string,value:string,label:string) => {
+    const latest=projectStateRef.current.current.answers;
+    const previous=String(latest[id]||'');
+    if(id==='taskDescription') {
+      const prior=String(latest._taskSuggestion||'');
+      const description=prior && previous.includes(prior) ? previous.replace(prior,label) : taskTypes.some(t=>Object.values(t.title).includes(previous)) ? label : [previous,label].filter(Boolean).join(ar?'، ':', ');
+      patchCurrent({taskType:value as TaskType,answers:{...latest,taskDescription:description,_taskSuggestion:label}},`task_type_${value}`);
+      setQuestionIndex(0);setGenerationNotice('');
+    } else setAnswer(id,previous.includes(label)?previous:[previous,label].filter(Boolean).join(ar?'، ':', '));
+  };
+  const renderField = (field: (typeof questions)[TaskType][number]) => <LookersQuestionField key={`${current.id}-${current.taskType}-${field.id}`} field={field} value={answers[field.id]} lang={lang} onChange={setAnswer} onSuggestion={useSuggestion} />;
   const nextQuestion = () => {
     if (activeQuestion && !activeQuestion.optional && !String(answers[activeQuestion.id] || '').trim()) {
       setGenerationNotice(copy(lang,'Write your answer before continuing. Suggestions are optional.','اكتب إجابتك في المربع الأول. الاقتراحات اللي تحته للمساعدة بس.'));
       document.getElementById(`lai-${activeQuestion.id}`)?.focus(); return;
     }
-    setGenerationNotice('');setQuestionIndex(index => Math.min(completeness.fields.length - 1,index + 1));
+    if(activeQuestion?.id === 'purpose' || questionIndex === cardQuestions.length-1){reviewDetails();return;}
+    setGenerationNotice('');setQuestionIndex(index => Math.min(cardQuestions.length - 1,index + 1));
   };
   const reviewDetails = () => {
     const missing = completeness.missing.find(field => !field.optional);
     if (missing) {
-      const index = completeness.fields.findIndex(field => field.id === missing.id);
+      const index = cardQuestions.findIndex(field => field.id === missing.id);
       if(index >= 0) setQuestionIndex(index); else if(missing.id === 'idea') setStage('home');
       setGenerationNotice(copy(lang,'Write the required details before reviewing.','كمّل الإجابة المطلوبة بكلامك الأول، وبعدها نراجع الفكرة.'));return;
     }
-    if(!String(answers.purpose || '').trim()) {setGenerationNotice(copy(lang,'Describe your goal first.','قول لنا عايز توصل لإيه الأول.'));document.getElementById('lai-purpose')?.focus();return;}
+    if(!String(answers.purpose || '').trim()) {setGenerationNotice(copy(lang,'Describe your goal first.','قول لنا عايز توصل لإيه الأول.'));setQuestionIndex(cardQuestions.findIndex(field=>field.id==='purpose'));return;}
     setGenerationNotice('');setStage('review');
   };
 
@@ -428,42 +411,45 @@ const LookersAIPage: React.FC = () => {
 
         <div className="lai-workspace">
         <div className="lookers-ai__main" key={`${current.id}-${stage}`}>
-          {generationNotice && <p className="lai-notice" role="alert">{generationNotice}</p>}
+          {generationNotice && stage !== 'details' && <p className="lai-notice" role="alert">{generationNotice}</p>}
           {stage === 'home' && (
-            <section className="lai-card lai-brief-card">
+            <section className="lai-card lai-brief-card lai-flow-card">
               <div className="lai-card-heading">
                 <div className="lai-heading-icon"><Lightbulb size={19} /></div>
                 <div><h2>{copy(lang, 'What would you like to make?', 'إيه اللي حابب تعمله؟')}</h2>
                   <p>{copy(lang, 'Start with a sentence. Lookers AI will organize the brief with you.', 'ابدأ بجملة، أو استخدم الاختيارات اللي تحت عشان تكوّن رؤيتك.')}</p></div>
               </div>
+              <div className="lai-card-scroll">
               <div className="lai-field-heading"><label htmlFor="lai-idea">{copy(lang,'Project idea','احكي فكرتك')}</label><QuestionHelp id="idea" label={copy(lang,'Project idea','احكي فكرتك')} lang={lang} /></div>
               <textarea id="lai-idea" className="lai-idea-input" rows={3} value={String(answers.idea || '')}
                 placeholder={copy(lang, 'Describe your idea, goal, or the thing you want to improve…', 'اكتب فكرتك أو هدفك أو الشيء الذي تريد تطويره…')}
                 onChange={(event) => setAnswer('idea', event.target.value)} />
               <LookersVisionChoices key={current.id} answers={answers} lang={lang} onChange={(next,task) => patchCurrent({answers:next,...(task ? {taskType:task} : {}),title:String(next.idea || '').trim().slice(0,64)},task ? `task_type_${task}` : 'vision_updated')} />
+              <details className="lai-more-examples"><summary>{copy(lang, 'More examples', 'أمثلة إضافية')}</summary>
+              <div className="lai-examples">
+                {exampleIdeas.map((example) => <button type="button" key={example} onClick={() => setAnswer('idea', example)}>{example}</button>)}
+              </div>
+              </details>
+              </div>
               <div className="lai-brief-footer">
                 <button type="button" className="lai-primary-button" disabled={!String(answers.idea || '').trim()}
                   onClick={() => { const explicit = current.activity.some(entry => entry.action.startsWith('task_type_') || entry.action.startsWith('library_prompt_selected:')); const inferred = explicit ? current.taskType : detectTaskType(String(answers.idea || '')); patchCurrent({ taskType: inferred, step: 'files' }, 'brief_started'); }}>
                   {copy(lang, 'Start building', 'ابدأ التجهيز')}<ArrowUpRight size={17} />
                 </button>
               </div>
-              <details className="lai-more-examples"><summary>{copy(lang, 'More examples', 'أمثلة إضافية')}</summary>
-              <div className="lai-examples">
-                {exampleIdeas.map((example) => <button type="button" key={example} onClick={() => setAnswer('idea', example)}>{example}</button>)}
-              </div>
-              </details>
+
 
             </section>
           )}
 
           {stage === 'files' && (
-            <section className="lai-card">
+            <section className="lai-card lai-flow-card">
               <div className="lai-card-heading">
                 <div className="lai-heading-icon"><ImagePlus size={19} /></div>
                 <div><h2>{copy(lang, 'Add useful references', 'ضيف مراجع تساعدنا نفهم فكرتك')}</h2>
-                  <p>{copy(lang, 'Images and readable text are stored on this device. Other files are kept as named references.', 'ضيف صور أو ملفات مرتبطة بفكرتك. الصور للمعاينة، والنصوص المقروءة بنستخدمها كمرجع.')}</p></div>
+                  <p>{copy(lang, 'We read XLSX, DOCX, text PDF, CSV and text files, then include an excerpt in your prompt.', 'ارفع Excel أو Word أو PDF نصي. هنقرا المحتوى ونستخدم مقتطف منه في البرومبت.')}</p></div>
               </div>
-                      <section className="lai-attachments" aria-label={copy(lang, 'Project files', 'ملفات المشروع')}
+                      <div className="lai-card-scroll"><section className="lai-attachments" aria-label={copy(lang, 'Project files', 'ملفات المشروع')}
           onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
           <div className="lai-attachments-heading">
             <div><b>{copy(lang, 'Project files & references', 'ملفات ومراجع المشروع')}</b>
@@ -480,7 +466,7 @@ const LookersAIPage: React.FC = () => {
                   {file.dataUrl ? <img src={file.dataUrl} alt="" /> : <span className="lai-file-icon">{file.kind === 'text' || /\.(pdf|docx?|rtf)$/i.test(file.name)
                     ? <FileText size={18} />
                     : /\.(xlsx?|ods|csv)$/i.test(file.name) ? <FileSpreadsheet size={18} /> : <Paperclip size={18} />}</span>}
-                  <div className="lai-file-main"><b>{file.name}</b>
+                  <div className="lai-file-main"><b>{file.name}</b>{!file.processing && !file.text && !file.dataUrl && <p className="lai-file-error" role="alert">{file.note}<br/>{copy(lang,'Upload the file again after correcting it to read its content.','ارفع الملف تاني عشان نقرا محتواه؛ ولو فيه مشكلة في النسخة دي جرّب نسخة سليمة.')}</p>}{file.text && <details className="lai-extracted-preview"><summary>{copy(lang,'Review extracted content','راجع المحتوى المقروء')}</summary><pre>{file.text}</pre></details>}
                     <details className="lai-reference-details"><summary>{copy(lang, 'Details & note', 'تفاصيل وملاحظة')}</summary>
                       <small>{`${prettySize(file.size, lang)} · ${file.mime} · ${file.note}`}</small>
                       {!file.processing && <input type="text" value={file.note} aria-label={copy(lang, 'Reference note', 'ملاحظة على المرجع')}
@@ -490,7 +476,7 @@ const LookersAIPage: React.FC = () => {
                   </div>
                   <span className={`lai-upload-state ${file.processing ? 'is-processing' : ''}`} aria-label={file.processing ? copy(lang, 'Processing', 'بنجهّزه') : copy(lang, 'Uploaded', 'جاهز')}>
                     {file.processing ? <LoaderCircle className="lai-spinner" size={15} /> : <CheckCircle2 size={15} />}
-                    {file.processing ? copy(lang, 'Preparing', 'بنجهّزه') : file.text ? copy(lang, 'Text excerpt read', 'قرأنا جزء من النص') : file.dataUrl ? copy(lang, 'Preview only', 'معاينة فقط') : copy(lang, 'Not inspected', 'محتواه متقراش')}
+                    {file.processing ? copy(lang, 'Preparing', 'بنجهّزه') : file.text ? copy(lang, 'Content ready for prompt', 'محتوى جاهز للبرومبت') : file.dataUrl ? copy(lang, 'Image preview — add a description', 'معاينة صورة — ضيف وصفها') : copy(lang, 'Needs attention', 'محتاج مراجعة')}
                   </span>
                   <label className="lai-file-include"><input type="checkbox" checked={file.include} onChange={() => toggleFile(file.id)} />{file.include ? copy(lang, 'Included', 'مرفق') : copy(lang, 'Excluded', 'مستبعد')}</label>
                   <button type="button" className="lai-icon-button is-danger" title={copy(lang, 'Remove file', 'حذف الملف')} aria-label={copy(lang, 'Remove file', 'حذف الملف')}
@@ -499,63 +485,38 @@ const LookersAIPage: React.FC = () => {
           </div>
         </section>
 
+              </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('home')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
-                <button type="button" className="lai-primary-button" onClick={() => setStage('details')}>{copy(lang, 'Continue', 'تابع')}<ArrowRight size={16} /></button>
+                <button type="button" className="lai-primary-button" disabled={busy} onClick={() => setStage('details')}>{copy(lang, 'Continue', 'تابع')}<ArrowRight size={16} /></button>
               </div>
             </section>
           )}
 
           {stage === 'details' && (
-            <section className="lai-card">
-              <div className="lai-card-heading">
-                <div className="lai-heading-icon"><Target size={19} /></div>
-                <div><h2>{copy(lang, 'A few details for a stronger result', 'تفاصيل بسيطة لنتيجة أدق')}</h2>
-                  <p>{copy(lang, 'The task type is suggested from your idea. You can change it at any time.', 'اوصف نوع الشغل بكلامك. الاقتراحات للمساعدة، مش اختيارات لازم تلتزم بيها.')}</p></div>
+            <section className="lai-card lai-question-card" key={`${current.taskType}-${activeQuestion.id}`}>
+              <div className="lai-card-heading"><div className="lai-heading-icon"><Target size={19}/></div><div><h2>{copy(lang,'Build your brief, one answer at a time','نرتّب فكرتك، سؤال بسؤال')}</h2><p>{copy(lang,'Write freely or use an optional idea and edit it.','اكتب براحتك، أو اختار اقتراح وعدّل عليه.')}</p></div></div>
+              <div className="lai-question-card-body" key={`${current.taskType}-${activeQuestion.id}`}>
+                {generationNotice && <p className="lai-notice" role="alert">{generationNotice}</p>}
+                <p className="lai-question-position">{copy(lang,'Question','سؤال')} {questionIndex+1} / {questionIndex<=cardQuestions.findIndex(q=>q.id==='purpose')?cardQuestions.findIndex(q=>q.id==='purpose')+1:cardQuestions.length} · {taskTypes.find(t=>t.id===current.taskType)?.title[lang]}</p>
+                {renderField(activeQuestion)}
               </div>
-              {renderField({id:'taskDescription',label:{en:'Describe the task in your own words',ar:'نوع المهمة — اوصفه بطريقتك'},kind:'textarea',optional:true,options:taskTypes.map(task=>({value:task.id,en:task.title.en,ar:task.title.ar}))})}
-              <div className="lai-task-questions">
-                <h3>{copy(lang, 'Task-specific details', 'نوضح تفاصيل المهمة')}</h3>
-                {activeQuestion && <>
-                  <p className="lai-question-position">{copy(lang, 'Question', 'سؤال')} {Math.min(questionIndex + 1, completeness.fields.length)} / {completeness.fields.length}</p>
-                  {renderField(activeQuestion)}
-                  <div className="lai-question-navigation">
-                    <button type="button" className="lai-secondary-button" disabled={questionIndex === 0} onClick={() => setQuestionIndex(index => Math.max(0, index - 1))}>{copy(lang, 'Previous question', 'السؤال السابق')}</button>
-                    <button type="button" className="lai-primary-button" disabled={questionIndex >= completeness.fields.length - 1} onClick={nextQuestion}>{copy(lang, 'Next question', 'السؤال التالي')}</button>
-                  </div>
-                </>}
-              </div>
-              <section className="lai-starter-panel" aria-label={copy(lang,'Three prompt ideas for this category','ثلاث أفكار برومبت لهذه الفئة')}>
-                <div className="lai-starter-heading"><Sparkles size={17} aria-hidden="true" /><strong>{copy(lang,'3 prompt ideas to get started','٣ أفكار برومبت للبدء')}</strong></div>
-                <div className="lai-starter-grid">
-                  {starterIdeas[current.taskType].map((idea,index)=><button type="button" className="lai-starter-card" key={index} onClick={()=>{setAnswer('idea',idea[lang]);setStage('home');}}>
-                    <span className="lai-starter-number">0{index+1}</span><span>{idea[lang]}</span><ArrowUpRight size={17} aria-hidden="true"/>
-                  </button>)}
-                </div>
-                <p>{copy(lang,'Choose an idea to edit it in your brief. Nothing is generated or sent yet.','اختر فكرة لتعديلها في وصف مشروعك. لن يتم إنشاء أو إرسال أي شيء الآن.')}</p>
-              </section>
-              {renderField({id:'purpose',label:{en:'Desired result',ar:'عايز توصل لإيه؟'},kind:'textarea'})}
-              <details className="lai-advanced"><summary>{copy(lang,'Add context or requirements (optional)','تفاصيل إضافية تساعدنا نفهم (اختياري)')}</summary>
-                {[['context','Helpful context'],['constraints','Constraints'],['deliverable','Deliverable']].filter(([id])=>!questions[current.taskType].some(field=>field.id===id)).map(([id,en])=>renderField({id,label:{en,ar:questionCopy[id]?.[0]||en},kind:'textarea',optional:true}))}
-              </details>
-              <details className="lai-advanced"><summary>{copy(lang,'Advanced planning and handoff','نظبط التنفيذ والتسليم (اختياري)')}</summary>
-                {[['successCriteria','Success criteria'],['location','Execution location'],['tools','Available tools'],['permissions','Permissions or approvals'],['size','Expected size'],['stopConditions','Stop and ask when']].map(([id,en])=>renderField({id,label:{en,ar:questionCopy[id]?.[0]||en},kind:'textarea',optional:true}))}
-              </details>
-              <div className="lai-nav-buttons">
-                <button type="button" className="lai-secondary-button" onClick={() => setStage('files')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
-                <button type="button" className="lai-primary-button" onClick={reviewDetails}>{copy(lang, 'Review brief', 'راجع فكرتك')}<ArrowRight size={16} /></button>
+              <div className="lai-nav-buttons lai-question-navigation">
+                <button type="button" className="lai-secondary-button" onClick={()=>questionIndex===0?setStage('files'):setQuestionIndex(i=>i-1)}><ArrowLeft size={16}/>{copy(lang,'Previous question','السؤال السابق')}</button>
+                {activeQuestion.id==='purpose' && <button type="button" className="lai-secondary-button" onClick={()=>setQuestionIndex(i=>i+1)}>{copy(lang,'More details (optional)','تفاصيل أكتر (اختياري)')}</button>}
+                <button type="button" className="lai-primary-button" onClick={nextQuestion}>{activeQuestion.id==='purpose'||questionIndex===cardQuestions.length-1?copy(lang,'Review brief','راجع فكرتك'):activeQuestion.optional?copy(lang,'Next / skip','التالي / تخطّي'):copy(lang,'Next question','السؤال التالي')}<ArrowRight size={16}/></button>
               </div>
             </section>
           )}
 
           {stage === 'review' && (
-            <section className="lai-card">
+            <section className="lai-card lai-flow-card">
               <div className="lai-card-heading">
                 <div className="lai-heading-icon"><CheckCircle2 size={19} /></div>
                 <div><h2>{copy(lang, 'Review your project', 'راجع ملخص المشروع')}</h2>
                   <p>{copy(lang, 'You can go back and change anything before creating the prompt.', 'تقدر ترجع وتعدّل أي حاجة قبل ما نجهّز البرومبت.')}</p></div>
               </div>
-              <div className="lai-completeness">
+              <div className="lai-card-scroll"><div className="lai-completeness">
                 <div><span>{copy(lang, 'Brief completeness', 'اكتمال التفاصيل')}</span><b>{completeness.percent}%</b></div>
                 <span className="lai-progress"><i style={{ width: `${completeness.percent}%` }} /></span>
               </div>
@@ -570,6 +531,7 @@ const LookersAIPage: React.FC = () => {
                   <button type="button" onClick={() => setStage(row.step)}>{copy(lang, 'Edit', 'تعديل')}</button>
                 </div>)}
               </div>
+              </div>
               <div className="lai-nav-buttons">
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('details')}><ArrowLeft size={16} />{copy(lang, 'Back', 'السابق')}</button>
                 <button type="button" className="lai-primary-button" disabled={generating || busy} onClick={() => void createPrompt()}>
@@ -580,7 +542,7 @@ const LookersAIPage: React.FC = () => {
           )}
 
           {stage === 'result' && (
-            <section className="lai-card lai-result-card">
+            <section className="lai-result-card" aria-label={copy(lang,'Result workspace','مساحة النتيجة')}>
               <div className="lai-result-heading">
                 <div className="lai-result-mark"><Sparkles size={21} /></div>
                 <div><h2>{copy(lang, 'Your prompt is ready', 'البرومبت جاهز')}</h2>
@@ -589,7 +551,7 @@ const LookersAIPage: React.FC = () => {
               {current.activity.findLast(entry => entry.action.startsWith('prompt_generated_'))?.action === 'prompt_generated_local' && <div className="lai-notice" role="status">
                 {copy(lang, 'AI was unavailable. This is the local draft based on your supplied details.', 'تعذر اتصال الذكاء الاصطناعي. هذه مسودة محلية مبنية على التفاصيل التي أدخلتها.')}
               </div>}
-              <div className="lai-tabs" role="tablist" aria-label={copy(lang, 'Result views', 'طرق عرض النتيجة')}>
+              <div className="lai-result-editor"><div className="lai-tabs" role="tablist" aria-label={copy(lang, 'Result views', 'طرق عرض النتيجة')}>
                 {(['prompt', 'summary'] as Tab[]).map((item) => <button key={item} type="button" role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>
                   {item === 'prompt' ? 'Prompt' : copy(lang, 'Project summary', 'ملخص المشروع')}
                 </button>)}
@@ -608,7 +570,7 @@ const LookersAIPage: React.FC = () => {
                 <div><b>{copy(lang, 'Project files', 'ملفات المشروع')}</b><p>{current.attachments.filter((file) => file.include).map((file) => file.name).join(ar ? '، ' : ', ') || copy(lang, 'No references attached', 'لسه مضفتش مراجع')}</p></div>
                 <div><b>{copy(lang, 'Last saved', 'آخر حفظ')}</b><p>{new Date(current.updatedAt).toLocaleString(ar ? 'ar-EG' : 'en-US')}</p></div>
               </div>}
-              <details className="lai-result-context"><summary>{copy(lang, 'Built from your brief', 'مبني على تفاصيلك')}</summary>
+              </div><aside className="lai-result-sidebar"><details className="lai-result-context"><summary>{copy(lang, 'Built from your brief', 'مبني على تفاصيلك')}</summary>
                 <p>{copy(lang, 'Your goal, choices and included references shape this prompt. Review unknown details before use.', 'هدفك واختياراتك ومراجعك المرفقة هي أساس البرومبت. راجع التفاصيل الناقصة قبل الاستخدام.')}</p>
               </details>
               <button type="button" className="lai-secondary-button lai-handoff-toggle" aria-expanded={showHandoff} onClick={() => setShowHandoff(value => !value)}><ArrowUpRight size={16} />{copy(lang, 'Use with your tool', 'استخدمه مع أداتك')}</button>
@@ -618,21 +580,23 @@ const LookersAIPage: React.FC = () => {
                 <button type="button" className="lai-secondary-button" onClick={() => setStage('review')}>{copy(lang, 'Edit project', 'عدّل المشروع')}</button>
               </div></details>
               {showHandoff && <section className="lai-handoff" aria-label={copy(lang, 'Tool handoff', 'استخدم البرومبت خارج المنصة')}>
+                <button type="button" className="lai-secondary-button lai-handoff-close" aria-label={copy(lang,'Close tools','اقفل الأدوات')} onClick={()=>setShowHandoff(false)}><X size={16}/>{copy(lang,'Close','اقفل')}</button>
                 <span className="lai-kicker">{copy(lang, 'PREPARED · NOT EXECUTED', 'جاهز للاستخدام · لم يُنفّذ')}</span>
                 <LookersAIToolDirectory lang={lang} draft={current} selectedTool={handoffTool} onUse={setHandoffTool} onCopy={()=>void copyPrompt()} />
               </section>}
-              <section className="lai-continuation" aria-label={copy(lang, 'Continue this project', 'كمّل نفس المشروع')}>
+              <details className="lai-continuation"><summary>{copy(lang,'Continue this project','كمّل نفس المشروع')}</summary><section aria-label={copy(lang, 'Continue this project', 'كمّل نفس المشروع')}>
                 <div className="lai-card-heading"><div className="lai-heading-icon"><WandSparkles size={22} /></div><div><h3>{copy(lang, 'Didn’t get what you expected?', 'النتيجة مش زي ما توقعت؟')}</h3><p>{copy(lang, 'Bring it back. Keep building from the same idea.', 'ارجع بالنتيجة وكمّل من نفس الفكرة.')}</p></div></div>
                 <label className="lai-sr-only" htmlFor="lai-external-reply">{copy(lang, 'External response and what you want changed', 'رد الأداة والتعديل المطلوب')}</label>
                 <textarea id="lai-external-reply" className="lai-idea-input" value={externalReply} onChange={event => setExternalReply(event.target.value)} placeholder={copy(lang, 'Paste the response and describe what you want changed…', 'الصق الرد واشرح إيه اللي محتاج يتغيّر…')} />
                 <div className="lai-option-grid">{[['Fix', 'إصلاح'], ['Improve', 'تحسين'], ['Continue', 'متابعة'], ['Explain', 'شرح']].map(([en, arabic]) => <button key={en} type="button" className={`lai-option ${continuationMode === en ? 'is-selected' : ''}`} aria-pressed={continuationMode === en} onClick={() => setContinuationMode(en)}>{ar ? arabic : en}</button>)}</div>
                 <p className="lai-field-example">{copy(lang, 'Screenshots can be attached as references. Describe the issue; image analysis is not available here.', 'تقدر تضيف لقطة شاشة كمرجع. اشرح المشكلة؛ تحليل الصور غير متاح هنا.')}</p>
                 <div className="lai-nav-buttons"><button type="button" className="lai-secondary-button" onClick={openFilePicker}><Paperclip size={16} />{copy(lang, 'Add screenshot', 'أضف لقطة شاشة')}</button><button type="button" className="lai-primary-button" disabled={!externalReply.trim()} onClick={continueProject}>{copy(lang, 'Review next step', 'راجع الخطوة التالية')}</button></div>
-              </section>
+              </section></details>
               <div className="lai-start-over">
                 <div><h3>{copy(lang, 'Start over', 'ابدأ من جديد')}</h3><p>{copy(lang, 'Keep this project on this device, then begin a clean brief.', 'احتفظ بهذا المشروع على جهازك ثم ابدأ فكرة جديدة.')}</p></div>
                 <button type="button" className="lai-reset-button" onClick={startOver}><RotateCcw size={16} />{copy(lang, 'Start over', 'ابدأ من جديد')}</button>
               </div>
+            </aside>
             </section>
           )}
         </div>
@@ -642,12 +606,12 @@ const LookersAIPage: React.FC = () => {
         <footer className="lookers-ai__footer">
           <button type="button" className="lai-history-toggle" aria-expanded={showHistory} aria-controls="lai-project-history" onClick={() => setShowHistory(value => !value)}><FolderClock size={16} aria-hidden="true" />Previous Projects</button>
           {showHistory && <section id="lai-project-history" className="lai-card lai-history" aria-label="Previous Projects"><h2>Previous Projects</h2><div className="lai-history-grid">
-            {[current, ...projectState.archived].filter(project => String(project.answers.idea || '').trim() || project.attachments.length || project.generatedPrompt).map(project => <button type="button" className="lai-secondary-button" key={project.id} onClick={() => {if(project.id !== current.id) restoreProject(project.id);setShowHistory(false);setShowTools(false);setShowLibrary(false);}}><span>{project.title || copy(lang,'Untitled project','مشروع من غير اسم')}</span><small>{new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')} · {stageTitles[project.step][lang]}</small></button>)}
+            {[current, ...projectState.archived].filter(project => String(project.answers.idea || '').trim() || project.attachments.length || project.generatedPrompt).map(project => <button type="button" className="lai-secondary-button" key={project.id} data-project-id={project.id} onClick={() => {if(project.id !== current.id) restoreProject(project.id);setShowHistory(false);setShowTools(false);setShowLibrary(false);}}><span>{project.title || copy(lang,'Untitled project','مشروع من غير اسم')}</span><small>{new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')} · {stageTitles[project.step][lang]}</small></button>)}
           </div>{!projectState.archived.length && !String(answers.idea || '').trim() && <p>{copy(lang,'Your projects will appear here when you start one.','أول ما تبدأ فكرة، مشروعك هيظهر هنا.')}</p>}<button type="button" className="lai-secondary-button" onClick={() => {startOver(false);setShowHistory(false);}}>{copy(lang,'New project','مشروع جديد')}</button></section>}
           {!saved && <p role="alert">{copy(lang,'Could not save. Export your project before leaving.','الحفظ متاحش دلوقتي. صدّر مشروعك قبل ما تقفل الصفحة.')}</p>}
         </footer>
       </div>
-      <input ref={uploadRef} hidden type="file" multiple accept="image/*,.txt,.md,.csv,.tsv,.json,.pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ''; }} />
+      <input ref={uploadRef} hidden type="file" multiple accept="image/*,.txt,.md,.csv,.tsv,.json,.pdf,.docx,.xlsx" onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ''; }} />
       <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={(event) => void importProject(event.target.files?.[0])} />
     </div>
   );

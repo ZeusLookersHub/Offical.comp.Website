@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -16,6 +16,7 @@ const AppContent: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { lang } = useLanguage();
+  const isLookersAI = useLocation().pathname === '/lookers-ai';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,7 +51,7 @@ const AppContent: React.FC = () => {
             <Route path="/lookers-ai" element={<LookersAIPage />} />
           </Routes>
         </main>
-        <Footer />
+        {!isLookersAI && <Footer />}
       </div>
     </>
   );

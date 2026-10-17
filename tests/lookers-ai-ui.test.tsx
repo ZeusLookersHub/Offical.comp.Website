@@ -39,11 +39,12 @@ test('details shows one accessible task question while preserving existing user 
   const draft = createProjectDraft(); draft.step = 'details'; draft.taskType = 'image';
   draft.answers = { idea: 'Product photo', purpose: 'A square image', format: '1:1' };
   const html = render(draft);
-  assert.equal((html.match(/id="lai-subject"/g) || []).length, 1);
+  assert.equal((html.match(/id="lai-subject"/g) || []).length, 0);
   assert.ok(html.includes('id="lai-taskDescription"'));
   assert.ok(!html.includes('lai-task-selector'));
   assert.ok(html.includes('Optional ideas to help you write'));
-  assert.ok(html.includes('A square image'));
+  assert.ok(!html.includes('id="lai-purpose"'));
+  assert.ok(html.includes('lai-question-card-body'));
   assert.ok(html.includes('Explain:'));
 });
 test('reference status distinguishes preview, excerpt and uninspected from inclusion', () => {
@@ -54,7 +55,7 @@ test('reference status distinguishes preview, excerpt and uninspected from inclu
     {id:'pdf',name:'brief.pdf',mime:'application/pdf',size:20,kind:'file',include:true,note:''},
   ];
   const html = render(draft);
-  for (const status of ['Preview only','Text excerpt read','Not inspected','Excluded']) assert.ok(html.includes(status));
+  for (const status of ['Image preview','Content ready for prompt','Needs attention','Excluded']) assert.ok(html.includes(status));
 });
 test('local fallback survives navigation activity and editable result has an accessible label', () => {
   const draft = createProjectDraft(); draft.step='result'; draft.generatedPrompt='User-owned prompt';

@@ -1,9 +1,10 @@
+import {walkToQuestion,completeBrief,openContinuation} from './qa-card-helpers.mjs';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {createServer} from 'vite';
 import {mkdir,writeFile} from 'node:fs/promises';
 
-const server=await createServer({server:{host:'127.0.0.1',port:5173,strictPort:true}});
+const server=await createServer({server:{host:'127.0.0.1',port:5181,strictPort:true}});
 const browser=await chromium.launch({headless:true,executablePath:process.env.QA_BROWSER_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage']});
 const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']});
 await context.route('**/*.supabase.co/**',route=>route.abort('blockedbyclient'));
@@ -17,7 +18,7 @@ const check=name=>{checks.push(name);console.log('PASS '+name);};
 const out='visual-qa-artifacts/tool-journeys';
 try {
  await mkdir(out,{recursive:true});await server.listen();
- await page.goto('http://localhost:5173/#/lookers-ai',{waitUntil:'networkidle'});
+ await page.goto('http://localhost:5181/#/lookers-ai',{waitUntil:'networkidle'});
  await button('AI tools').click();await page.locator('.lai-tool-directory').waitFor();
  assert.equal(await page.getByRole('button',{name:'Use with Gamma',exact:true}).first().isDisabled(),true);
  const categories=await page.locator('#ai-tool-category option').evaluateAll(opts=>opts.map(o=>o.value).filter(v=>v!=='all'));
@@ -34,10 +35,7 @@ try {
  await page.locator('#lai-idea').fill('عايز أعمل presentation للشركة عشان أعرض خطة التسويق.');
  await button('Start building').click();await button('Continue').click();
  assert.equal((await active()).session.taskType,'presentation');
- await page.locator('#lai-presentationType').fill('Business presentation for company leadership');await button('Next question').click();
- await page.locator('#lai-audience').fill('Company leadership');
- await page.locator('#lai-purpose').fill('Approve marketing priorities');
- await button('Review brief').click();await button('Create my prompt').click();
+ await completeBrief(page,{presentationType:'Business presentation for company leadership',audience:'Company leadership',purpose:'Approve marketing priorities'});await button('Create my prompt').click();
  await page.getByRole('heading',{name:'Your prompt is ready',exact:true}).waitFor();
  await button('Use with your tool').click();
  await page.getByRole('heading',{name:'Tools suited to your presentation',exact:true}).waitFor();
@@ -57,8 +55,7 @@ try {
  assert.deepEqual(created.project.schema.targetTools,[]);const id=created.project.id;
  await button('Continue').click();
  assert.equal(await page.getByText('Which aspect ratio should be used?',{exact:true}).count(),0);
- await page.locator('#lai-purpose').fill('Present the marketing plan for leadership approval');
- await button('Review brief').click();await button('Create my prompt').click();
+ await completeBrief(page,{purpose:'Present the marketing plan for leadership approval'});await button('Create my prompt').click();
  await page.getByRole('heading',{name:'Your prompt is ready',exact:true}).waitFor();
  await page.getByText('AI was unavailable.',{exact:false}).waitFor();
  const prompt=await page.getByRole('textbox',{name:'Your prompt',exact:true}).inputValue();

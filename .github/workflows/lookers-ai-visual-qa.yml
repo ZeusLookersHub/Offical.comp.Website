@@ -32,6 +32,10 @@ jobs:
         run: npm run test:studio-journeys
         env:
           STUDIO_QA_OUTPUT: visual-qa-artifacts/studio
+      - name: Equal cards, task routing and real document extraction
+        run: npm run test:cards
+        env:
+          CARDS_QA_OUTPUT: visual-qa-artifacts/cards
       - uses: actions/upload-artifact@v4
         if: always()
         with:

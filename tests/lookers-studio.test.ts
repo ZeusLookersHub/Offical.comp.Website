@@ -28,3 +28,14 @@ test('written option answers and a custom task description survive the real ques
   const prompt=compileLookersPrompt(draft,'en');assert.ok(prompt.includes(String(draft.answers.taskDescription)));assert.ok(prompt.includes(String(draft.answers.action)));
   assert.ok(projectFromDraft(draft,'active','en').schema.context.includes(String(draft.answers.taskDescription)));
 });
+
+
+test('uploaded reference excerpts are included fairly and stay inside existing AI request budgets',()=>{
+  for(const lang of ['ar','en'] as const){
+    const draft=createProjectDraft();draft.answers={idea:'لوحة مبيعات للشركة',purpose:'مراجعة أداء الفروع',subject:'Confirmed product',format:'4:5',action:'create'};
+    draft.attachments=Array.from({length:3},(_,i)=>({id:String(i),name:`Sheet-${i}.xlsx`,mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',size:2000,kind:'file' as const,include:true,note:'Content read',text:`APPROVED_SHEET_${i} `+'إيراد القاهرة 42000 وفرع الجيزة 18000. '.repeat(800)}));
+    const prompt=compileLookersPrompt(draft,lang);for(let i=0;i<3;i++)assert.ok(prompt.includes(`APPROVED_SHEET_${i}`));
+    assert.ok(prompt.length<=12000);assert.ok(new TextEncoder().encode(JSON.stringify({prompt,language:lang})).length<=20000);
+    draft.attachments[1].include=false;assert.ok(!compileLookersPrompt(draft,lang).includes('APPROVED_SHEET_1'));
+  }
+});

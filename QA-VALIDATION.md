@@ -1,5 +1,44 @@
 # Lookers AI integration validation
 
+## Card-flow and document correction — 2026-10-17 (`abdo`)
+
+Follow-up to studio commit `783491ec5a0dee1eb08292f132a21cb9c357967c`.
+The earlier studio behavior described below is superseded in these areas:
+
+- Optional suggestions insert editable answer text. Task-type suggestions switch
+  the actual question family and replace only the previous suggested phrase,
+  preserving user-authored wording. The description remains unrestricted text.
+- Task description, task questions and purpose are separate, equal-height cards.
+  Navigation stays visible; extra requirements are optional separate cards.
+  References/review scroll inside the same panel size. The result ends the stack
+  and uses a separate responsive editor with secondary actions alongside/below it.
+- XLSX (all worksheets), DOCX, text PDF, CSV/TSV/JSON/TXT are parsed on upload.
+  The user can inspect extracted plain text. Parsers are loaded only on demand.
+  Invalid/unsupported/empty documents show an actionable reason and are excluded
+  automatically; an old name-only reference must be uploaded again to read it.
+- Files are limited to 20 MB and extraction to 24,000 stored characters, fairly
+  shared between worksheets. Prompt excerpts share a character/UTF-8 byte budget
+  within the existing backend request limits, with a visible shortening marker.
+  Images remain previews with user notes; image interpretation and scanned-PDF
+  OCR are not implemented. Old DOC/XLS formats require DOCX/XLSX conversion.
+
+Actual browser verification uses real generated XLSX data (two sheets), tracked
+minimal DOCX and PDF fixtures and a deliberately corrupted PDF. Assertions prove
+extracted facts reach canonical references and the compiled prompt, exclusions
+are honored, task routing changes, custom wording survives, required empty
+answers block, card heights remain equal, navigation stays in view, output fits
+320–1440 px bilingual layouts, clipboard contents match and reload preserves output.
+All AI browser runs use the explicitly labelled offline fallback; no new live
+provider generation was performed. Existing browser scripts now navigate actual
+cards and open the separate continuation/tools controls.
+
+TypeScript, production build, Edge Function bundling and 147 regression tests
+passed (Studio now has 4 tests, including UTF-8 request budget/exclusion coverage).
+The build warns about large lazy document-parser chunks; these are fetched only
+when the corresponding upload parser is used. Deployment workflow unchanged.
+
+---
+
 ## Studio redesign validation — 2026-10-17 (`abdo`)
 
 Implemented against base `c9f4322cc6f4c1571246fd8b5668c8157b156d4d`.
