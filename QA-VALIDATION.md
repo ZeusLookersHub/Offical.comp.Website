@@ -1,5 +1,53 @@
 # Lookers AI integration validation
 
+## Studio redesign validation — 2026-10-17 (`abdo`)
+
+Implemented against base `c9f4322cc6f4c1571246fd8b5668c8157b156d4d`.
+The earlier integration report below is historical; its live inference evidence
+is not a live inference test of this redesign.
+
+- Restored shared website navigation; added the supplied architectural logo,
+  pixel wordmark animation, star-point Lookers AI name and smaller click-only toolbar.
+- Optional vision choices sit below the composer and write natural-language
+  clauses into the brief without filling required questionnaire answers.
+  The image branch has 38 alternatives across action, usage, style, material,
+  lighting, composition and format. Other families currently add starter prose;
+  their existing task questionnaires remain available.
+- Questions use writable answers, optional suggestions below them and Egyptian
+  Arabic explanations. User-described task text reaches both canonical context
+  and the compiled prompt. References are inside the References step.
+- Previous Projects restores actual stored drafts and results. Storage remains
+  local to the browser; this change adds no cloud project synchronization.
+
+### Completed checks
+
+TypeScript, production Vite build and Edge Function bundle passed. Production
+build verification uses `npm run build -- --outDir node_modules/.cache/studio-build`
+to avoid committing generated `docs/` output. All 146 regression tests passed:
+Core 7, Brain 13, Questions 29, Agent 35, Stage 05 35, Application 4, UI 7,
+Library 6, Tools 7, Studio 3.
+
+Actual Chromium browser checks passed:
+
+| Script | Verified behavior |
+| --- | --- |
+| `scripts/visual-qa.mjs` | 13 actual bilingual desktop/mobile stage screenshots, labelled offline fallback |
+| `scripts/user-journeys.mjs` | 10 checkpoints: library, required input, references/exclusion, copy/download, editing, persistence, continuation, archive restore, Arabic mobile and storage failure |
+| `scripts/tool-directory-journeys.mjs` | 6 checkpoints: 16 task families, 17 tools, presentation routing, recommendations, exact clipboard handoff and mobile directory |
+| `scripts/trends-header-qa.mjs` | Five click-only menus, 15 examples, keyboard access, unchanged draft and 12 bilingual layouts from 320–1440 px |
+| `scripts/studio-journeys.mjs` | Dependent vision choices, manual text preservation, reload, required writing, free task description, reference inclusion in actual compiled result, archive restore, pixel animation and 8 bilingual result layouts |
+
+Browser runs reported zero JavaScript runtime errors. No horizontal page overflow
+was observed at the tested widths. Reduced-motion preference keeps the logo still;
+normal motion was observed entering the mark and reassembling. These runs block
+Supabase network calls and verify the disclosed local fallback. No new live
+DeepSeek generation was performed for this redesign.
+
+Validation and screenshot workflows now run on `abdo` pushes. This commit does
+not modify the deployment workflow or promote a production release.
+
+---
+
 Validated on 2026-10-11, resuming committed integration at
 `e88b9aad1e20423ab2ab6eb010152b5a002e43c8`. Existing Prompt Library and
 visual design were preserved. The earlier completed visual review was not redesigned.

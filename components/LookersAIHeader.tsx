@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Clipboard, Sparkles, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clipboard, X } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import { trendSections, type TrendSectionId } from '../data/lookersAiTrends';
 import './LookersAIHeader.css';
@@ -25,92 +25,43 @@ function TrendArtwork({ section, index, label }: { section: TrendSectionId; inde
   </svg>;
 }
 
-interface Props { libraryOpen: boolean; onLibraryToggle: () => void; children: React.ReactNode }
 
-export default function LookersAIHeader({ libraryOpen, onLibraryToggle, children }: Props) {
-  const { lang, setLang } = useLanguage();
-  const ar = lang === 'ar';
-  const t = (en: string, arabic: string) => ar ? arabic : en;
-  const root = useRef<HTMLElement>(null);
-  const triggers = useRef<(HTMLButtonElement | null)[]>([]);
-  const firstItem = useRef<HTMLButtonElement>(null);
-  const timers = useRef<{ open?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; preview?: ReturnType<typeof setTimeout> }>({});
-  const pinned = useRef(false);
-  const focusFirst = useRef(false);
-  const [openId, setOpenId] = useState<TrendSectionId | null>(null);
-  const [itemIndex, setItemIndex] = useState(0);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [clipboardStatus, setClipboardStatus] = useState<'copied' | 'error' | ''>('');
-  const panelId = useId();
-  const activeSection = trendSections.find(s => s.id === openId);
-  const activeItem = activeSection?.items[itemIndex] ?? activeSection?.items[0];
-
-  const clear = (key: 'open' | 'close' | 'preview') => clearTimeout(timers.current[key]);
-  const close = () => { clear('open'); clear('close'); clear('preview'); pinned.current = false; setOpenId(null); };
-  const open = (id: TrendSectionId) => {
-    clear('open'); clear('close'); clear('preview');
-    if (id !== openId) { setItemIndex(0); setShowPrompt(false); setClipboardStatus(''); }
-    setOpenId(id);
-  };
-  const selectItem = (index: number) => { clear('preview'); setItemIndex(index); setShowPrompt(false); setClipboardStatus(''); };
-
-  useEffect(() => {
-    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) close(); };
-    document.addEventListener('pointerdown', outside);
-    return () => { document.removeEventListener('pointerdown', outside); clear('open'); clear('close'); clear('preview'); };
-  }, []);
-  useEffect(() => { close(); }, [lang]);
-  useEffect(() => { if (openId && focusFirst.current) { focusFirst.current = false; firstItem.current?.focus(); } }, [openId]);
-
-  return <header ref={root} className="lai-trends-header" aria-label={t('Lookers AI navigation', 'تنقل Lookers AI')}
-    onPointerEnter={() => clear('close')}
-    onPointerLeave={() => { clear('open'); clear('preview'); if (!pinned.current && !root.current?.contains(document.activeElement)) timers.current.close = setTimeout(close, 280); }}
-    onBlur={event => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) close(); }}
-    onKeyDown={event => { if (event.key === 'Escape' && openId) { event.preventDefault(); const index = trendSections.findIndex(s => s.id === openId); close(); triggers.current[index]?.focus(); } }}>
-    <div className="lai-trends-topline">
-      <span className="lai-trends-ai" role="img" aria-label="AI"><Sparkles size={18} aria-hidden="true" /><span>AI</span></span>
-      <nav className="lai-trends-nav" aria-label={t('Creative trends', 'الترندات الإبداعية')}>
-        {trendSections.map((section, index) => <button key={section.id} type="button" ref={el => { triggers.current[index] = el; }}
-          className="lai-trends-headline" aria-expanded={openId === section.id} aria-controls={panelId}
-          onPointerEnter={event => { if (event.pointerType !== 'mouse') return; clear('close'); clear('open'); timers.current.open = setTimeout(() => open(section.id), 150); }}
-          onPointerLeave={() => clear('open')}
-          onClick={() => { if (openId === section.id && pinned.current) close(); else { open(section.id); pinned.current = true; } }}
-          onKeyDown={event => {
-            if (event.key === 'ArrowDown') { event.preventDefault(); if (openId === section.id) firstItem.current?.focus(); else { focusFirst.current = true; open(section.id); } }
-            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); const offset = (event.key === 'ArrowRight' ? 1 : -1) * (ar ? -1 : 1); triggers.current[(index + offset + trendSections.length) % trendSections.length]?.focus(); }
-          }}>{section.title[lang]}</button>)}
-        <button type="button" className="lai-trends-headline lai-trends-library" aria-expanded={libraryOpen}
-          onPointerEnter={() => { clear('open'); if (!pinned.current) close(); }}
-          onClick={() => { close(); onLibraryToggle(); }}>{t('Prompt Library', 'مكتبة البرومبت')}</button>
+interface Props { libraryOpen:boolean;onLibraryToggle:()=>void;toolsOpen:boolean;onToolsToggle:()=>void }
+export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,onToolsToggle}:Props) {
+  const {lang}=useLanguage(),ar=lang==='ar';
+  const t=(en:string,arabic:string)=>ar?arabic:en;
+  const root=useRef<HTMLElement>(null), triggers=useRef<(HTMLButtonElement|null)[]>([]), firstItem=useRef<HTMLButtonElement>(null),focusFirst=useRef(false);
+  const [openId,setOpenId]=useState<TrendSectionId|null>(null),[itemIndex,setItemIndex]=useState(0),[showPrompt,setShowPrompt]=useState(false),[clipboardStatus,setClipboardStatus]=useState('');
+  const panelId=useId(),activeSection=trendSections.find(s=>s.id===openId),activeItem=activeSection?.items[itemIndex];
+  const close=()=>setOpenId(null);
+  const open=(id:TrendSectionId)=>{setItemIndex(0);setShowPrompt(false);setClipboardStatus('');setOpenId(id);};
+  useEffect(()=>{const outside=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpenId(null);};document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside);},[]);
+  useEffect(()=>{setOpenId(null);},[lang]);
+  useEffect(()=>{if(openId&&focusFirst.current){focusFirst.current=false;firstItem.current?.focus();}},[openId]);
+  const short:Record<TrendSectionId,string[]>={image:['Images','صور AI'],video:['Videos','فيديو AI'],social:['Social','سوشيال'],prompt:['Prompts','برومبت'],creative:['Explore','تجارب']};
+  return <header ref={root} className="lai-trends-header" aria-label={t('Lookers AI navigation','تنقل Lookers AI')} onBlur={event=>{if(event.relatedTarget&&!event.currentTarget.contains(event.relatedTarget as Node))close();}} onKeyDown={event=>{if(event.key==='Escape'&&openId){event.preventDefault();const index=trendSections.findIndex(s=>s.id===openId);close();triggers.current[index]?.focus();}}}>
+    <div className="lai-trends-topline" dir="ltr">
+      <button type="button" className="lai-trends-library" aria-expanded={libraryOpen} onClick={()=>{close();onLibraryToggle();}}>{t('Prompt Library','مكتبة البرومبت')}</button>
+      <nav className="lai-trends-nav" dir={ar?'rtl':'ltr'} aria-label={t('Creative trends','الترندات الإبداعية')}>
+        {trendSections.map((section,index)=><button key={section.id} ref={el=>{triggers.current[index]=el;}} type="button" className="lai-trends-headline" aria-label={section.title[lang]} aria-expanded={openId===section.id} aria-controls={panelId} onClick={()=>openId===section.id?close():open(section.id)} onKeyDown={event=>{
+          if(event.key==='ArrowDown'){event.preventDefault();if(openId===section.id)firstItem.current?.focus();else{focusFirst.current=true;open(section.id);}}
+          if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();const offset=(event.key==='ArrowRight'?1:-1)*(ar?-1:1);triggers.current[(index+offset+trendSections.length)%trendSections.length]?.focus();}
+        }}>{short[section.id][ar?1:0]}<ChevronDown size={11} aria-hidden="true" /></button>)}
       </nav>
-    </div>
-    <div className="lai-trends-utilities">
-      <div className="lai-trends-existing-actions" onClick={close}>{children}</div>
-      <div className="lai-trends-language" dir="ltr" role="group" aria-label={t('Language', 'اللغة')}>
-        <button type="button" aria-pressed={ar} onClick={() => setLang('ar')}>AR</button><button type="button" aria-pressed={!ar} onClick={() => setLang('en')}>EN</button>
-      </div>
+      <button type="button" className="lai-trends-tools" aria-expanded={toolsOpen} onClick={()=>{close();onToolsToggle();}}>{t('AI tools','أدوات AI')}</button>
     </div>
     <div id={panelId} className="lai-trends-popover" hidden={!activeSection}>
-      {activeSection && activeItem && <div className="lai-trends-panel">
-        <section className="lai-trends-items" dir={ar ? 'rtl' : 'ltr'} aria-label={activeSection.title[lang]}>
+      {activeSection&&activeItem&&<div className="lai-trends-panel">
+        <section className="lai-trends-items" dir={ar?'rtl':'ltr'} aria-label={activeSection.title[lang]}>
           <div className="lai-trends-section-label">{activeSection.title[lang]}</div>
-          {activeSection.items.map((item, index) => <button key={item.id} ref={index === 0 ? firstItem : undefined} type="button" className="lai-trends-item" aria-pressed={index === itemIndex}
-            onPointerEnter={event => { if (event.pointerType === 'mouse') { clear('preview'); timers.current.preview = setTimeout(() => selectItem(index), 90); } }}
-            onPointerLeave={() => clear('preview')} onFocus={() => { clear('close'); selectItem(index); }} onClick={() => { selectItem(index); pinned.current = true; }}
-            onKeyDown={event => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); const items = (event.currentTarget.parentElement as HTMLElement | null)?.querySelectorAll<HTMLButtonElement>('.lai-trends-item'); if (items) items[(index + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); } }}>
-            <span>{item.title[lang]}</span><ChevronRight size={15} aria-hidden="true" />
-          </button>)}
-          <small className="lai-trends-editorial">{t('Starting points. Each section’s library will grow here.', 'أفكار مبدئية. مكتبة كل قسم هتتضاف هنا تدريجيًا.')}</small>
+          {activeSection.items.map((item,index)=><button key={item.id} ref={index===0?firstItem:undefined} type="button" className="lai-trends-item" aria-pressed={index===itemIndex} onClick={()=>{setItemIndex(index);setShowPrompt(false);setClipboardStatus('');}} onKeyDown={event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const items=(event.currentTarget.parentElement as HTMLElement | null)?.querySelectorAll<HTMLButtonElement>('.lai-trends-item');if(items)items[(index+(event.key==='ArrowDown'?1:items.length-1))%items.length].focus();}}}><span>{item.title[lang]}</span><ChevronRight size={14} aria-hidden="true" /></button>)}
         </section>
-        <section className="lai-trends-preview" dir={ar ? 'rtl' : 'ltr'} aria-label={t('Selected idea preview', 'معاينة الفكرة المختارة')}>
-          <button type="button" className="lai-trends-close" aria-label={t('Close trends', 'إغلاق الترندات')} onClick={() => { const index = trendSections.findIndex(s => s.id === openId); close(); triggers.current[index]?.focus(); }}><X size={17} /></button>
-          <TrendArtwork section={activeSection.id} index={itemIndex} label={t('Illustration: ', 'رسم توضيحي: ') + activeItem.title[lang]} />
-          <div className="lai-trends-preview-copy" aria-live="polite" aria-atomic="true"><h2>{activeItem.title[lang]}</h2><p>{activeItem.description[lang]}</p></div>
-          <button type="button" className="lai-trends-preview-button" aria-expanded={showPrompt} aria-controls={`${panelId}-prompt`} onClick={() => { setShowPrompt(v => !v); setClipboardStatus(''); }}>{t('Preview prompt', 'معاينة البرومبت')}<ChevronDown size={15} aria-hidden="true" /></button>
-          <div id={`${panelId}-prompt`} className="lai-trends-prompt" hidden={!showPrompt}>
-            <p>{activeItem.prompt[lang]}</p><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(activeItem.prompt[lang]); setClipboardStatus('copied'); } catch { setClipboardStatus('error'); } }}>{clipboardStatus === 'copied' ? <Check size={15} /> : <Clipboard size={15} />}{t('Copy example', 'نسخ المثال')}</button>
-            <span role="status">{clipboardStatus === 'copied' ? t('Copied', 'تم النسخ') : clipboardStatus === 'error' ? t('Could not copy. Select the text and copy it manually.', 'تعذر النسخ. حدّد النص وانسخه يدويًا.') : ''}</span>
-          </div>
+        <section className="lai-trends-preview" dir={ar?'rtl':'ltr'} aria-label={t('Selected idea preview','معاينة الفكرة')}>
+          <button type="button" className="lai-trends-close" aria-label={t('Close trends','اقفل الترندات')} onClick={()=>{const index=trendSections.findIndex(s=>s.id===openId);close();triggers.current[index]?.focus();}}><X size={15}/></button>
+          <TrendArtwork section={activeSection.id} index={itemIndex} label={activeItem.title[lang]}/>
+          <div className="lai-trends-preview-copy" aria-live="polite"><h2>{activeItem.title[lang]}</h2><p>{activeItem.description[lang]}</p></div>
+          <button type="button" className="lai-trends-preview-button" aria-expanded={showPrompt} aria-controls={`${panelId}-prompt`} onClick={()=>setShowPrompt(!showPrompt)}>{t('Preview prompt','شوف البرومبت')}<ChevronDown size={14}/></button>
+          <div id={`${panelId}-prompt`} className="lai-trends-prompt" hidden={!showPrompt}><p>{activeItem.prompt[lang]}</p><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(activeItem.prompt[lang]);setClipboardStatus(t('Copied','اتنسخ'));}catch{setClipboardStatus(t('Select the text and copy it manually.','حدد النص وانسخه بإيدك.'));}}}><Clipboard size={14}/>{t('Copy example','انسخ المثال')}</button><span role="status">{clipboardStatus}</span></div>
         </section>
       </div>}
     </div>

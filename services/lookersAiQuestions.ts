@@ -9,7 +9,7 @@ export function planDraftQuestions(draft: ProjectDraft, language: Lang) {
   const legacy = [idea, ...questions[draft.taskType]];
   const aliases: Record<string, Field> = { idea: 'intent', outcome: 'objective', audience: 'audience', users: 'audience' };
   const definitions: QuestionDefinition[] = legacy.map(q => ({
-    id: q.id, field: aliases[q.id] || `details.${q.id}`, label: q.label, type: q.kind,
+    id: q.id, field: aliases[q.id] || `details.${q.id}`, label: q.label, type: 'textarea',
     state: q.optional ? 'optional' : 'required', critical: !q.optional, nature: 'factual',
     inferable: false, userOverride: true, priority: q.id === 'idea' ? 100 : q.optional ? 20 : 70,
     options: q.options?.map(o => ({ value: o.value, label: { en: o.en, ar: o.ar } })), examples: q.example,
@@ -17,7 +17,7 @@ export function planDraftQuestions(draft: ProjectDraft, language: Lang) {
   const session: QuestionSession = { projectId: project.id, engineId: project.engineId, fields: {} };
   for (const d of definitions) {
     if (Object.prototype.hasOwnProperty.call(draft.answers, d.id))
-      session.fields[d.field] = { source: 'user', value: draft.answers[d.id] };
+      session.fields[d.field] = { source: 'user', value: Array.isArray(draft.answers[d.id]) ? (draft.answers[d.id] as string[]).join(', ') : draft.answers[d.id] };
   }
   const result = evaluateQuestions({ project, schema: { engineId: project.engineId, definitions }, session });
   const missing = result.missingFields.map(field => {

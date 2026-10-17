@@ -19,7 +19,9 @@
     "test:application": "esbuild tests/application-generation.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-application/application.test.mjs --log-level=warning && node node_modules/.cache/lookers-application/application.test.mjs",
     "test:journeys": "node scripts/user-journeys.mjs",
     "test:tools": "esbuild tests/ai-tool-directory.test.tsx --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/lookers-tools/tools.test.mjs --log-level=warning && node node_modules/.cache/lookers-tools/tools.test.mjs",
-    "test:tool-journeys": "node scripts/tool-directory-journeys.mjs"
+    "test:tool-journeys": "node scripts/tool-directory-journeys.mjs",
+    "test:studio": "esbuild tests/lookers-studio.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-studio.test.mjs --log-level=warning && node node_modules/.cache/lookers-studio.test.mjs",
+    "test:studio-journeys": "node scripts/studio-journeys.mjs"
   },
   "dependencies": {
     "@fontsource/almarai": "5.3.0",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -16,8 +16,6 @@ const AppContent: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { lang } = useLanguage();
-  const { pathname } = useLocation();
-  const isLookersAI = pathname === '/lookers-ai';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +38,7 @@ const AppContent: React.FC = () => {
     <>
       {isLoading && <Loader />}
       <div className={`min-h-screen flex flex-col selection:bg-gold selection:text-black bg-navy ${lang === 'ar' ? 'font-arabic' : ''} ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-1000'}`}>
-        {!isLookersAI && <Header scrolled={scrolled} />}
+        <Header scrolled={scrolled} />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />

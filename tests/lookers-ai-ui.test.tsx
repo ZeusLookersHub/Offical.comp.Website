@@ -20,26 +20,31 @@ function render(draft = createProjectDraft(), language: 'en' | 'ar' = 'en', arch
   return renderToStaticMarkup(<MemoryRouter><LanguageContext.Provider value={{lang: language, setLang: () => {}}}><LookersAIPage /></LanguageContext.Provider></MemoryRouter>);
 }
 
-test('home puts the idea before optional references in reading order, with guidance shortcuts', () => {
+test('home keeps references in their own step and places vision choices below the brief', () => {
   const html = render();
-  assert.ok(html.indexOf('id="lai-idea"') < html.indexOf('Project files &amp; references'));
-  assert.equal((html.match(/class="lai-quick-card /g) || []).length, 4);
+  assert.ok(html.indexOf('id="lai-idea"') < html.indexOf('class="lai-vision-choices"'));
+  assert.ok(!html.includes('class="lai-attachments"'));
+  assert.ok(html.includes('Previous Projects'));
+  assert.ok(!html.includes('Saved on this device'));
   assert.ok(!html.includes('type="password"'));
 });
 test('Arabic renders true RTL with translated trend navigation and the AI mark', () => {
   const html = render(createProjectDraft(), 'ar');
   assert.ok(html.includes('dir="rtl" lang="ar"'));
-  assert.ok(html.includes('aria-label="AI"'));
+  assert.ok(html.includes('aria-label="Lookers AI"'));
   for (const title of ['ترندات صور AI','ترندات فيديو AI','ترندات السوشيال ميديا','ترندات البرومبتات','تجارب إبداعية','مكتبة البرومبت']) assert.ok(html.includes(title));
-  assert.ok(html.includes('كلمات بسيطة'));
+  assert.ok(html.includes('وكل خطوة تفتح اللي بعدها.'));
 });
 test('details shows one accessible task question while preserving existing user choices', () => {
   const draft = createProjectDraft(); draft.step = 'details'; draft.taskType = 'image';
   draft.answers = { idea: 'Product photo', purpose: 'A square image', format: '1:1' };
   const html = render(draft);
-  assert.equal((html.match(/role="group" aria-labelledby="lai-label-/g) || []).length, 1);
+  assert.equal((html.match(/id="lai-subject"/g) || []).length, 1);
+  assert.ok(html.includes('id="lai-taskDescription"'));
+  assert.ok(!html.includes('lai-task-selector'));
+  assert.ok(html.includes('Optional ideas to help you write'));
   assert.ok(html.includes('A square image'));
-  assert.ok(html.includes('Your project'));
+  assert.ok(html.includes('Explain:'));
 });
 test('reference status distinguishes preview, excerpt and uninspected from inclusion', () => {
   const draft = createProjectDraft(); draft.step = 'files';
@@ -70,7 +75,8 @@ test('untrusted reference and project content remain escaped text', () => {
 test('local archived projects are exposed without a fabricated trending feed', () => {
   const archived=createProjectDraft();archived.title='Saved campaign';
   const html=render(createProjectDraft(),'en',[archived]);
-  assert.ok(html.includes('Saved campaign'));
-  assert.ok(html.includes('Saved projects on this device'));
+  assert.equal(lookersAiProjectState.load('en').archived[0].title,'Saved campaign');
+  assert.ok(html.includes('Previous Projects'));
+  assert.ok(html.includes('aria-controls="lai-project-history"'));
   assert.ok(!html.includes('success rate'));
 });

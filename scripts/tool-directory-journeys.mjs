@@ -4,7 +4,7 @@ import {createServer} from 'vite';
 import {mkdir,writeFile} from 'node:fs/promises';
 
 const server=await createServer({server:{host:'127.0.0.1',port:5173,strictPort:true}});
-const browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const browser=await chromium.launch({headless:true,executablePath:process.env.QA_BROWSER_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage']});
 const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']});
 await context.route('**/*.supabase.co/**',route=>route.abort('blockedbyclient'));
 const page=await context.newPage();page.setDefaultTimeout(30000);
@@ -34,7 +34,7 @@ try {
  await page.locator('#lai-idea').fill('عايز أعمل presentation للشركة عشان أعرض خطة التسويق.');
  await button('Start building').click();await button('Continue').click();
  assert.equal((await active()).session.taskType,'presentation');
- await button('Business presentation').click();await button('Next question').click();
+ await page.locator('#lai-presentationType').fill('Business presentation for company leadership');await button('Next question').click();
  await page.locator('#lai-audience').fill('Company leadership');
  await page.locator('#lai-purpose').fill('Approve marketing priorities');
  await button('Review brief').click();await button('Create my prompt').click();

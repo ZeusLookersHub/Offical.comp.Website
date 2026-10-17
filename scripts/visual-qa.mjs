@@ -56,12 +56,10 @@ try {
   await shot('02-desktop-workspace','Workspace','.lai-card');
   await page.locator('#lai-subject').fill('A premium skincare bottle on charcoal stone');
   await page.getByRole('button',{name:'Next question',exact:true}).click();
-  await page.getByRole('button',{name:'Portrait · 4:5',exact:true}).click();
+  await page.locator('#lai-format').fill('Portrait 4:5 for Instagram');
   await page.getByRole('button',{name:'Next question',exact:true}).click();
   const question = page.locator('.lai-task-questions');
-  const option = question.locator('.lai-option').first();
-  if (await option.count()) await option.click();
-  else await question.locator('input,textarea').first().fill('A premium skincare bottle on charcoal stone');
+  await page.locator('#lai-action').fill('Create a new image preserving the actual packaging');
   await shot('03-desktop-question','Question','.lai-task-questions');
   await page.getByRole('button',{name:'Back',exact:true}).click();
   await shot('04-desktop-references','References','.lai-card');
@@ -134,7 +132,7 @@ try {
   await page.reload({waitUntil:'networkidle'});
   await ready();
   await page.getByRole('heading',{name:'A few details for a stronger result',exact:true}).waitFor();
-  await page.locator('.lai-history > summary').click();
+  await page.locator('.lai-history-toggle').click();
   await page.locator('.lai-history-grid button').first().click();
   const restored = await page.evaluate(()=>JSON.parse(localStorage.getItem('lookers-ai-project-core-v1')));
   if(!JSON.stringify(restored).includes('packaging is distorted') || !JSON.stringify(restored).includes('old-lighting-notes.txt')) throw new Error('Archived project restore lost context or references');

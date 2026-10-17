@@ -1,7 +1,7 @@
 name: Lookers AI Visual QA
 on:
   push:
-    branches: [stage01-core-foundation]
+    branches: [stage01-core-foundation, abdo]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -28,6 +28,10 @@ jobs:
         run: node scripts/user-journeys.mjs
       - name: Universal tools and presentation user journeys (offline)
         run: npm run test:tool-journeys
+      - name: Studio composer, written questions, references and history
+        run: npm run test:studio-journeys
+        env:
+          STUDIO_QA_OUTPUT: visual-qa-artifacts/studio
       - uses: actions/upload-artifact@v4
         if: always()
         with:

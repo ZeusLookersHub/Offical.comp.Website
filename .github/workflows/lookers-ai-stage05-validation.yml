@@ -2,7 +2,7 @@ name: Lookers AI Stage 05 Validation
 
 on:
   push:
-    branches: [stage01-core-foundation]
+    branches: [stage01-core-foundation, abdo]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -44,5 +44,7 @@ jobs:
         run: npm run test:application
       - name: Universal tool directory and presentation regression (offline)
         run: npm run test:tools
+      - name: Studio vision and free-text task regression
+        run: npm run test:studio
       - name: Production build
         run: npm run build
