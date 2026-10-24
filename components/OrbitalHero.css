@@ -23,3 +23,5 @@
 .orbital-hero__universe--selected .orbital-hero__glimmers{display:none}
 @media(max-width:700px){.orbital-hero__universe:not(.orbital-hero__universe--selected){height:auto;min-height:0;aspect-ratio:1672/940}.orbital-hero__universe:not(.orbital-hero__universe--selected) .orbital-hero__planet--design{left:36%;top:32%;width:28%;height:45%}.orbital-hero__universe--selected{height:580px;min-height:0}}
 @media(prefers-reduced-motion:reduce){.orbital-hero__glimmers i{animation:none}}
+
+.orbital-hero__missing{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:30px;background:#0a0e14;color:#f5d18b;font-size:16px;line-height:1.6;text-align:center;z-index:9}
