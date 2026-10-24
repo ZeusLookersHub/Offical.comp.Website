@@ -579,3 +579,12 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lai-chat__generate:disabled{opacity:.4;cursor:not-allowed}
 .lai-chat__actions{display:flex;flex-wrap:wrap;gap:9px}
 @media(max-width:700px){.lookers-ai[data-orbital="true"]{padding-top:78px}.lookers-ai[data-orbital="true"] .orbital-hero__universe{height:calc(100svh - 110px);min-height:570px}.lookers-ai[data-orbital="true"] .orbital-hero__heading{top:88px}.lai-chat{margin:5px auto 20px;max-height:calc(100svh - 125px)}}
+
+
+/* Fidelity master has an immutable 1672:940 coordinate system. Never stretch its artwork. */
+.lookers-ai[data-orbital="true"]{padding-top:0!important}
+.lookers-ai[data-orbital="true"] .orbital-hero__universe:not(.orbital-hero__universe--selected){height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:1672/940!important}
+.lookers-ai[data-orbital="true"] .orbital-hero__heading{display:none!important} /* Heading is baked into the approved master. */
+.lookers-ai[data-orbital="true"] .orbital-hero{margin-top:0!important}
+.lookers-ai[data-orbital="true"] .orbital-hero__universe--selected{height:min(690px,75svh)!important;min-height:520px!important}
+@media(max-width:700px){.lookers-ai[data-orbital="true"] .orbital-hero__universe:not(.orbital-hero__universe--selected){height:auto!important;min-height:0!important}}
