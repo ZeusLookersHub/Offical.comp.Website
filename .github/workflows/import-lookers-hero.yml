@@ -1,0 +1,25 @@
+name: Import approved Lookers hero asset
+on:
+  push:
+    branches: [feature/lookers-orbital-hero]
+    paths: ['.github/workflows/import-lookers-hero.yml']
+permissions:
+  contents: write
+jobs:
+  import-master:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download exact approved image and verify bytes
+        run: |
+          mkdir -p public/assets
+          curl --fail --location --retry 3 --max-time 120 'https://at.adobe.com/y2awf5ydDi3eHzzC' -o public/assets/lookers-orbital-master.png
+          echo 'bd1a7f7a6c15958f17ac1c1f68c8879267ebcc13194accf9a51817acf83d4dc0  public/assets/lookers-orbital-master.png' | sha256sum -c -
+      - name: Commit verified original artwork to feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets/lookers-orbital-master.png
+          git diff --cached --quiet || (git commit -m "assets: import pixel-verified approved Lookers orbital master" && git push)
