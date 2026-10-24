@@ -25,3 +25,38 @@
 @media(prefers-reduced-motion:reduce){.orbital-hero__glimmers i{animation:none}}
 
 .orbital-hero__missing{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:30px;background:#0a0e14;color:#f5d18b;font-size:16px;line-height:1.6;text-align:center;z-index:9}
+
+
+/* Cinematic mission stage: reuse the APPROVED original artwork, never CSS-drawn planets. */
+.orbital-hero__universe--selected{background:linear-gradient(180deg,#050911bd,#060a12e9),url('/assets/lookers-orbital-master.png') center center/cover no-repeat,#060a12;isolation:isolate}
+.orbital-hero__universe--selected:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,#e4b87513,transparent 48%),linear-gradient(180deg,#04071055,transparent 40%,#04071066)}
+.orbital-hero__universe--selected .orbital-hero__stars{opacity:.52;animation:orbital-star-drift 55s linear infinite}
+.orbital-hero__missions{z-index:2;gap:8px;padding:46px 20px 28px;animation:orbital-stage-in .65s cubic-bezier(.2,.7,.2,1) both}
+.orbital-hero__missions .orbital-hero__planet--focus{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:clamp(175px,19vw,245px)!important;height:clamp(175px,19vw,245px)!important;flex-shrink:0;border-radius:50%;filter:drop-shadow(0 0 27px #e8b66a55);transform:none;overflow:visible}
+.orbital-hero__focus-texture{position:absolute;inset:7%;border-radius:50%;background-image:url('/assets/lookers-orbital-master.png');background-repeat:no-repeat;background-size:auto 475%;background-position:50% 51%;box-shadow:inset -26px -25px 37px #02050bc9,inset 9px 8px 18px #f6d89a33,0 0 44px #e1a85745;overflow:hidden}
+.orbital-hero__planet--marketing .orbital-hero__focus-texture{background-position:25% 39%}
+.orbital-hero__planet--business .orbital-hero__focus-texture{background-position:85% 39%}
+.orbital-hero__planet--presentations .orbital-hero__focus-texture{background-position:20% 75%}
+.orbital-hero__planet--technology .orbital-hero__focus-texture{background-position:80% 75%}
+.orbital-hero__focus-aura{position:absolute;inset:-18%;border:1px solid #f0c77a30;border-radius:50%;box-shadow:0 0 65px #c98b3a1e;animation:orbital-aura 5s ease-in-out infinite alternate}
+.orbital-hero__focus-orbit{position:absolute;left:-19%;top:39%;width:138%;height:28%;border:2px solid #f1c782bb;border-radius:50%;transform:rotate(-20deg);box-shadow:0 0 16px #e2ae6880,inset 0 0 8px #e2ae6844;pointer-events:none}
+.orbital-hero__focus-orbit:after{content:'';position:absolute;left:16%;top:5%;width:8px;height:8px;background:#fff0c6;border-radius:50%;box-shadow:0 0 12px 5px #e8b86e;animation:orbital-orbit-spark 7s ease-in-out infinite alternate}
+.orbital-hero__missions h3{font:400 clamp(25px,3vw,38px) Georgia,serif;letter-spacing:.17em;text-shadow:0 2px 25px #000;margin:7px 0 0}
+.orbital-hero__mission-subtitle{font-size:10px;letter-spacing:.32em;color:#e6c58c;margin:0 0 12px}
+.orbital-hero__satellites{width:100%;max-width:900px;gap:clamp(12px,3vw,35px);padding:14px 8px 6px}
+.orbital-hero__satellite{min-width:125px;gap:13px;animation:orbital-satellite-enter .6s cubic-bezier(.2,.8,.2,1) both;transition:transform .25s}
+.orbital-hero__satellite:hover,.orbital-hero__satellite:focus-visible{transform:translateY(-7px)}
+.orbital-hero__moon{width:clamp(84px,8vw,115px);height:clamp(84px,8vw,115px);position:relative;isolation:isolate;background:radial-gradient(circle at 28% 20%,#f5d9a8,#997c61 28%,#343f50 57%,#080e17 83%);border:1px solid #d6b6788c;box-shadow:inset -17px -17px 25px #02040dbd,0 0 35px #d6a15b30;overflow:visible}
+.orbital-hero__moon:before{content:'';position:absolute;inset:8%;border-radius:50%;background:url('/assets/lookers-orbital-master.png') 48% 49%/auto 1200% no-repeat;opacity:.38;mix-blend-mode:screen}
+.orbital-hero__moon:after{content:'';position:absolute;inset:-12%;border:1px solid #dfb56c69;border-radius:50%;transform:rotate(-24deg) scaleY(.35);box-shadow:0 0 14px #d6a15b33}
+.orbital-hero__moon-number{z-index:1;position:relative;color:#fff1d2;text-shadow:0 2px 12px #000;font:19px Georgia,serif}
+.orbital-hero__satellite strong{font-size:12px;letter-spacing:.02em;text-shadow:0 2px 8px #000}
+.orbital-hero__back{background:#101722d9;backdrop-filter:blur(14px);border-color:#e1b97885;transition:background .2s,transform .2s}
+.orbital-hero__back:hover{background:#3a2c1b;transform:translateX(-3px)}
+@keyframes orbital-stage-in{from{opacity:0;transform:scale(.97) translateY(18px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes orbital-satellite-enter{from{opacity:0;transform:translateY(22px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes orbital-star-drift{to{background-position:147px 137px,219px 183px,177px 233px,257px 157px,123px 191px}}
+@keyframes orbital-aura{from{opacity:.45;transform:scale(.96)}to{opacity:.9;transform:scale(1.05)}}
+@keyframes orbital-orbit-spark{from{left:16%;opacity:.45}to{left:84%;opacity:1}}
+@media(max-width:700px){.orbital-hero__universe--selected{height:620px!important;min-height:620px!important}.orbital-hero__missions{justify-content:center;gap:6px;padding:68px 12px 18px}.orbital-hero__missions .orbital-hero__planet--focus{width:175px!important;height:175px!important}.orbital-hero__satellites{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 8px;max-width:340px}.orbital-hero__satellite{min-width:0;gap:7px}.orbital-hero__moon{width:72px;height:72px}.orbital-hero__missions h3{font-size:24px}.orbital-hero__mission-subtitle{font-size:9px;margin-bottom:3px}}
+@media(prefers-reduced-motion:reduce){.orbital-hero__missions,.orbital-hero__satellite,.orbital-hero__stars,.orbital-hero__focus-aura,.orbital-hero__focus-orbit:after{animation:none!important}.orbital-hero__satellite{transition:none}}
