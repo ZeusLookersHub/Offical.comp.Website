@@ -538,3 +538,10 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lookers-ai .lai-question-card{animation:lai-card-turn .38s cubic-bezier(.16,1,.3,1) both}
 .lookers-ai[data-stage=result] .lookers-ai__main{animation:none}
 @media(prefers-reduced-motion:reduce){.lookers-ai .lai-question-card{animation:none!important}}
+
+
+/* The approved orbital artwork uses the full available canvas, while existing workflows retain their original 920px width. */
+.lookers-ai[data-orbital="true"]{padding-top:16px}
+.lookers-ai[data-orbital="true"] .lookers-ai__wrap{width:min(1320px,100%)}
+.lookers-ai[data-orbital="true"] .lookers-ai__hero,.lookers-ai[data-orbital="true"] .lai-atmosphere,.lookers-ai[data-orbital="true"] .lai-steps,.lookers-ai[data-orbital="true"] .lai-workspace{display:none}
+.lookers-ai[data-orbital="true"] .lai-trends-header{margin-bottom:0}
