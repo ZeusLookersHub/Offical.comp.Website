@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import LookersAIHeader from '../components/LookersAIHeader';
+import OrbitalHero from '../components/OrbitalHero';
 import LookersPromptLibrary from '../components/LookersPromptLibrary';
 import LookersAIToolDirectory from '../components/LookersAIToolDirectory';
 import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProjectState';
@@ -79,6 +80,7 @@ const LookersAIPage: React.FC = () => {
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [externalReply, setExternalReply] = useState('');
   const [continuationMode, setContinuationMode] = useState('Improve');
+  const [showOrbital, setShowOrbital] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -394,6 +396,8 @@ const LookersAIPage: React.FC = () => {
       <div className="lookers-ai__wrap">
         <LookersAIHeader libraryOpen={showLibrary} onLibraryToggle={() => {setShowTools(false);setShowLibrary(value => !value);}} toolsOpen={showTools} onToolsToggle={() => {setShowLibrary(false);setShowTools(value=>!value);}} />
 
+        {stage === 'home' && showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { setAnswer('idea',lang==='ar' ? 'أريد تنفيذ '+task+' في مجال '+world : 'I want to create '+task+' in '+world); setShowOrbital(false); window.scrollTo({top:0,behavior:'smooth'}); }} />}
+        {stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
         <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
         <header className="lookers-ai__hero">
           <ConstellationName />
