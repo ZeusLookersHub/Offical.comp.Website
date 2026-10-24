@@ -15,6 +15,7 @@ const worlds:World[] = [
 ];
 export default function OrbitalHero({lang,onSelect}:{lang:'ar'|'en';onSelect:(world:string,task:string)=>void}){
  const [active,setActive]=useState<World|null>(null);
+ const [imageFailed,setImageFailed]=useState(false);
  return <section className="orbital-hero" aria-label={lang==='ar'?'اختار عالمك ومهمتك':'Choose your universe and mission'}>
   <div className="orbital-hero__heading"><span>LOOKERS AI</span><h2>{lang==='ar'?'فكرة واحدة. وكل خطوة تفتح اللي بعدها.':<>One idea. <em>Every step opens the next.</em></>}</h2><p>{lang==='ar'?'استكشف عالمك. وحوّل أفكارك لنتائج حقيقية.':'Explore your universe. Turn ideas into real results.'}</p></div>
   <div className={'orbital-hero__universe '+(active?'orbital-hero__universe--selected':'')}>
@@ -24,7 +25,7 @@ export default function OrbitalHero({lang,onSelect}:{lang:'ar'|'en';onSelect:(wo
     <div className={'orbital-hero__planet orbital-hero__planet--'+active.id+' orbital-hero__planet--focus'} aria-hidden="true"><div className="orbital-hero__sphere"/><div className="orbital-hero__ring"/></div>
     <h3>{lang==='ar'?active.ar:active.en}</h3>
     <div className="orbital-hero__satellites">{active.tasks.map((task,i)=><button type="button" className="orbital-hero__satellite" key={task.en} onClick={()=>onSelect(active.en,task.en)}><span className="orbital-hero__moon" aria-hidden="true">{String(i+1).padStart(2,'0')}</span><strong>{lang==='ar'?task.ar:task.en}</strong></button>)}</div>
-   </div> : <><img className="orbital-hero__master" src={MASTER_IMAGE} alt="" aria-hidden="true" draggable={false}/><div className="orbital-hero__glimmers" aria-hidden="true"><i/><i/><i/></div>{worlds.map((world,i)=><button type="button" className={'orbital-hero__planet orbital-hero__planet--'+world.id} key={world.id} onClick={()=>setActive(world)} aria-label={lang==='ar'?world.ar:world.en}>
+   </div> : <><img className="orbital-hero__master" src={MASTER_IMAGE} alt="" aria-hidden="true" draggable={false} onError={()=>setImageFailed(true)}/>{imageFailed && <div className="orbital-hero__missing" role="alert">Approved hero asset missing: {MASTER_IMAGE}. This preview cannot be approved until the original image is deployed.</div>}<div className="orbital-hero__glimmers" aria-hidden="true"><i/><i/><i/></div>{worlds.map((world,i)=><button type="button" className={'orbital-hero__planet orbital-hero__planet--'+world.id} key={world.id} onClick={()=>setActive(world)} aria-label={lang==='ar'?world.ar:world.en}>
 
 
    </button>)}</>}
