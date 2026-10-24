@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+
+// The source is the pixel-identical approved master, not a recreated CSS illustration.
+// Keep this path stable when adding the approved PNG to public/assets.
+const MASTER_IMAGE = '/assets/lookers-orbital-master.png';
 import './OrbitalHero.css';
 
 type World = { id:string; en:string; ar:string; subtitle:string; tasks:{en:string;ar:string}[] };
@@ -20,10 +24,10 @@ export default function OrbitalHero({lang,onSelect}:{lang:'ar'|'en';onSelect:(wo
     <div className={'orbital-hero__planet orbital-hero__planet--'+active.id+' orbital-hero__planet--focus'} aria-hidden="true"><div className="orbital-hero__sphere"/><div className="orbital-hero__ring"/></div>
     <h3>{lang==='ar'?active.ar:active.en}</h3>
     <div className="orbital-hero__satellites">{active.tasks.map((task,i)=><button type="button" className="orbital-hero__satellite" key={task.en} onClick={()=>onSelect(active.en,task.en)}><span className="orbital-hero__moon" aria-hidden="true">{String(i+1).padStart(2,'0')}</span><strong>{lang==='ar'?task.ar:task.en}</strong></button>)}</div>
-   </div> : worlds.map((world,i)=><button type="button" className={'orbital-hero__planet orbital-hero__planet--'+world.id} key={world.id} onClick={()=>setActive(world)} aria-label={lang==='ar'?world.ar:world.en}>
-    <span className="orbital-hero__sphere" aria-hidden="true"/><span className="orbital-hero__ring" aria-hidden="true"/>
-    <span className="orbital-hero__planet-text"><small>{String(i+1).padStart(2,'0')}</small><strong>{lang==='ar'?world.ar:world.en}</strong><span>{world.subtitle}</span><i/></span>
-   </button>)}
+   </div> : <><img className="orbital-hero__master" src={MASTER_IMAGE} alt="" aria-hidden="true" draggable={false}/><div className="orbital-hero__glimmers" aria-hidden="true"><i/><i/><i/></div>{worlds.map((world,i)=><button type="button" className={'orbital-hero__planet orbital-hero__planet--'+world.id} key={world.id} onClick={()=>setActive(world)} aria-label={lang==='ar'?world.ar:world.en}>
+
+
+   </button>)}</>}
   </div>
  </section>;
 }
