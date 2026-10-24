@@ -81,6 +81,10 @@ const LookersAIPage: React.FC = () => {
   const [externalReply, setExternalReply] = useState('');
   const [continuationMode, setContinuationMode] = useState('Improve');
   const [showOrbital, setShowOrbital] = useState(true);
+  const [chatMode, setChatMode] = useState(false);
+  const [chatText, setChatText] = useState('');
+  const [chatIndex, setChatIndex] = useState(0);
+  const [chatReview, setChatReview] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -392,12 +396,26 @@ const LookersAIPage: React.FC = () => {
   };
 
   return (
-    <div className="lookers-ai" data-stage={stage} data-orbital={stage === "home" && showOrbital && !showTools && !showLibrary ? "true" : "false"} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
+    <div className="lookers-ai" data-stage={stage} data-orbital={showOrbital && !showTools && !showLibrary ? "true" : "false"} data-chat={chatMode && !showOrbital && !showTools && !showLibrary ? "true" : "false"} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
       <div className="lookers-ai__wrap">
         <LookersAIHeader libraryOpen={showLibrary} onLibraryToggle={() => {setShowTools(false);setShowLibrary(value => !value);}} toolsOpen={showTools} onToolsToggle={() => {setShowLibrary(false);setShowTools(value=>!value);}} />
 
-        {stage === 'home' && showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setShowOrbital(false); window.scrollTo({top:0,behavior:'smooth'}); }} />}
+        {showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setChatIndex(0);setChatReview(false);setShowOrbital(false);patchCurrent({step:'details'},'chat_started');window.scrollTo({top:0,behavior:'smooth'}); }} />}
         {stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
+        {chatMode && !showOrbital && !showTools && !showLibrary && <section className="lai-chat" aria-label="Lookers AI chat">
+          <header><span>✦ LOOKERS AI</span><button type="button" onClick={()=>{setShowOrbital(true);setChatMode(false);}}>{copy(lang,'← Universes','→ المجالات')}</button></header>
+          <div className="lai-chat__messages">
+            <p className="lai-chat__agent">{copy(lang,'Tell me your idea. We will build it together.','احكيلي فكرتك وهنبنيها سوا.')}</p>
+            {answers.taskDescription && <p className="lai-chat__user">{String(answers.taskDescription)}</p>}
+            {chatReview || stage==='result' ? <>
+              <p className="lai-chat__agent">{stage==='result'?copy(lang,'Your prompt is ready.','البرومبت جاهز.'):copy(lang,'Review your answers before generating.','راجع إجاباتك قبل التوليد.')}</p>
+              {stage==='result' ? <><textarea rows={12} value={prompt} onChange={e=>patchCurrent({generatedPrompt:e.target.value},'prompt_edited')}/><div className="lai-chat__actions"><button onClick={()=>void copyPrompt()}>{copy(lang,'Copy','نسخ')}</button><button onClick={downloadPrompt}>{copy(lang,'Download','تنزيل')}</button><button onClick={()=>{setChatReview(true);setStage('review');}}>{copy(lang,'Improve','تحسين')}</button><button onClick={()=>setShowTools(true)}>{copy(lang,'Tools','الأدوات')}</button></div></> : <>{[{id:'idea',label:copy(lang,'Your idea','فكرتك')},{id:'purpose',label:copy(lang,'Goal','الهدف')},...questions[current.taskType].map(q=>({id:q.id,label:q.label[lang]}))].map(q=><label key={q.id}>{q.label}<textarea rows={2} value={String(answers[q.id]||'')} onChange={e=>setAnswer(q.id,e.target.value)}/></label>)}{generationNotice && <p role="alert">{generationNotice}</p>}<button className="lai-chat__generate" disabled={generating||!String(answers.idea||'').trim()||!String(answers.purpose||'').trim()} onClick={()=>void createPrompt()}>{generating?copy(lang,'Generating…','جاري التوليد…'):copy(lang,'Generate result','توليد النتيجة')}</button></>}
+            </> : <p className="lai-chat__agent">{chatIndex===0?copy(lang,'What would you like to create?','عايز تعمل إيه؟'):chatIndex===1?copy(lang,'What is your goal?','إيه الهدف اللي عايز توصله؟'):questions[current.taskType][chatIndex-2]?.label[lang]}</p>}
+          </div>
+          {!chatReview && stage!=='result' && <form className="lai-chat__composer" onSubmit={e=>{e.preventDefault();if(!chatText.trim())return;const id=chatIndex===0?'idea':chatIndex===1?'purpose':questions[current.taskType][chatIndex-2]?.id;if(id)setAnswer(id,chatText.trim());setChatText('');if(chatIndex>=questions[current.taskType].length+1)setChatReview(true);else setChatIndex(n=>n+1);}}><button type="button" onClick={openFilePicker} aria-label="Attach"><Paperclip size={20}/></button><textarea value={chatText} onChange={e=>setChatText(e.target.value)} placeholder={copy(lang,'Write your message…','اكتب رسالتك…')} rows={2}/><button type="submit" disabled={!chatText.trim()} aria-label="Send"><ArrowUpRight size={21}/></button></form>}
+          {!chatReview && stage!=='result' && <button type="button" className="lai-chat__review" onClick={()=>setChatReview(true)}>{copy(lang,'Review and generate →','راجع وولّد ←')}</button>}
+          {!!current.attachments.length && <div className="lai-chat__files">{current.attachments.map(f=><span key={f.id}>{f.name} </span>)}</div>}
+        </section>}
         <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
         <header className="lookers-ai__hero">
           <ConstellationName />
