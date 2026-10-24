@@ -60,3 +60,29 @@
 @keyframes orbital-orbit-spark{from{left:16%;opacity:.45}to{left:84%;opacity:1}}
 @media(max-width:700px){.orbital-hero__universe--selected{height:620px!important;min-height:620px!important}.orbital-hero__missions{justify-content:center;gap:6px;padding:68px 12px 18px}.orbital-hero__missions .orbital-hero__planet--focus{width:175px!important;height:175px!important}.orbital-hero__satellites{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 8px;max-width:340px}.orbital-hero__satellite{min-width:0;gap:7px}.orbital-hero__moon{width:72px;height:72px}.orbital-hero__missions h3{font-size:24px}.orbital-hero__mission-subtitle{font-size:9px;margin-bottom:3px}}
 @media(prefers-reduced-motion:reduce){.orbital-hero__missions,.orbital-hero__satellite,.orbital-hero__stars,.orbital-hero__focus-aura,.orbital-hero__focus-orbit:after{animation:none!important}.orbital-hero__satellite{transition:none}}
+
+
+/* Fidelity correction: show the entire selected planet and its existing ring,
+   not a circular slice of the master and not a separately drawn orbit. */
+.orbital-hero__missions .orbital-hero__planet--focus{width:clamp(235px,26vw,345px)!important;height:clamp(205px,22vw,290px)!important;filter:none!important;overflow:visible!important;border-radius:0!important}
+.orbital-hero__missions .orbital-hero__planet--focus .orbital-hero__focus-texture{inset:0!important;border-radius:0!important;background-image:url('/assets/lookers-orbital-master.png')!important;background-repeat:no-repeat!important;background-size:310% auto!important;background-position:50% 50%!important;box-shadow:none!important;overflow:visible!important;filter:drop-shadow(0 0 26px #d6a35a55)}
+.orbital-hero__missions .orbital-hero__planet--marketing .orbital-hero__focus-texture{background-size:370% auto!important;background-position:20% 42%!important}
+.orbital-hero__missions .orbital-hero__planet--business .orbital-hero__focus-texture{background-size:430% auto!important;background-position:90% 39%!important}
+.orbital-hero__missions .orbital-hero__planet--presentations .orbital-hero__focus-texture{background-size:430% auto!important;background-position:17% 82%!important}
+.orbital-hero__missions .orbital-hero__planet--technology .orbital-hero__focus-texture{background-size:430% auto!important;background-position:85% 82%!important}
+.orbital-hero__missions .orbital-hero__planet--focus .orbital-hero__focus-aura{inset:10% 18%!important;opacity:.3;z-index:-1}
+/* The selected planet already contains typography baked into the original image.
+   Avoid placing a duplicate title directly over its surface. */
+.orbital-hero__missions h3{font-size:clamp(18px,2vw,26px)!important;margin:0!important;letter-spacing:.14em}
+.orbital-hero__missions{gap:4px!important}
+/* Asymmetric, rocky silhouettes with source-image mineral textures.
+   No spherical borders or Saturn rings on the task choices. */
+.orbital-hero__moon{width:clamp(96px,9vw,125px)!important;height:clamp(78px,7.2vw,100px)!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;display:grid;place-items:center;filter:drop-shadow(0 12px 10px #0009) drop-shadow(0 0 9px #c19b6644)}
+.orbital-hero__asteroid-surface{position:absolute;inset:0;background:linear-gradient(138deg,#d6bb91b8 0%,transparent 39%,#030710bb 89%),url('/assets/lookers-orbital-master.png') 52% 47%/620% auto no-repeat,#615546;clip-path:polygon(17% 13%,43% 2%,71% 11%,90% 30%,99% 56%,83% 81%,58% 97%,30% 87%,5% 67%,1% 37%);box-shadow:inset -20px -15px 24px #000b}
+.orbital-hero__satellite:nth-child(2) .orbital-hero__asteroid-surface{clip-path:polygon(7% 27%,34% 4%,67% 0%,95% 23%,89% 49%,100% 77%,62% 99%,30% 89%,0% 67%);background-position:32% 37%}
+.orbital-hero__satellite:nth-child(3) .orbital-hero__asteroid-surface{clip-path:polygon(23% 2%,57% 10%,81% 0%,100% 32%,91% 67%,69% 95%,34% 100%,4% 76%,0% 36%);background-position:72% 59%}
+.orbital-hero__satellite:nth-child(4) .orbital-hero__asteroid-surface{clip-path:polygon(14% 6%,46% 0%,76% 17%,100% 49%,87% 82%,56% 100%,24% 87%,0% 59%,7% 28%);background-position:61% 72%}
+.orbital-hero__moon:before,.orbital-hero__moon:after{display:none!important}
+.orbital-hero__moon-number{font-size:16px!important;text-shadow:0 2px 9px #000,0 0 12px #000}
+.orbital-hero__satellite:hover .orbital-hero__asteroid-surface,.orbital-hero__satellite:focus-visible .orbital-hero__asteroid-surface{filter:brightness(1.3)}
+@media(max-width:700px){.orbital-hero__missions .orbital-hero__planet--focus{width:260px!important;height:220px!important}.orbital-hero__moon{width:84px!important;height:68px!important}.orbital-hero__missions{gap:3px!important}}
