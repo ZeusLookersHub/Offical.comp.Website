@@ -1,5 +1,6 @@
 import { questions, type Lang, type ProjectDraft, type Question, type TaskType } from '../data/lookersAi';
 import { extractIdeaContext, mergeIdeaContext } from './lookersAiContextExtraction';
+import { videoChatQuestions } from './lookersAiVideoQuestions';
 
 /**
  * Headless chat contract. Frontend owns presentation; backend owns progression.
@@ -72,13 +73,15 @@ const ideaQuestion = (lang: Lang): ChatQuestion => ({
   helpLabel: translate(lang, 'Show an example', 'وريني مثال'),
 });
 
-function activeQuestions(taskType: TaskType, lang: Lang): ChatQuestion[] {
-  return [ideaQuestion(lang), ...questions[taskType].map(q => toChatQuestion(q, lang))];
+function activeQuestions(draft: ProjectDraft, lang: Lang): ChatQuestion[] {
+  const video = draft.answers.contentType === 'video';
+  const selected = video ? videoChatQuestions : questions[draft.taskType];
+  return [ideaQuestion(lang), ...selected.map(q => toChatQuestion(q, lang))];
 }
 
 /** Avoid asking for details already present in saved user answers. Optional details never block generation. */
 export function nextChatTurn(draft: ProjectDraft, lang: Lang): ChatTurn {
-  const all = activeQuestions(draft.taskType, lang);
+  const all = activeQuestions(draft, lang);
   const required = all.filter(q => q.required);
   const answered = required.filter(q => hasAnswer(draft.answers[q.id])).length;
   const next = required.find(q => !hasAnswer(draft.answers[q.id]));
