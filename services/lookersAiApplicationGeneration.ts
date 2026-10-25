@@ -1,3 +1,4 @@
+import { draftObjective } from './lookersAiAnswerContext';
 import { Agent } from '../core/agent';
 import type { AgentResult } from '../core/agent/types';
 import type { QuestionSession } from '../core/question-engine';
@@ -20,7 +21,7 @@ export function createApplicationGenerator(transport: AgentAITransport) {
     };
     // Only actual user-authored answers are forwarded; no inferred facts or approvals.
     user('intent', snapshot.answers.idea);
-    user('objective', snapshot.answers.purpose || snapshot.answers.outcome);
+    user('objective', draftObjective(snapshot.answers));
     if (snapshot.taskType === 'image') {
       user('details.subject', snapshot.answers.subject);
       user('details.usage', snapshot.answers.usage);

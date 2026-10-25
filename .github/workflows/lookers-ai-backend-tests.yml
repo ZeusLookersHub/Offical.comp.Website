@@ -22,5 +22,6 @@ jobs:
       - run: npm run test:workflow-schemas
       - run: npm run test:questions
       - run: npm run test:agent
+      - run: npm run test:application
       - run: npm run build:ai-function
       - run: npm run build

@@ -1,4 +1,5 @@
 import type { Question } from '../data/lookersAi';
+import { videoChatQuestions } from './lookersAiVideoQuestions';
 import type { WorkflowFamily } from './lookersAiWorkflowFamilies';
 
 /** Compact, reusable interview definitions. One question per turn. */
@@ -10,7 +11,8 @@ const c = (en: string, ar: string): Copy => ({ en, ar });
 
 // User-facing help is intentionally Egyptian colloquial, not formal Arabic.
 // It explains WHAT we need, WHY it matters, and gives a concrete example.
-const egyptianHelp: Record<string, string> = {
+export const egyptianHelp: Record<string, string> = {
+  voiceoverScript: 'اكتب الكلام اللي تحب يتقال بالحرف، عشان الصوت يحافظ على الرسالة اللي تقصدها.',
   subject: 'بص، قولّي إيه الحاجة الأساسية اللي عايزها تبان في الصورة. مش محتاج توصف كل تفصيلة، بس خلّيني أعرف هنصوّر إيه.',
   sourceAsset: 'يعني الصورة الأصلية اللي هنشتغل عليها. لو عندك صورة ارفعها، ولو لسه مش جاهزة قولّي.',
   change: 'قولّي عايز نغيّر إيه بالظبط في الصورة: الخلفية، الألوان، عنصر معيّن، ولا حاجة تانية؟',
@@ -46,9 +48,20 @@ const egyptianHelp: Record<string, string> = {
   format: 'المقاس ده يعني شكل النتيجة: مربع للبوست، طولي للستوري، أو عريض للشاشة. اختار اللي يناسب استخدامك.'
 };
 
+const explanationReasons: Record<string, Copy> = {
+  subject: c('Describe the main subject so the image focuses on the right thing.', 'عشان الصورة تركز على العنصر الصح.'),
+  videoSubject: c('Describe what appears and happens so the scenes follow your idea.', 'عشان نبني المشاهد على فكرتك.'),
+  audience: c('Tell us who will see it so the language and detail suit them.', 'عشان الكلام والتفاصيل يناسبوا الناس دي.'),
+  goal: c('Name the desired result so the prompt has a clear purpose.', 'عشان البرومبت يركز على النتيجة اللي عايزها.'),
+  message: c('Share the message so the draft preserves what you mean.', 'عشان نحافظ على المعنى اللي تقصده.'),
+  tone: c('Describe the tone so the writing sounds right for your audience.', 'عشان الكلام يوصل بالإحساس اللي تقصده.'),
+  source: c('Identify available material so the result is grounded in your facts.', 'عشان نعتمد على معلوماتك المؤكدة.'),
+  output: c('Specify the deliverable and tool so the prompt fits your workflow.', 'عشان نجهز البرومبت بالشكل اللي أداتك محتاجاه.'),
+};
+
 const step = (id: string, en: string, ar: string, exampleEn: string, exampleAr: string, priority: number, optional = false): WorkflowStep => ({
   id, kind: 'textarea', label: c(en, ar), example: c(exampleEn, exampleAr),
-  why: c('This helps tailor the result. One short answer is enough.', egyptianHelp[id] || 'قولّي اللي تعرفه ببساطة، ومش لازم تدخل في تفاصيل زيادة.'),
+  why: c(explanationReasons[id]?.en || `${en} Your answer keeps this part of the result aligned with your brief.`, (egyptianHelp[id] || 'قولّي اللي تعرفه ببساطة.') + ' ' + (explanationReasons[id]?.ar || 'عشان النتيجة تمشي على طلبك بالظبط.')),
   priority, optional
 });
 const goal = (en: string, ar: string): WorkflowStep => step('goal', en, ar, 'Make a clear, ready-to-use result.', 'عايز نتيجة واضحة وجاهزة للاستخدام.', 1);
@@ -69,7 +82,11 @@ const format = (): WorkflowStep => ({
 const familySteps: Record<WorkflowFamily, WorkflowStep[]> = {
   'visual-create': [step('subject','What should appear?','إيه اللي عايز يظهر؟','A perfume bottle on marble.','زجاجة عطر على رخام.',1),goal('What is this image for?','هتستخدم الصورة في إيه؟'),format(),source()],
   'visual-edit': [step('sourceAsset','Which image should we edit?','هنعدل أنهي صورة؟','I will attach the original photo.','هرفع الصورة الأصلية.',1),step('change','What should change?','إيه اللي محتاج يتغير؟','Remove the background.','شيل الخلفية.',2),step('preserve','What must stay unchanged?','إيه اللي لازم يفضل زي ما هو؟','Keep the face and clothing identical.','حافظ على الوش واللبس زي ما هم.',3),format()],
-  video: [step('videoSubject','What should happen in the video?','إيه اللي يحصل في الفيديو؟','A product reveal with a slow camera move.','المنتج يظهر مع حركة كاميرا بطيئة.',1),goal('What is the video for?','الفيديو هدفه إيه؟'),format(),source()],
+  video: [step('videoSubject','What should happen in the video?','إيه اللي يحصل في الفيديو؟','A product reveal with a slow camera move.','المنتج يظهر مع حركة كاميرا بطيئة.',1),goal('What is the video for?','الفيديو هدفه إيه؟'),
+    { ...videoChatQuestions.find(q => q.id === 'duration')!, why: c('Set the running time so the scene pacing fits.', 'قولّي الفيديو كام ثانية أو دقيقة، عشان نوزع المشاهد من غير زحمة.'), example: c('15 seconds.', '15 ثانية.'), priority: 2 },
+    { ...format(), optional: false }, source(),
+    ...videoChatQuestions.filter(q => q.optional).map(q => ({ ...q, why: c(q.id === 'videoAudio' ? 'Choose the sound so the prompt specifies the right audio.' : 'Choose the visual mood so the shots have a consistent look.', q.id === 'videoAudio' ? 'اختار الصوت اللي تحبه، عشان نحدد محتاجين موسيقى ولا كلام ولا هدوء.' : 'اختار إحساس الفيديو، عشان الإضاءة وحركة الكاميرا يمشوا معاه.'), example: c(q.id === 'videoAudio' ? 'Voice-over.' : 'Cinematic.', q.id === 'videoAudio' ? 'تعليق صوتي.' : 'سينمائي.'), priority: 4 })),
+    { ...step('voiceoverScript','What exact words should the voice-over say?','التعليق الصوتي يقول إيه بالظبط؟','Discover our new fragrance.','اكتشف عطرنا الجديد.',5,true), when: { field: 'videoAudio', equals: 'voiceover' } }],
   audio: [step('audioType','What kind of audio?','عايز تعمل صوت من نوع إيه؟','Arabic voice-over for an ad.','تعليق صوتي عربي لإعلان.',1),step('audioContent','What should we hear?','عايز نسمع إيه؟','A friendly 20-second introduction.','مقدمة لطيفة مدتها 20 ثانية.',2),source(),output()],
   writing: [step('message','What do you want to say?','عايز تقول إيه؟','Apologize for a late delivery.','اعتذار عن تأخر التسليم.',1),audience(),step('tone','How should it sound?','تحب أسلوب الكلام يكون إزاي؟','Professional and warm.','احترافي وودود.',3,true),output()],
   marketing: [step('offer','What are you promoting?','إيه المنتج أو العرض؟','A new coffee shop opening.','افتتاح كافيه جديد.',1),goal('What result do you want?','عايز تحقق إيه؟'),audience(),source()],
@@ -98,6 +115,7 @@ export function validateWorkflowSchemas(): string[] {
       if (ids.has(q.id)) errors.push(family + ':duplicate:' + q.id);
       if (!q.label.ar || !q.label.en || !q.why.ar || !q.why.en || !q.example?.ar || !q.example?.en) errors.push(family + ':missing-help:' + q.id);
       if (q.kind === 'single' && !q.options?.length) errors.push(family + ':missing-options:' + q.id);
+      if (q.when && (!schema.steps.some(s => s.id === q.when!.field) || q.when.field === q.id)) errors.push(family + ':invalid-condition:' + q.id);
       ids.add(q.id);
     }
   }

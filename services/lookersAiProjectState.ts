@@ -1,3 +1,4 @@
+import { draftObjective, collectedAnswerContext } from './lookersAiAnswerContext';
 import {
   emptyProjectState, type Lang, type ProjectAttachment, type ProjectDraft, type TaskType, type UserProjectState,
 } from "../data/lookersAi";
@@ -34,7 +35,7 @@ export const projectFromDraft = (draft: ProjectDraft, status: Project["status"],
   const constraintAnswers = [answerText(answers, "constraints"), answerText(answers, "avoid")]
     .map((value) => value.trim()).filter(Boolean);
   const tools = answerText(answers, "tools").split(/[,\n]/).map((tool) => tool.trim()).filter(Boolean);
-  const deliverable = answerText(answers, "deliverable") || answerText(answers, "outcome");
+  const deliverable = answerText(answers, "deliverable") || answerText(answers, "outcome") || answerText(answers, "output");
   const references: ProjectReference[] = draft.attachments.map((attachment) => ({
     id: attachment.id,
     name: attachment.name,
@@ -57,8 +58,8 @@ export const projectFromDraft = (draft: ProjectDraft, status: Project["status"],
     updatedAt: draft.updatedAt,
     schema: {
       intent: answerText(answers, "idea"),
-      objective: answerText(answers, "purpose") || answerText(answers, "outcome"),
-      context: [answerText(answers, "context"), answerText(answers, "taskDescription")].filter(Boolean).join("\n\n"),
+      objective: draftObjective(answers),
+      context: [answerText(answers, "context"), answerText(answers, "taskDescription"), collectedAnswerContext(answers)].filter(Boolean).join("\n\n"),
       audience: answerText(answers, "audience") || answerText(answers, "users"),
       references,
       constraints: constraintAnswers,

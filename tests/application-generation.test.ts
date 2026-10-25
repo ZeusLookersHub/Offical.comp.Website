@@ -57,3 +57,32 @@ test('provider failure stays labelled local; cancellation never invokes transpor
   await assert.rejects(createApplicationGenerator(async () => { calls++; return envelope; })(draft, 'en', controller.signal), /aborted/);
   assert.equal(calls, 0);
 });
+
+test('ready adaptive chat and optional refinements use the real Agent gate and existing transport', async () => {
+  const draft = createProjectDraft();
+  draft.answers = { idea: 'A fragrance video', topicId: 'text-to-video', contentType: 'video',
+    videoSubject: 'Approved amber bottle', goal: 'Introduce the fragrance', duration: '20 seconds',
+    format: '9:16', tools: 'Runway', videoStyle: 'cinematic', videoAudio: 'voiceover',
+    voiceoverScript: 'Meet your new fragrance', constraints: 'Do not change the label', output: 'A shot list for Runway' };
+  let calls = 0; const before = structuredClone(draft);
+  const result = await createApplicationGenerator(async body => {
+    calls++;
+    for (const value of ['Approved amber bottle','20 seconds','cinematic','Meet your new fragrance','Do not change the label','Runway']) {
+      assert.ok((body as { prompt: string }).prompt.includes(value), value);
+    }
+    return envelope;
+  })(draft, 'en', new AbortController().signal);
+  assert.equal(result.agent.decision.action, 'complete');
+  assert.equal(result.enhancement.status, 'ready');
+  assert.equal(result.agent.project?.schema.objective, draft.answers.goal);
+  assert.equal(result.source, 'ai'); assert.equal(calls, 1);
+  assert.deepEqual(draft, before);
+});
+
+test('adaptive image objective aliases do not bypass missing canonical requirements', async () => {
+  const draft = createProjectDraft(); draft.taskType = 'image';
+  draft.answers = { idea: 'Product image', goal: 'Promote a new bottle', subject: 'Amber bottle' };
+  let calls = 0;
+  const result = await createApplicationGenerator(async () => { calls++; return envelope; })(draft, 'en', new AbortController().signal);
+  assert.equal(result.agent.decision.action, 'ask_question'); assert.equal(calls, 0);
+});

@@ -1,3 +1,4 @@
+import { draftObjective, collectedAnswerContext } from '../services/lookersAiAnswerContext';
 import { routeDeterministic } from '../core/brain';
 export type Lang = 'en' | 'ar';
 export type TaskType = 'image' | 'campaign' | 'dashboard' | 'presentation' | 'general';
@@ -246,7 +247,7 @@ export const compileLookersPrompt = (project: ProjectDraft, lang: Lang): string 
   const ar = lang === 'ar';
   const a = project.answers;
   const idea = readAnswer(a, 'idea').trim();
-  const purpose = readAnswer(a, 'purpose').trim();
+  const purpose = draftObjective(a).trim();
   const context = readAnswer(a, 'context').trim();
   const constraints = readAnswer(a, 'constraints').trim();
   const attachments = project.attachments.filter((file) => file.include);
@@ -338,6 +339,9 @@ export const compileLookersPrompt = (project: ProjectDraft, lang: Lang): string 
       (ar ? 'معيار النجاح: ' : 'Success criteria: ') + (readAnswer(a, 'success') || (ar ? 'استنتج اقتراحات وصرّح بها كافتراضات' : 'Suggest criteria and state them as assumptions'))
     );
   }
+
+  const interviewContext = collectedAnswerContext(a);
+  if (interviewContext) sections.push('', ar ? '## إجابات المقابلة المؤكدة' : '## Confirmed interview answers', interviewContext);
 
   if (attachments.length) {
     sections.push('', ar ? '## المراجع المرفقة' : '## Attached references');
