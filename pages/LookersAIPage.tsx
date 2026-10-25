@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import LookersAIHeader from '../components/LookersAIHeader';
-import OrbitalHero from '../components/OrbitalHero';
+import LookersUniverse from '../components/universe/LookersUniverse';
 import LookersPromptLibrary from '../components/LookersPromptLibrary';
 import LookersAIToolDirectory from '../components/LookersAIToolDirectory';
 import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProjectState';
@@ -400,7 +400,7 @@ const LookersAIPage: React.FC = () => {
       <div className="lookers-ai__wrap">
         <LookersAIHeader libraryOpen={showLibrary} onLibraryToggle={() => {setShowTools(false);setShowLibrary(value => !value);}} toolsOpen={showTools} onToolsToggle={() => {setShowLibrary(false);setShowTools(value=>!value);}} />
 
-        {showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setChatIndex(0);setChatReview(false);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
+        <LookersUniverse lang={lang} active={showOrbital && !showTools && !showLibrary} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setChatIndex(0);setChatReview(false);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />
         {!chatMode && stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
         {chatMode && !showOrbital && !showTools && !showLibrary && <section className="lai-chat" aria-label="Lookers AI chat">
           <header><span>✦ LOOKERS AI</span><button type="button" onClick={()=>{setShowOrbital(true);setChatMode(false);}}>{copy(lang,'← Universes','→ المجالات')}</button></header>

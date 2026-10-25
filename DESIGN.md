@@ -59,3 +59,13 @@ TypeScript, existing Core/Brain/Question Engine/Agent/Stage 05/UI tests, library
 Do not infer merge readiness from visual acceptance or passing unit tests alone. The existing result-generation action calls the accepted transport directly; the bounded Agent and enhancement services are tested separately and are not currently invoked by that UI action. This integration gap must be resolved and reviewed before claiming the full master execution gate passes. Core, Brain, Question Engine, Agent, provider, Edge Function and anonymous authentication implementations have not been rewritten.
 
 Public deployment is not authorized. Merging to main triggers the existing GitHub Pages deployment workflow, so the PR must remain unmerged.
+
+## Lookers AI universe — 25 October 2026
+
+The orbital master image is no longer used as a page layer: it is a full-page mockup with a baked header, navigation and English labels, which duplicated the real headers and blocked Arabic. It remains the visual reference.
+
+- The cosmos is a real-time Three.js scene (`components/universe/`) fixed behind the whole Lookers AI page: procedural nebula and stars, five shader-rendered planets with luminous filament rings and moons, floating debris and framing rocks. Three.js loads on demand in its own chunk.
+- Every word (headline, world names, subtitles, tasks) is DOM text positioned over its 3D body each frame, so Arabic RTL and English share the same quality. Positions use the CSS `translate` property so page-wide button press styles never move hit areas.
+- Separate landscape (desktop) and portrait (mobile) compositions for the worlds and for the focused world. Task asteroids are irregular, cratered rocks; in Arabic the task order mirrors (01 on the right).
+- Stage 1 → 2: the chosen world travels to the centre, the others drift out, the sky dims (the approved fade), and four asteroids launch from the world onto a dashed orbit. Escape or “All universes” returns. During the chat the cosmos stays as a calm backdrop with the chosen world resting at the edge.
+- Reduced motion renders single frames on demand with no animation loop; no WebGL falls back to a static, fully usable layout.

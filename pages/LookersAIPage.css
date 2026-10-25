@@ -588,3 +588,9 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lookers-ai[data-orbital="true"] .orbital-hero{margin-top:0!important}
 .lookers-ai[data-orbital="true"] .orbital-hero__universe--selected{height:min(690px,75svh)!important;min-height:520px!important}
 @media(max-width:700px){.lookers-ai[data-orbital="true"] .orbital-hero__universe:not(.orbital-hero__universe--selected){height:auto!important;min-height:0!important}}
+
+/* Lookers AI universe — the 3D cosmos is the background of the whole Lookers AI page. */
+.lookers-ai{background:transparent!important}
+.lookers-ai[data-orbital="true"]{padding:0!important;min-height:100svh}
+.lookers-ai[data-orbital="true"] .lookers-ai__wrap{width:100%;max-width:none}
+.lookers-ai[data-chat="true"] .lai-chat{background:linear-gradient(160deg,rgba(16,20,27,.86),rgba(8,11,16,.9));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}

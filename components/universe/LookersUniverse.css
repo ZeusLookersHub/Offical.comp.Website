@@ -1,0 +1,104 @@
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource/cormorant-garamond/600.css';
+
+/* Lookers AI universe: one living cosmos behind the whole Lookers AI page.
+   3D bodies render in the canvas; every word is real, translatable DOM text. */
+.lu { --lu-gold:#e6c15a; --lu-ink:#f6efe2; --lu-soft:#d7cbb8; --lu-serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif; display:contents; }
+.lu-canvas { position:fixed; inset:0; width:100vw; height:100vh; height:100lvh; z-index:-1; display:block; pointer-events:none; background:#03050a; }
+
+/* Stage: the area the worlds are laid out in (sits right under the two headers). */
+.lu-stage { position:relative; width:100%; min-height:max(600px, calc(100svh - 128px)); }
+.lu-heading { position:relative; z-index:3; text-align:center; padding:clamp(14px,2.6vh,30px) 16px 0; pointer-events:none; transition:opacity .45s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+.lu[data-mode=tasks] .lu-heading { opacity:0; transform:translateY(-14px); }
+.lu-kicker { display:block; color:var(--lu-gold); font-size:11px; font-weight:700; letter-spacing:.62em; text-indent:.62em; }
+.lu-heading h1 { margin:12px auto 8px; max-width:900px; color:#fff; font-size:clamp(26px,2.55vw,40px); font-weight:650; line-height:1.18; letter-spacing:-.03em; text-shadow:0 2px 24px #000c; }
+.lu-heading h1 em { font-style:normal; color:var(--lu-gold); }
+.lu-heading p { margin:0; color:var(--lu-soft); font-size:13px; letter-spacing:.09em; text-shadow:0 1px 10px #000; }
+.lu[dir=rtl] .lu-kicker { letter-spacing:.4em; }
+.lu[dir=rtl] .lu-heading h1 { letter-spacing:0; line-height:1.45; }
+.lu[dir=rtl] .lu-heading p { letter-spacing:0; }
+
+.lu-back { position:absolute; z-index:4; top:18px; inset-inline-start:clamp(14px,3vw,40px); display:inline-flex; align-items:center; gap:10px; min-height:44px; padding:10px 20px; color:#f2d49a; font:inherit; font-size:14px; font-weight:600; border:1px solid #d4ad6a80; border-radius:999px; background:#0a0f18b8; backdrop-filter:blur(12px); cursor:pointer; animation:lu-fade-in .5s .35s both; transition:background .2s, transform .2s, border-color .2s; }
+.lu-back:hover { background:#2a2014d9; border-color:#f0c97f; transform:translateX(-3px); }
+.lu[dir=rtl] .lu-back:hover { transform:translateX(3px); }
+.lu-back:focus-visible { outline:2px solid var(--lu-gold); outline-offset:3px; }
+
+/* Overlay layer: hit areas and labels positioned over the 3D bodies each frame. */
+.lu-overlay { position:fixed; inset:0; z-index:2; pointer-events:none; }
+.lu-orbit { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.lu-orbit ellipse { fill:none; stroke:#f0c47a; stroke-width:1.2; stroke-dasharray:2 9; stroke-linecap:round; opacity:0; animation:lu-orbit-dash 30s linear infinite; filter:drop-shadow(0 0 4px #e8b26a88); }
+@keyframes lu-orbit-dash { to { stroke-dashoffset:-660; } }
+
+.lu-world, .lu-task { --r:0px; --o:0; position:absolute; left:0; top:0; width:calc(var(--r) * 2); height:calc(var(--r) * 2); margin:calc(var(--r) * -1) 0 0 calc(var(--r) * -1); padding:0; border:0; border-radius:50%; background:transparent; color:var(--lu-ink); font:inherit; cursor:pointer; pointer-events:none; opacity:var(--o); will-change:translate; -webkit-tap-highlight-color:transparent; }
+.lu[data-mode=worlds] .lu-world { pointer-events:auto; }
+.lu[data-mode=tasks] .lu-task { pointer-events:auto; }
+.lu-world:focus-visible, .lu-task:focus-visible { outline:2px solid var(--lu-gold); outline-offset:6px; }
+
+.lu-world__label { position:absolute; top:50%; inset-inline-start:calc(50% - var(--r) * .62); display:flex; flex-direction:column; align-items:flex-start; text-align:start; white-space:nowrap; transform:translateY(-22%); text-shadow:0 2px 6px #000, 0 0 26px #000c; transition:opacity .35s ease, transform .5s cubic-bezier(.2,.7,.2,1); }
+.lu[data-mode=tasks] .lu-world__label, .lu[data-mode=ambient] .lu-world__label { opacity:0; transform:translateY(-10%); }
+.lu-world__label small { font:500 clamp(12px, calc(var(--r) * .17), 22px)/1 var(--lu-serif); color:#eadbbd; letter-spacing:.12em; }
+.lu-world__label strong { margin-top:.12em; font:500 clamp(18px, calc(var(--r) * .44), 40px)/1.02 var(--lu-serif); letter-spacing:.015em; text-transform:uppercase; color:#fbf6ee; }
+.lu-world--design .lu-world__label strong { font-size:clamp(28px, calc(var(--r) * .34), 64px); }
+.lu-world--design .lu-world__label { inset-inline-start:calc(50% - var(--r) * .6); transform:translateY(-8%); }
+.lu-world__label > span { margin-top:.7em; font-size:clamp(8px, calc(var(--r) * .085), 12px); font-weight:600; letter-spacing:.34em; text-transform:uppercase; color:#efe4d2; }
+.lu-world__label i { width:28px; height:2px; margin-top:12px; background:var(--lu-gold); box-shadow:0 0 8px #e6c15a99; transition:width .35s cubic-bezier(.2,.7,.2,1); }
+.lu-world:hover .lu-world__label i, .lu-world:focus-visible .lu-world__label i { width:54px; }
+.lu[dir=rtl] .lu-world--marketing .lu-world__label, .lu[dir=rtl] .lu-world--presentations .lu-world__label { inset-inline-start:auto; inset-inline-end:calc(50% - var(--r) * .62); }
+.lu[dir=rtl] .lu-world__label strong { font-family:inherit; font-weight:800; letter-spacing:0; text-transform:none; }
+.lu[dir=rtl] .lu-world__label > span { letter-spacing:0; font-size:clamp(10px, calc(var(--r) * .1), 13px); }
+
+.lu-focus-title { position:absolute; left:0; top:0; width:min(520px, 90vw); transform:translateX(-50%); text-align:center; text-shadow:0 2px 18px #000; animation:lu-fade-up .7s .45s cubic-bezier(.2,.7,.2,1) both; }
+.lu-focus-title small { display:block; font:500 16px/1 var(--lu-serif); color:#e7c78e; letter-spacing:.2em; }
+.lu-focus-title h2 { margin:6px 0 4px; font:500 clamp(30px, 3vw, 46px)/1 var(--lu-serif); letter-spacing:.14em; text-transform:uppercase; color:#fff8ec; }
+.lu-focus-title p { margin:0; font-size:11px; font-weight:600; letter-spacing:.36em; text-transform:uppercase; color:#e7c78e; }
+.lu[dir=rtl] .lu-focus-title h2 { font-family:inherit; font-weight:800; letter-spacing:0; text-transform:none; }
+.lu[dir=rtl] .lu-focus-title p { letter-spacing:0; font-size:13px; }
+.lu[data-mode=ambient] .lu-focus-title { display:none; }
+
+.lu-task__label { position:absolute; top:calc(50% + var(--r) * 1.3); left:50%; display:flex; flex-direction:column; align-items:center; gap:4px; width:max-content; max-width:min(190px, 44vw); transform:translateX(-50%); text-align:center; text-shadow:0 2px 8px #000, 0 0 18px #000; }
+.lu-task__label small { font:500 15px/1 var(--lu-serif); color:#e9c27a; letter-spacing:.12em; }
+.lu-task__label strong { font-size:15px; font-weight:650; line-height:1.3; color:#fbf4e7; white-space:normal; transition:color .2s; }
+.lu-task:hover .lu-task__label strong, .lu-task:focus-visible .lu-task__label strong { color:#ffd98c; }
+
+@keyframes lu-fade-in { from { opacity:0; } to { opacity:1; } }
+@keyframes lu-fade-up { from { opacity:0; margin-top:16px; } to { opacity:1; margin-top:0; } }
+
+/* Portrait phones: a vertical composition, labels under each world. */
+@media (max-width: 760px) and (orientation: portrait), (max-width: 560px) {
+  .lu-stage { min-height:max(620px, calc(100svh - 236px)); }
+  .lu-heading { padding-top:14px; }
+  .lu-kicker { font-size:10px; letter-spacing:.5em; }
+  .lu-heading h1 { font-size:23px; margin:8px auto 6px; }
+  .lu-heading p { font-size:11.5px; letter-spacing:.04em; }
+  .lu-world__label { inset-inline-start:50%; top:calc(50% + var(--r) * .58); align-items:center; text-align:center; transform:translateX(-50%); }
+  .lu[dir=rtl] .lu-world__label { transform:translateX(50%); }
+  .lu[dir=rtl] .lu-world--marketing .lu-world__label, .lu[dir=rtl] .lu-world--presentations .lu-world__label { inset-inline-start:50%; inset-inline-end:auto; }
+  .lu-world__label small { font-size:11px; }
+  .lu-world__label strong { font-size:clamp(15px, calc(var(--r) * .36), 21px); }
+  .lu-world__label > span { font-size:7.5px; letter-spacing:.22em; margin-top:.5em; }
+  .lu-world__label i { margin-top:7px; width:20px; }
+  .lu-world--design .lu-world__label { inset-inline-start:50%; top:50%; transform:translate(-50%, -30%); }
+  .lu[dir=rtl] .lu-world--design .lu-world__label { transform:translate(50%, -30%); }
+  .lu-world--design .lu-world__label strong { font-size:clamp(26px, calc(var(--r) * .3), 38px); }
+  .lu-world--design .lu-world__label > span { font-size:9px; }
+  .lu[dir=rtl] .lu-world__label > span { font-size:10px; }
+  .lu-focus-title h2 { font-size:30px; }
+  .lu-focus-title p { font-size:9.5px; letter-spacing:.28em; }
+  .lu-task__label small { font-size:13px; }
+  .lu-task__label strong { font-size:14px; }
+  .lu-back { top:10px; padding:8px 16px; font-size:13px; }
+}
+
+/* No WebGL: keep the journey fully usable with a simple static layout. */
+.lu--nogl .lu-canvas { background:radial-gradient(ellipse at 70% 30%, #3a2a1a55, transparent 50%), radial-gradient(ellipse at 20% 70%, #2a1d4455, transparent 50%), #03050a; }
+.lu--nogl .lu-overlay { position:relative; inset:auto; display:flex; flex-wrap:wrap; justify-content:center; gap:16px; padding:24px 16px 48px; pointer-events:auto; }
+.lu--nogl .lu-world, .lu--nogl .lu-task { --r:70px; position:relative; margin:0; opacity:1; translate:none!important; background:radial-gradient(circle at 30% 25%, #e8c48b, #6b4a2b 45%, #120d0a 75%); }
+.lu--nogl[data-mode=worlds] .lu-task, .lu--nogl[data-mode=tasks] .lu-world { display:none; }
+.lu--nogl .lu-world__label, .lu--nogl .lu-task__label { position:static; transform:none; align-items:center; margin:auto; }
+.lu--nogl .lu-focus-title { position:relative; translate:none!important; margin:0 auto; width:100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lu-heading, .lu-world__label, .lu-world__label i, .lu-back { transition:none; }
+  .lu-back, .lu-focus-title { animation:none; }
+  .lu-orbit ellipse { animation:none; }
+}
