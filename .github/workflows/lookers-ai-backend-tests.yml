@@ -1,0 +1,26 @@
+name: Lookers AI Backend Tests
+on:
+  push:
+    branches:
+      - feature/lookers-orbital-hero
+  workflow_dispatch:
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run test:chat
+      - run: npm run test:topics
+      - run: npm run test:workflow-schemas
+      - run: npm run test:questions
+      - run: npm run test:agent
+      - run: npm run build:ai-function
+      - run: npm run build
