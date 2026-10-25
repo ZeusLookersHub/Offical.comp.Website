@@ -1,6 +1,8 @@
 import { questions, type Lang, type ProjectDraft, type Question, type TaskType } from '../data/lookersAi';
 import { extractIdeaContext, mergeIdeaContext } from './lookersAiContextExtraction';
 import { videoChatQuestions } from './lookersAiVideoQuestions';
+import { resolveTopic } from './lookersAiTopicRegistry';
+import { getWorkflowSteps, type WorkflowStep } from './lookersAiWorkflowSchemas';
 
 /**
  * Headless chat contract. Frontend owns presentation; backend owns progression.
@@ -35,13 +37,14 @@ const hasAnswer = (value: unknown): boolean =>
 
 const translate = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
 
-function toChatQuestion(question: Question, lang: Lang): ChatQuestion {
+function toChatQuestion(question: Question | WorkflowStep, lang: Lang): ChatQuestion {
   const example = question.example?.[lang] || '';
   const placeholder = question.placeholder?.[lang] ||
     translate(lang, 'Write a short, specific answer here…', 'اكتب إجابة قصيرة وواضحة هنا…');
-  const help = example
+  const contextualWhy = 'why' in question ? question.why[lang] + ' ' : '';
+  const help = contextualWhy + (example
     ? translate(lang, 'For example: ', 'مثال على إجابة مناسبة: ') + example
-    : translate(lang, 'Tell us what you want in your own words. One or two sentences is enough.', 'قول لنا إنت عايز إيه بطريقتك. جملة أو جملتين كفاية.');
+    : translate(lang, 'One short answer is enough.', 'إجابة قصيرة كفاية.'));
   const options = (question.options || []).map(option => ({ value: option.value, label: option[lang] }));
   const control: ChatControl = question.kind === 'single'
     ? { type: 'single', options }
@@ -75,7 +78,10 @@ const ideaQuestion = (lang: Lang): ChatQuestion => ({
 
 function activeQuestions(draft: ProjectDraft, lang: Lang): ChatQuestion[] {
   const video = draft.answers.contentType === 'video';
-  const selected = video ? videoChatQuestions : questions[draft.taskType];
+  const topicId = typeof draft.answers.topicId === 'string' ? draft.answers.topicId : '';
+  const topic = resolveTopic(topicId);
+  const selected = topic ? getWorkflowSteps(topic.family, draft.answers)
+    : video ? videoChatQuestions : questions[draft.taskType];
   return [ideaQuestion(lang), ...selected.map(q => toChatQuestion(q, lang))];
 }
 
