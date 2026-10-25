@@ -50,3 +50,31 @@ test('existing answers skip questions and invalid selections cannot advance', ()
   assert.equal(next.question.id, 'goal');
   assert.equal(submitChatAnswer(draft, 'en', 'format', '1:1').ok, false);
 });
+
+test('Arabic help is conversational Egyptian, concrete and keeps the same question', () => {
+  const draft = createProjectDraft();
+  draft.answers.topicId = 'product-photography';
+  draft.answers.idea = 'عايز صورة منتج';
+  const before = JSON.stringify(draft);
+  const turn = nextChatTurn(draft, 'ar');
+  assert.equal(turn.status, 'question');
+  if (turn.status !== 'question') return;
+  assert.equal(turn.question.id, 'subject');
+  const help = explainChatQuestion(draft, 'ar');
+  assert.ok(help?.includes('بص، قولّي'));
+  assert.ok(help?.includes('مثال'));
+  assert.equal(JSON.stringify(draft), before);
+  assert.deepEqual(nextChatTurn(draft, 'ar'), turn);
+});
+
+test('Arabic explanation adapts to the question rather than repeating generic help', () => {
+  const draft = createProjectDraft();
+  draft.answers.topicId = 'workflow-automation';
+  draft.answers.idea = 'عايز أتمتة إيميلات';
+  const triggerHelp = explainChatQuestion(draft, 'ar');
+  assert.ok(triggerHelp?.includes('الحدث'));
+  draft.answers.trigger = 'وصول إيميل جديد';
+  const stepsHelp = explainChatQuestion(draft, 'ar');
+  assert.ok(stepsHelp?.includes('بالترتيب'));
+  assert.notEqual(triggerHelp, stepsHelp);
+});
