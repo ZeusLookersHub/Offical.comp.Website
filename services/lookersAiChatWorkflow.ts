@@ -97,7 +97,7 @@ export type ChatAnswerResult =
 export function submitChatAnswer(draft: ProjectDraft, lang: Lang, questionId: string, answer: string | string[]): ChatAnswerResult {
   const turn = nextChatTurn(draft, lang);
   if (turn.status !== 'question') return { ok: false, reason: 'wrong_question', message: 'Interview already complete.' };
-  const known = activeQuestions(draft.taskType, lang).find(q => q.id === questionId);
+  const known = activeQuestions(draft, lang).find(q => q.id === questionId);
   if (!known) return { ok: false, reason: 'unknown_question', message: 'Unknown question.' };
   if (turn.question.id !== questionId) return { ok: false, reason: 'wrong_question', message: 'Answer the current question first.' };
   const control = known.control;
