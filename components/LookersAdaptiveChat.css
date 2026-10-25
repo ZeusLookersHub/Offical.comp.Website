@@ -41,3 +41,6 @@
 .lookers-ai[data-chat="true"] .lai-trends-header{flex-shrink:0}
 .lookers-ai[data-chat="true"] .lai-adaptive-chat{flex:1;height:auto;min-height:0;max-height:620px}
 @media(max-width:659px){.lookers-ai[data-chat="true"][data-orbital="false"]{height:calc(100svh - 160px);padding-top:12px}.lookers-ai[data-chat="true"] .lai-adaptive-chat{margin-bottom:8px}}
+
+.lai-adaptive-question>button[type=submit]{position:sticky;bottom:0;z-index:1;box-shadow:0 0 0 4px #11161e}
+.lai-adaptive-footer .lai-adaptive-notice{margin:0 0 8px;font-size:11px}

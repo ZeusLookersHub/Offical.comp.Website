@@ -78,9 +78,9 @@ const LookersAdaptiveChat: React.FC<Props> = (props) => {
         <p className="lai-adaptive-idea">{String(draft.answers.idea || '')}</p>
         {refinements.questions.length > 0 && <button type="button" onClick={() => {setSkipped([]);setRefining(true);}}>{t('Add optional refinements', 'ضيف تفاصيل اختيارية')}</button>}
       </div>}
-      {props.notice && <p className="lai-adaptive-notice" role="status">{props.notice}</p>}
     </div>
     <footer className="lai-adaptive-footer">
+      {props.notice && <p className="lai-adaptive-notice" role="status">{props.notice}</p>}
       {!!draft.attachments.length && <ul className="lai-adaptive-files" aria-label={t('Attached files', 'الملفات المرفقة')}>{draft.attachments.map(file => <li key={file.id}>{file.name} · {file.processing ? t('Preparing…', 'بنجهّزه…') : file.include ? t('Included', 'مرفق') : t('Needs attention', 'محتاج مراجعة')}</li>)}</ul>}
       <div className="lai-adaptive-nav">
         <button type="button" onClick={props.onAttach} disabled={props.busy || props.generating}>{t('Attach file', 'ضيف ملف')}</button>

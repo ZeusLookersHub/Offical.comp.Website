@@ -72,7 +72,11 @@ try {
   assert.deepEqual(await state(), beforeHelp);
   assert.equal(await active().getAttribute('data-question-id'),'videoSubject');
   await page.setViewportSize({width:390,height:844});
-  await measure('mobile-arabic-explain'); await page.screenshot({path:`${output}/mobile-arabic-explain.png`});
+  await measure('mobile-arabic-explain');
+  const submitBox = await active().getByRole('button', {name:'تم · إرسال',exact:true}).boundingBox();
+  const footerBox = await page.locator('.lai-adaptive-footer').boundingBox();
+  assert.ok(submitBox.y + submitBox.height <= footerBox.y + 1, JSON.stringify({submitBox,footerBox}));
+  await page.screenshot({path:`${output}/mobile-arabic-explain.png`});
   await button('EN').click(); await page.setViewportSize({width:1440,height:900});
   await text('An approved amber perfume bottle');
   const beforeBack = await state(); await button('Previous answer').click();
