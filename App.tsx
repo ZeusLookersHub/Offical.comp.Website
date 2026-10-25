@@ -20,6 +20,7 @@ import SiteUniverse from "./components/SiteUniverse";
 import WhatsAppButton from "./components/WhatsAppButton";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
 import "./styles/site.css";
+import "./pages/HomePage.css";
 
 const AppContent: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -27,6 +28,7 @@ const AppContent: React.FC = () => {
   const { lang } = useLanguage();
   const { pathname } = useLocation();
   const isLookersAI = pathname === "/lookers-ai";
+  const isHome = pathname === "/";
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [pathname]);
@@ -52,10 +54,10 @@ const AppContent: React.FC = () => {
     <>
       {isLoading && <Loader />}
       <div
-        className={`min-h-screen flex flex-col selection:bg-gold selection:text-black ${isLookersAI ? "bg-navy" : "site-public"} ${lang === "ar" ? "font-arabic" : ""} ${isLoading ? "opacity-0" : "opacity-100 transition-opacity duration-1000"}`}
+        className={`min-h-screen flex flex-col selection:bg-gold selection:text-black ${isLookersAI ? "bg-navy" : "site-public"} ${isHome ? "site-home" : ""} ${lang === "ar" ? "font-arabic" : ""} ${isLoading ? "opacity-0" : "opacity-100 transition-opacity duration-1000"}`}
       >
-        {!isLookersAI && <SiteUniverse />}
-        <Header scrolled={scrolled} />
+        {!isLookersAI && !isHome && <SiteUniverse />}
+        <Header scrolled={scrolled} reserveLogo={isHome} />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -68,12 +70,8 @@ const AppContent: React.FC = () => {
             <Route path="/lookers-ai" element={<LookersAIPage />} />
           </Routes>
         </main>
-        {!isLookersAI && (
-          <>
-            <Footer />
-            <WhatsAppButton />
-          </>
-        )}
+        {!isLookersAI && <Footer reserveLogo={isHome} />}
+        <WhatsAppButton />
       </div>
     </>
   );

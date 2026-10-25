@@ -1,144 +1,123 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Eye, Target } from "lucide-react";
 import { useLanguage } from "../LanguageContext";
-import { services } from "../data/services";
-import { ProductGrid, ClientGrid } from "../components/Portfolio";
+import { homeCopy, homeFilms, homeArtworks } from "../data/homepage";
+import { HomeArtworkFrame, HomeFilmFrame } from "../components/HomeMedia";
+
 export default function HomePage() {
   const { lang } = useLanguage();
   const ar = lang === "ar";
   return (
-    <div className="home-page">
-      <section className="home-hero site-container">
-        <p className="site-eyebrow">LOOKERSHUB · WE SEE DIFFERENTLY</p>
-        <h1>
-          {ar ? (
-            <>
-              رؤية مختلفة.
-              <br />
-              <em>وإمكانيات أبعد.</em>
-            </>
-          ) : (
-            <>
-              A different vision.
-              <br />
-              <em>A wider universe.</em>
-            </>
-          )}
-        </h1>
-        <p>
-          {ar
-            ? "نحوّل الأفكار إلى منتجات رقمية، ونطوّر الأنظمة والتجارب والتسويق الذي يساعدها على النمو."
-            : "We turn ideas into digital products, and shape the systems, experiences and marketing that help them grow."}
-        </p>
-        <div className="button-row">
-          <Link className="site-button" to="/start-your-project">
-            {ar ? "ابدأ مشروعك" : "Start your project"}
-            <ArrowUpRight size={18} />
-          </Link>
-          <Link className="site-button site-button--outline" to="/projects">
-            {ar ? "اكتشف أعمالنا" : "Explore our work"}
-          </Link>
+    <div className="home-marketing" dir={ar ? "rtl" : "ltr"} lang={lang}>
+      <section className="home-story home-layout" aria-labelledby="home-title">
+        <div className="home-opening">
+          <div className="home-opening__copy">
+            <h1 id="home-title">
+              {ar ? (
+                <>
+                  نفس العالم.
+                  <br />
+                  <em>رؤية مختلفة.</em>
+                </>
+              ) : (
+                <>
+                  Same world.
+                  <br />
+                  <em>A different perspective.</em>
+                </>
+              )}
+            </h1>
+            <p>{homeCopy.introduction[lang]}</p>
+          </div>
+          <button
+            className="home-scroll"
+            type="button"
+            onClick={() =>
+              document.getElementById("home-story-film")?.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                  .matches
+                  ? "instant"
+                  : "smooth",
+                block: "start",
+              })
+            }
+          >
+            {ar ? "اكتشف حكايتنا" : "Discover our story"}
+            <span aria-hidden="true">↓</span>
+          </button>
         </div>
-        <span className="hero-footnote">
-          {ar
-            ? "منتجات رقمية · أنظمة أعمال · تسويق ونمو"
-            : "DIGITAL PRODUCTS · BUSINESS SYSTEMS · MARKETING & GROWTH"}
-        </span>
-      </section>
-      <section className="site-section site-container">
-        <div className="section-heading">
-          <p className="site-eyebrow">
-            {ar ? "من الفكرة إلى التنفيذ" : "FROM IDEA TO EXECUTION"}
-          </p>
-          <h2>
-            {ar ? "مسارات مختلفة. رؤية واحدة." : "Different paths. One vision."}
-          </h2>
-          <p>
+        <div id="home-story-film">
+          <HomeFilmFrame film={homeFilms.brand} kind="brand" />
+        </div>
+        <div className="home-purpose" aria-labelledby="home-purpose-title">
+          <h2 id="home-purpose-title">
             {ar
-              ? "نبدأ باحتياجك، ونحدد معاك الخدمة والمسار المناسبين."
-              : "We start with your needs and shape the right service and path forward."}
-          </p>
+              ? "رؤيتنا تقود ما نبنيه"
+              : "Our perspective guides what we build"}
+          </h2>
+          <div className="home-purpose__columns">
+            <article>
+              <h3>
+                <Eye size={24} aria-hidden="true" />
+                {ar ? "رؤيتنا" : "Our vision"}
+              </h3>
+              <p>{homeCopy.vision[lang]}</p>
+            </article>
+            <article>
+              <h3>
+                <Target size={24} aria-hidden="true" />
+                {ar ? "رسالتنا" : "Our mission"}
+              </h3>
+              <p>{homeCopy.mission[lang]}</p>
+            </article>
+          </div>
         </div>
-        <div className="home-service-grid">
-          {services.map((s, i) => (
-            <Link
-              className="home-service glass-panel"
-              key={s.id}
-              to={`/services?service=${s.id}`}
-            >
-              <span className="site-eyebrow">0{i + 1}</span>
-              <h3>{s.title[lang]}</h3>
-              <p>{s.description[lang]}</p>
-              <span className="text-link">
-                {ar ? "اكتشف الخدمة" : "Explore service"}
-                <ArrowUpRight size={17} />
-              </span>
-            </Link>
+      </section>
+      <section
+        className="home-work home-layout"
+        aria-labelledby="home-work-title"
+      >
+        <header className="home-work__heading">
+          <h2 id="home-work-title">{homeCopy.workTitle[lang]}</h2>
+          <p>{homeCopy.workIntro[lang]}</p>
+          <ul
+            className="home-thinking"
+            aria-label={ar ? "طريقة تفكيرنا" : "How we think"}
+          >
+            {(ar
+              ? ["نلاحظ", "نفهم", "نبني", "نطوّر"]
+              : ["Observe", "Understand", "Build", "Develop"]
+            ).map((label) => (
+              <li key={label}>{label}</li>
+            ))}
+          </ul>
+        </header>
+        <HomeFilmFrame film={homeFilms.lookersAI} kind="lookers-ai" />
+        <div className="home-artworks">
+          {homeArtworks.map((artwork) => (
+            <HomeArtworkFrame artwork={artwork} key={artwork.id} />
           ))}
         </div>
       </section>
-      <section className="site-section site-container">
-        <div className="section-heading section-heading--row">
-          <div>
-            <p className="site-eyebrow">
-              {ar ? "منتجات لوكرز" : "THE LOOKERS COLLECTION"}
-            </p>
-            <h2>{ar ? "اللي بنبنيه." : "What we’re building."}</h2>
+      <section
+        className="home-collaboration home-layout"
+        aria-labelledby="home-collaboration-title"
+      >
+        <div>
+          <h2 id="home-collaboration-title">
+            {homeCopy.collaborationTitle[lang]}
+          </h2>
+          <p>{homeCopy.collaboration[lang]}</p>
+          <div className="button-row">
+            <Link className="site-button" to="/start-your-project">
+              {ar ? "ابدأ مشروعك" : "Start your project"}
+              <ArrowUpRight size={18} aria-hidden="true" />
+            </Link>
+            <Link className="site-button site-button--outline" to="/contact">
+              {ar ? "خلّينا نتكلم" : "Let’s talk"}
+            </Link>
           </div>
-          <Link className="text-link" to="/projects">
-            {ar ? "كل المشروعات" : "All projects"}
-            <ArrowUpRight size={17} />
-          </Link>
-        </div>
-        <ProductGrid />
-      </section>
-      <section className="site-section site-container">
-        <div className="ai-callout glass-panel">
-          <Sparkles className="text-gold" size={30} />
-          <p className="site-eyebrow">LOOKERS AI</p>
-          <h2>
-            {ar
-              ? "فكرتك واضحة. والـ Prompt جاهز."
-              : "Your idea. A clearer prompt."}
-          </h2>
-          <p>
-            {ar
-              ? "محادثة مركزة تساعدك تحوّل فكرتك إلى Prompt جاهز للاستخدام مع أدوات الذكاء الاصطناعي."
-              : "A focused conversation that helps turn your idea into a prompt ready for your AI tools."}
-          </p>
-          <Link className="site-button site-button--outline" to="/lookers-ai">
-            {ar ? "جرّب Lookers AI" : "Explore Lookers AI"}
-            <ArrowUpRight size={18} />
-          </Link>
-        </div>
-      </section>
-      <section className="site-section site-container">
-        <div className="section-heading">
-          <p className="site-eyebrow">
-            {ar ? "أعمال التسويق" : "MARKETING WORK"}
-          </p>
-          <h2>
-            {ar ? "شركات اشتغلنا معاها" : "Companies we have worked with"}
-          </h2>
-        </div>
-        <ClientGrid />
-      </section>
-      <section className="site-section site-container home-closing">
-        <p className="site-eyebrow">
-          {ar ? "الخطوة اللي جاية" : "YOUR NEXT STEP"}
-        </p>
-        <h2>
-          {ar ? "عندك فكرة؟ نبدأ من هنا." : "Something in mind? Start here."}
-        </h2>
-        <div className="button-row">
-          <Link className="site-button" to="/start-your-project">
-            {ar ? "ابدأ مشروعك" : "Start your project"}
-            <ArrowUpRight size={18} />
-          </Link>
-          <Link className="text-link" to="/contact">
-            {ar ? "تواصل معانا" : "Get in touch"}
-          </Link>
         </div>
       </section>
     </div>
