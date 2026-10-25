@@ -42,7 +42,9 @@ function toChatQuestion(question: Question | WorkflowStep, lang: Lang): ChatQues
   const placeholder = question.placeholder?.[lang] ||
     translate(lang, 'Write a short, specific answer here…', 'اكتب إجابة قصيرة وواضحة هنا…');
   const contextualWhy = 'why' in question ? question.why[lang] + ' ' : '';
-  const help = contextualWhy + (example
+  const fallbackEgyptian = lang === 'ar' && !('why' in question)
+    ? 'بص، قولّي اللي في دماغك ببساطة، ومش لازم تعرف أي مصطلحات تقنية. ' : '';
+  const help = contextualWhy + fallbackEgyptian + (example
     ? translate(lang, 'For example: ', 'مثال على إجابة مناسبة: ') + example
     : translate(lang, 'One short answer is enough.', 'إجابة قصيرة كفاية.'));
   const options = (question.options || []).map(option => ({ value: option.value, label: option[lang] }));
@@ -68,7 +70,7 @@ function toChatQuestion(question: Question | WorkflowStep, lang: Lang): ChatQues
 const ideaQuestion = (lang: Lang): ChatQuestion => ({
   id: 'idea',
   message: translate(lang, 'Hi! I am Lookers AI. What would you like to create?', 'أهلًا! أنا Lookers AI. تحب نعمل إيه؟'),
-  help: translate(lang, 'Describe the result you want, not technical AI instructions.', 'احكي النتيجة اللي عايز توصل لها، مش محتاج تعرف مصطلحات AI.'),
+  help: translate(lang, 'Describe the result you want, not technical AI instructions.', 'بص، احكيلي عايز تعمل إيه والنتيجة تبقى عاملة إزاي. قولها بطريقتك، مش محتاج أي كلام تقني.'),
   example: translate(lang, 'I want a luxury perfume ad for Instagram.', 'عايز إعلان لعطر فاخر على إنستجرام.'),
   control: { type: 'textarea', placeholder: translate(lang, 'I want to create…', 'أنا عايز أعمل…'), example: translate(lang, 'I want a luxury perfume ad for Instagram.', 'عايز إعلان لعطر فاخر على إنستجرام.') },
   required: true, canSkip: false,
