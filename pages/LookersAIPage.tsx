@@ -7,6 +7,8 @@ import {
   X, Presentation, FolderClock
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
+import LookersAdaptiveChat from '../components/LookersAdaptiveChat';
+import { nextChatTurn } from '../services/lookersAiChatWorkflow';
 import LookersAIHeader from '../components/LookersAIHeader';
 import OrbitalHero from '../components/OrbitalHero';
 import LookersPromptLibrary from '../components/LookersPromptLibrary';
@@ -82,9 +84,6 @@ const LookersAIPage: React.FC = () => {
   const [continuationMode, setContinuationMode] = useState('Improve');
   const [showOrbital, setShowOrbital] = useState(true);
   const [chatMode, setChatMode] = useState(false);
-  const [chatText, setChatText] = useState('');
-  const [chatIndex, setChatIndex] = useState(0);
-  const [chatReview, setChatReview] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -145,7 +144,7 @@ const LookersAIPage: React.FC = () => {
     const active = latest.current;
     const hasWork = Boolean(String(active.answers.idea || '').trim() || active.attachments.length || active.generatedPrompt || Object.keys(active.answers).length);
     commit({ version: 1, current: draft, archived: hasWork ? [active, ...latest.archived] : latest.archived });
-    setShowLibrary(false); setQuestionIndex(0); setTab('prompt');
+    setShowLibrary(false); setShowOrbital(false); setChatMode(true); setQuestionIndex(0); setTab('prompt');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const patchCurrent = (patch: Partial<ProjectDraft>, action?: string) => {
@@ -168,7 +167,7 @@ const LookersAIPage: React.FC = () => {
     patchCurrent({ answers: nextAnswers, title });
   };
   const createPrompt = async () => {
-    if (generationRef.current) return;
+    if (generationRef.current || (chatMode && nextChatTurn(projectStateRef.current.current, lang).status !== 'ready')) return;
     const controller = new AbortController(); generationRef.current = controller; setGenerating(true); setGenerationNotice('');
     const snapshot = structuredClone(projectStateRef.current.current);
     try {
@@ -186,6 +185,7 @@ const LookersAIPage: React.FC = () => {
         if (index >= 0) setQuestionIndex(index);
         return;
       }
+      setGenerationNotice(result.source === 'local' ? copy(lang, 'AI service unavailable. This is the local prompt compiled from your answers.', 'خدمة الذكاء الاصطناعي مش متاحة دلوقتي. ده برومبت محلي متجهز من إجاباتك.') : '');
       patchCurrent({ step: 'result', generatedPrompt: result.prompt }, `prompt_generated_${result.source}`);
       setTab('prompt');
     } catch {
@@ -400,22 +400,14 @@ const LookersAIPage: React.FC = () => {
       <div className="lookers-ai__wrap">
         <LookersAIHeader libraryOpen={showLibrary} onLibraryToggle={() => {setShowTools(false);setShowLibrary(value => !value);}} toolsOpen={showTools} onToolsToggle={() => {setShowLibrary(false);setShowTools(value=>!value);}} />
 
-        {showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setChatIndex(0);setChatReview(false);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
+        {showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' && task !== 'Motion Design' && task !== 'UI / UX' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
         {!chatMode && stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
-        {chatMode && !showOrbital && !showTools && !showLibrary && <section className="lai-chat" aria-label="Lookers AI chat">
-          <header><span>✦ LOOKERS AI</span><button type="button" onClick={()=>{setShowOrbital(true);setChatMode(false);}}>{copy(lang,'← Universes','→ المجالات')}</button></header>
-          <div className="lai-chat__messages">
-            <p className="lai-chat__agent">{copy(lang,'Tell me your idea. We will build it together.','احكيلي فكرتك وهنبنيها سوا.')}</p>
-            {answers.taskDescription && <p className="lai-chat__user">{String(answers.taskDescription)}</p>}
-            {chatReview || stage==='result' ? <>
-              <p className="lai-chat__agent">{stage==='result'?copy(lang,'Your prompt is ready.','البرومبت جاهز.'):copy(lang,'Review your answers before generating.','راجع إجاباتك قبل التوليد.')}</p>
-              {stage==='result' ? <><textarea rows={12} value={prompt} onChange={e=>patchCurrent({generatedPrompt:e.target.value},'prompt_edited')}/><div className="lai-chat__actions"><button onClick={()=>void copyPrompt()}>{copy(lang,'Copy','نسخ')}</button><button onClick={downloadPrompt}>{copy(lang,'Download','تنزيل')}</button><button onClick={()=>{setChatReview(true);setStage('review');}}>{copy(lang,'Improve','تحسين')}</button><button onClick={()=>setShowTools(true)}>{copy(lang,'Tools','الأدوات')}</button></div></> : <>{[{id:'idea',label:copy(lang,'Your idea','فكرتك')},{id:'purpose',label:copy(lang,'Goal','الهدف')},...questions[current.taskType].map(q=>({id:q.id,label:q.label[lang]}))].map(q=><label key={q.id}>{q.label}<textarea rows={2} value={String(answers[q.id]||'')} onChange={e=>setAnswer(q.id,e.target.value)}/></label>)}{generationNotice && <p role="alert">{generationNotice}</p>}<button className="lai-chat__generate" disabled={generating||!String(answers.idea||'').trim()||!String(answers.purpose||'').trim()} onClick={()=>void createPrompt()}>{generating?copy(lang,'Generating…','جاري التوليد…'):copy(lang,'Generate result','توليد النتيجة')}</button></>}
-            </> : <p className="lai-chat__agent">{chatIndex===0?copy(lang,'What would you like to create?','عايز تعمل إيه؟'):chatIndex===1?copy(lang,'What is your goal?','إيه الهدف اللي عايز توصله؟'):questions[current.taskType][chatIndex-2]?.label[lang]}</p>}
-          </div>
-          {!chatReview && stage!=='result' && <form className="lai-chat__composer" onSubmit={e=>{e.preventDefault();if(!chatText.trim())return;const id=chatIndex===0?'idea':chatIndex===1?'purpose':questions[current.taskType][chatIndex-2]?.id;if(id)setAnswer(id,chatText.trim());setChatText('');if(chatIndex>=questions[current.taskType].length+1)setChatReview(true);else setChatIndex(n=>n+1);}}><button type="button" onClick={openFilePicker} aria-label="Attach"><Paperclip size={20}/></button><textarea value={chatText} onChange={e=>setChatText(e.target.value)} placeholder={copy(lang,'Write your message…','اكتب رسالتك…')} rows={2}/><button type="submit" disabled={!chatText.trim()} aria-label="Send"><ArrowUpRight size={21}/></button></form>}
-          {!chatReview && stage!=='result' && <button type="button" className="lai-chat__review" onClick={()=>setChatReview(true)}>{copy(lang,'Review and generate →','راجع وولّد ←')}</button>}
-          {!!current.attachments.length && <div className="lai-chat__files">{current.attachments.map(f=><span key={f.id}>{f.name} </span>)}</div>}
-        </section>}
+        {chatMode && !showOrbital && !showTools && !showLibrary && <LookersAdaptiveChat
+          key={current.id} draft={current} lang={lang} busy={busy} generating={generating} notice={generationNotice} prompt={prompt}
+          onCommit={draft => patchCurrent({ answers: draft.answers, taskType: draft.taskType, title: String(draft.answers.idea || '').slice(0,64), step: 'details' }, 'chat_answer_saved')}
+          onGenerate={() => void createPrompt()} onAttach={openFilePicker}
+          onUniverses={() => {setShowOrbital(true);setChatMode(false);}} onCopy={() => void copyPrompt()} onDownload={downloadPrompt}
+          onEditPrompt={value => patchCurrent({generatedPrompt:value}, 'prompt_edited')} onImprove={() => setStage('review')} />}
         <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
         <header className="lookers-ai__hero">
           <ConstellationName />
@@ -423,7 +415,7 @@ const LookersAIPage: React.FC = () => {
           <p>{copy(lang, 'Write what you want. We’ll help you prepare the prompt.', 'قول لنا عايز تعمل إيه. هنساعدك تجهّز البرومبت.')}</p>
         </header>
 
-        {showTools ? <section className="lai-card"><LookersAIToolDirectory lang={lang} draft={current} selectedTool={handoffTool} onUse={setHandoffTool} onCopy={()=>void copyPrompt()} onClose={()=>setShowTools(false)} /></section> : showLibrary ? <LookersPromptLibrary lang={lang} currentTask={current.taskType} onClose={() => setShowLibrary(false)} onUse={useLibraryDraft} /> : <>
+        {showTools ? <section className="lai-card"><LookersAIToolDirectory lang={lang} draft={current} selectedTool={handoffTool} onUse={setHandoffTool} onCopy={()=>void copyPrompt()} onClose={()=>setShowTools(false)} /></section> : showLibrary ? <LookersPromptLibrary lang={lang} currentTask={current.taskType} onClose={() => setShowLibrary(false)} onUse={useLibraryDraft} /> : !chatMode && <>
         <nav className="lai-steps" aria-label={copy(lang, 'Project steps', 'خطوات المشروع')}>
           {stages.map((item, index) => <button type="button" key={item} onClick={() => setStage(item)} aria-current={item === stage ? "step" : undefined} className={index === stepIndex ? 'is-active' : index < stepIndex ? 'is-done' : ''}>
             <span>{index < stepIndex ? <Check size={13} /> : index + 1}</span><small>{stageTitles[item][lang]}</small>

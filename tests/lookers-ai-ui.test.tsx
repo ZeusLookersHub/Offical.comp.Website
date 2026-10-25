@@ -81,3 +81,47 @@ test('local archived projects are exposed without a fabricated trending feed', (
   assert.ok(html.includes('aria-controls="lai-project-history"'));
   assert.ok(!html.includes('success rate'));
 });
+
+import LookersAdaptiveChat, { ChatQuestionControl } from '../components/LookersAdaptiveChat';
+import { nextChatTurn } from '../services/lookersAiChatWorkflow';
+const chatProps = (draft: ProjectDraft) => ({ draft, lang: 'en' as const, busy: false, generating: false,
+  notice: '', prompt: '', onCommit: () => {}, onGenerate: () => {}, onAttach: () => {},
+  onUniverses: () => {}, onCopy: () => {}, onDownload: () => {}, onEditPrompt: () => {}, onImprove: () => {} });
+
+test('adaptive chat renders one required question and no generate action before readiness', () => {
+  const html = renderToStaticMarkup(<LookersAdaptiveChat {...chatProps(createProjectDraft())} />);
+  assert.equal((html.match(/data-testid="active-question"/g) || []).length, 1);
+  assert.ok(!html.includes('Generate result'));
+  assert.ok(html.includes('Explain this question'));
+  assert.ok(html.includes('Attach file'));
+});
+
+test('adaptive ready state exposes explicit generation without auto-generating or mandatory refinements', () => {
+  const draft = createProjectDraft(); draft.answers = { idea: 'A support reply', outcome: 'Explain the confirmed policy' };
+  let calls = 0;
+  const html = renderToStaticMarkup(<LookersAdaptiveChat {...chatProps(draft)} onGenerate={() => {calls++;}} />);
+  assert.equal(calls, 0);
+  assert.ok(html.includes('Generate result'));
+  assert.ok(html.includes('Add optional refinements'));
+  assert.ok(!html.includes('data-testid="active-question"'));
+});
+
+test('adaptive single and multiple choice controls render real staged inputs with Send confirmation', () => {
+  const draft = createProjectDraft(); draft.answers = { idea: 'video', contentType: 'video', videoSubject: 'Bottle' };
+  const turn = nextChatTurn(draft, 'en'); assert.equal(turn.status, 'question');
+  if (turn.status !== 'question') return;
+  const renderControl = (question: typeof turn.question) => renderToStaticMarkup(<ChatQuestionControl question={question} lang="en" disabled={false} explanation={() => 'Help'} onSubmit={() => true} />);
+  const single = renderControl(turn.question); assert.ok(single.includes('type="radio"'));
+  const multi = renderControl({ ...turn.question, control: {type:'multi', options:[{value:'meta',label:'Meta'},{value:'google',label:'Google'}],doneLabel:'Done · Send'} });
+  assert.equal((multi.match(/type="checkbox"/g)||[]).length,2);
+  assert.ok(multi.includes('type="submit"')); assert.ok(multi.includes('Done · Send'));
+});
+
+test('adaptive result remains escaped and accessible; generation stays out of the result view', () => {
+  const draft = createProjectDraft(); draft.step='result'; draft.generatedPrompt='<script>untrusted</script>';
+  draft.answers = {idea:'Reply',outcome:'Explain'};
+  const html = renderToStaticMarkup(<LookersAdaptiveChat {...chatProps(draft)} prompt={draft.generatedPrompt} />);
+  assert.ok(html.includes('for="lai-chat-result"'));
+  assert.ok(!html.includes('<script>untrusted</script>'));
+  assert.ok(!html.includes('Generate result'));
+});
