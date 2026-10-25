@@ -1,4 +1,5 @@
 import { questions, type Lang, type ProjectDraft, type Question, type TaskType } from '../data/lookersAi';
+import { extractIdeaContext, mergeIdeaContext } from './lookersAiContextExtraction';
 
 /**
  * Headless chat contract. Frontend owns presentation; backend owns progression.
@@ -113,7 +114,9 @@ export function submitChatAnswer(draft: ProjectDraft, lang: Lang, questionId: st
     ...draft, updatedAt: new Date().toISOString(),
     answers: { ...draft.answers, [questionId]: normalized },
   };
-  return { ok: true, draft: updated, turn: nextChatTurn(updated, lang) };
+  const contextualized = questionId === 'idea' && typeof normalized === 'string'
+    ? mergeIdeaContext(updated, extractIdeaContext(normalized, updated.taskType)) : updated;
+  return { ok: true, draft: contextualized, turn: nextChatTurn(contextualized, lang) };
 }
 
 /** Help is explanatory only: it does not advance or mutate the project. */
