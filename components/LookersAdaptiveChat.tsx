@@ -108,6 +108,7 @@ export function ChatQuestionControl({ question, lang, disabled, explanation, onS
   const helpId = `lai-chat-help-${question.id}`;
   return <form className="lai-adaptive-question" data-testid="active-question" data-question-id={question.id}
     onSubmit={event => {event.preventDefault(); if (!onSubmit(value)) setError(true);}}>
+    <div className="lai-adaptive-question-content" data-testid="question-content">
     <div className="lai-adaptive-question-heading"><h2 id={`lai-chat-label-${question.id}`}>{question.message}</h2>
       <button type="button" aria-expanded={helpOpen} aria-controls={helpId} onClick={() => setHelpOpen(open => !open)}>{question.helpLabel}</button></div>
     {helpOpen && <p id={helpId} className="lai-adaptive-help" role="note">{explanation()}</p>}
@@ -123,6 +124,7 @@ export function ChatQuestionControl({ question, lang, disabled, explanation, onS
       {control.example && <p className="lai-adaptive-example">{lang === 'ar' ? 'مثال: ' : 'Example: '}{control.example}</p>}
     </>}
     {error && <p role="alert">{lang === 'ar' ? 'الإجابة مش صالحة. راجعها وجرب تاني.' : 'Please check your answer and try again.'}</p>}
+    </div>
     <button type="submit" className="lai-chat__generate" disabled={disabled || !filled}>{question.submitLabel}</button>
   </form>;
 }

@@ -76,6 +76,8 @@ try {
   const submitBox = await active().getByRole('button', {name:'تم · إرسال',exact:true}).boundingBox();
   const footerBox = await page.locator('.lai-adaptive-footer').boundingBox();
   assert.ok(submitBox.y + submitBox.height <= footerBox.y + 1, JSON.stringify({submitBox,footerBox}));
+  const contentBox = await page.getByTestId('question-content').boundingBox();
+  assert.ok(contentBox.y + contentBox.height <= submitBox.y, JSON.stringify({contentBox,submitBox}));
   await page.screenshot({path:`${output}/mobile-arabic-explain.png`});
   await button('EN').click(); await page.setViewportSize({width:1440,height:900});
   await text('An approved amber perfume bottle');
