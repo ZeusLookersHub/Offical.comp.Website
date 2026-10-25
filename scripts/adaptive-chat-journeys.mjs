@@ -38,6 +38,7 @@ async function enter(world = 'DESIGN', mission = 'Motion Design') {
   await page.goto('http://127.0.0.1:5283/#/lookers-ai');
   await button(world).click(); await button(mission).click();
   await page.getByTestId('adaptive-chat').waitFor();
+  await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('#root > div.min-h-screen')).opacity) > .99);
 }
 const detailed = 'A video 15 seconds 9:16; scene: a verified amber perfume bottle; goal: introduce our fragrance; tool: Runway';
 try {

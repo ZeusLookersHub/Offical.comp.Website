@@ -37,7 +37,7 @@
 @media(max-width:600px){.lai-chat.lai-adaptive-chat{height:calc(100svh - 170px);min-height:350px;border-radius:18px;margin-top:5px}.lai-adaptive-chat header{padding:13px 16px}.lai-adaptive-body{padding:16px}.lai-adaptive-progress{padding:10px 16px;font-size:11px}.lai-adaptive-body h2{font-size:17px}.lai-adaptive-footer{padding:10px 12px}.lai-adaptive-nav{gap:6px}.lai-adaptive-nav>button{font-size:11px!important;padding:10px!important}.lai-adaptive-options{grid-template-columns:1fr}.lai-adaptive-chat textarea{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.lai-adaptive-question{animation:none}}
 /* Site navigation is in document flow: reserve it once, rather than adding a second header gap. */
-.lookers-ai[data-chat="true"]{padding:16px 16px 6px;min-height:0;height:calc(100svh - 82px)}
+.lookers-ai[data-chat="true"][data-orbital="false"]{padding:16px 16px 6px;min-height:0;height:calc(100svh - 82px)}
 .lookers-ai[data-chat="true"] .lai-trends-header{flex-shrink:0}
 .lookers-ai[data-chat="true"] .lai-adaptive-chat{flex:1;height:auto;min-height:0;max-height:620px}
-@media(max-width:659px){.lookers-ai[data-chat="true"]{height:calc(100svh - 160px);padding-top:12px}.lookers-ai[data-chat="true"] .lai-adaptive-chat{margin-bottom:8px}}
+@media(max-width:659px){.lookers-ai[data-chat="true"][data-orbital="false"]{height:calc(100svh - 160px);padding-top:12px}.lookers-ai[data-chat="true"] .lai-adaptive-chat{margin-bottom:8px}}
