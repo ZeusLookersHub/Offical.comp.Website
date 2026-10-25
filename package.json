@@ -24,7 +24,8 @@
     "test:studio-journeys": "node scripts/studio-journeys.mjs",
     "test:cards": "node scripts/card-flow-journeys.mjs",
     "test:chat": "esbuild tests/lookers-ai-chat-workflow.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-chat/chat.test.mjs --log-level=warning && node --test node_modules/.cache/lookers-chat/chat.test.mjs",
-    "test:topics": "esbuild tests/lookers-ai-topic-registry.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-topics/topics.test.mjs --log-level=warning && node --test node_modules/.cache/lookers-topics/topics.test.mjs"
+    "test:topics": "esbuild tests/lookers-ai-topic-registry.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-topics/topics.test.mjs --log-level=warning && node --test node_modules/.cache/lookers-topics/topics.test.mjs",
+    "test:workflow-schemas": "esbuild tests/lookers-ai-workflow-schemas.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/lookers-workflows/workflows.test.mjs --log-level=warning && node --test node_modules/.cache/lookers-workflows/workflows.test.mjs"
   },
   "dependencies": {
     "@fontsource/almarai": "5.3.0",
