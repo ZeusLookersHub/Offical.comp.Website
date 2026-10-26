@@ -64,3 +64,21 @@ generator or provider route:
 The Agent and enhancement gates still control provider access. Interview readiness
 is not external-action authorization. DeepSeek configuration and transport are
 unchanged. No live frontend integration or production deployment is claimed.
+
+## Frontend workspace
+
+The AI route now scopes the approved flat navigation without changing the homepage
+or the signature logo. A flex viewport layout measures the actual global header;
+the conversational thread scrolls independently above the fixed composer.
+Required and optional controls still use the exported backend functions above.
+Confirmed session answers appear as message bubbles. Previous-answer navigation is
+read-only; the canonical draft remains authoritative across library/navigation.
+
+`/#/lookers-ai?view=chat` opens the chat directly for review after the first two
+sections. The normal `/#/lookers-ai` entry retains the universe and mission picker.
+No project is reset by this link. Mobile navigation uses an accessible menu and
+the existing tools dropdowns remain available in one compact icon row.
+
+The exact approved background is stored in `public/assets/lookers-chat-universe.png`;
+CSS displays only its upper scene. The existing universe artwork is cropped in CSS
+to remove baked navigation, with its interactive planet hotspots adjusted together.

@@ -125,3 +125,13 @@ test('adaptive result remains escaped and accessible; generation stays out of th
   assert.ok(!html.includes('<script>untrusted</script>'));
   assert.ok(!html.includes('Generate result'));
 });
+
+
+test('conversation has a dedicated thread and fixed composer without duplicate branding', () => {
+  const html = renderToStaticMarkup(<LookersAdaptiveChat {...chatProps(createProjectDraft())} />);
+  assert.equal((html.match(/data-testid="conversation-thread"/g)||[]).length,1);
+  assert.ok(html.includes('class="lai-composer"'));
+  assert.ok(html.includes('type="text"'));
+  assert.ok(!html.includes('✦ LOOKERS AI'));
+  assert.ok(html.indexOf('data-testid="conversation-thread"') < html.indexOf('class="lai-adaptive-footer"'));
+});

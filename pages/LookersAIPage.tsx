@@ -82,8 +82,8 @@ const LookersAIPage: React.FC = () => {
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [externalReply, setExternalReply] = useState('');
   const [continuationMode, setContinuationMode] = useState('Improve');
-  const [showOrbital, setShowOrbital] = useState(true);
-  const [chatMode, setChatMode] = useState(false);
+  const [showOrbital, setShowOrbital] = useState(() => new URLSearchParams(location.search).get('view') !== 'chat');
+  const [chatMode, setChatMode] = useState(() => new URLSearchParams(location.search).get('view') === 'chat');
   const [showLibrary, setShowLibrary] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const [showHistory, setShowHistory] = useState(false);

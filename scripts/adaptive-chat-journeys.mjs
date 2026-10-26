@@ -16,11 +16,12 @@ const state = () => page.evaluate(() => {
 });
 const active = () => page.getByTestId('active-question');
 const send = () => active().getByRole('button', { name: 'Done · Send', exact: true }).click();
-const text = async value => { await active().locator('textarea').fill(value); await send(); };
+const text = async value => { await active().locator('input[type=text]').fill(value); await send(); };
 const measure = async label => {
   const box = await page.getByTestId('adaptive-chat').boundingBox();
   const viewport = page.viewportSize();
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1),true,'The document must not scroll during chat');
   assert.ok(width <= viewport.width, JSON.stringify({label,box,viewport,width}));
   assert.ok(box.y + box.height <= viewport.height + 1, JSON.stringify({label,box,viewport}));
   assert.ok(await active().count() <= 1);
@@ -62,6 +63,11 @@ try {
 
   await enter();
   const initial = await measure('desktop-idea');
+  const beforeInvalid = await state();
+  await active().locator('input[type=text]').fill('   ');
+  assert.equal(await active().getByRole('button',{name:'Done · Send',exact:true}).isEnabled(),false);
+  await active().locator('input[type=text]').press('Enter');
+  assert.deepEqual(await state(),beforeInvalid,'Blank answers must not advance or mutate the saved draft');
   await text('video');
   assert.equal(await active().getAttribute('data-question-id'), 'videoSubject');
   const subjectBox = await measure('desktop-subject'); assert.ok(Math.abs(initial.height-subjectBox.height)<1);
@@ -75,15 +81,20 @@ try {
   await measure('mobile-arabic-explain');
   const submitBox = await active().getByRole('button', {name:'تم · إرسال',exact:true}).boundingBox();
   const footerBox = await page.locator('.lai-adaptive-footer').boundingBox();
-  assert.ok(submitBox.y + submitBox.height <= footerBox.y + 1, JSON.stringify({submitBox,footerBox}));
-  const contentBox = await page.getByTestId('question-content').boundingBox();
+  assert.ok(submitBox.y >= footerBox.y && submitBox.y + submitBox.height <= footerBox.y + footerBox.height + 1, JSON.stringify({submitBox,footerBox}));
+  const contentBox = await page.getByTestId('conversation-thread').boundingBox();
   assert.ok(contentBox.y + contentBox.height <= submitBox.y, JSON.stringify({contentBox,submitBox}));
   await page.screenshot({path:`${output}/mobile-arabic-explain.png`});
+  const beforeScroll = await active().getByRole('button',{name:'تم · إرسال',exact:true}).boundingBox();
+  await page.getByTestId('conversation-thread').evaluate(node => {node.scrollTop=0;});
+  assert.deepEqual(await active().getByRole('button',{name:'تم · إرسال',exact:true}).boundingBox(),beforeScroll,'Composer remains fixed while the thread scrolls');
   await button('EN').click(); await page.setViewportSize({width:1440,height:900});
   await text('An approved amber perfume bottle');
   const beforeBack = await state(); await button('Previous answer').click();
   await page.getByRole('heading',{name:'Previous confirmed answer'}).waitFor();
   assert.deepEqual(await state(), beforeBack); await button('Return to current step').click();
+  await page.screenshot({path:`${output}/desktop-conversation.png`});
+  assert.ok(await page.locator('.lai-message--user').count() >= 2,'Confirmed answers stay visible in the conversation');
   await active().getByLabel('Product advertisement',{exact:true}).check();
   assert.equal((await state()).videoGoal,undefined,'Single choices must wait for Send'); await send();
   await active().getByLabel('15 seconds',{exact:true}).check(); await send();
@@ -127,6 +138,13 @@ try {
   await send(); assert.deepEqual((await state()).channels,['meta','google']);
   assert.ok(await button('Generate result').isEnabled());
   checks.push('Multiple choices stay staged until Done/Send; both saved choices are retained without blocking generation');
+  const beforeDirect = await state();
+  await page.goto('http://127.0.0.1:5283/#/lookers-ai?view=chat');
+  await page.getByTestId('adaptive-chat').waitFor();
+  assert.deepEqual(await state(),beforeDirect,'Direct chat review must retain the confirmed project');
+  assert.equal(await page.locator('.orbital-hero').count(),0);
+  await measure('direct-chat-preview');
+  checks.push('Direct chat entry preserves saved project; empty answers do not advance; composer remains fixed while thread scrolls');
   assert.deepEqual(errors,[]);
   await writeFile(`${output}/report.json`,JSON.stringify({checks,geometry,errors,journeys:10,provider:'Supabase request failure deliberately simulated; real DeepSeek response is not claimed',browser:'Chromium',status:'success'},null,2));
   console.log(JSON.stringify({status:'success',journeys:10,checks,geometry,errors},null,2));

@@ -1,53 +1,65 @@
-/* A single measured card. Long help/options scroll inside the card, never grow the page. */
-.lai-chat.lai-adaptive-chat{height:min(620px,calc(100svh - 180px));min-height:370px;max-height:none;margin:12px auto 20px;box-sizing:border-box;min-width:0}
-.lai-adaptive-chat header{flex-shrink:0;padding:16px 22px}
-.lai-adaptive-progress{padding:10px 22px;color:#b7b6b4;font-size:12px;border-bottom:1px solid #ffffff0d;flex-shrink:0}
-.lai-adaptive-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:20px 22px;scrollbar-width:thin;overflow-wrap:anywhere}
-.lai-adaptive-body h2{font-size:19px;line-height:1.6;color:#f1e9de;margin:0 0 12px;font-weight:600}
-.lai-adaptive-question{display:flex;flex-direction:column;gap:14px;animation:lai-adaptive-turn .18s ease-out}
-.lai-adaptive-question-heading{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+/* The thread owns vertical scrolling; its composer always stays in the workspace. */
+.lookers-ai-shell{height:100svh;min-height:0!important;overflow:hidden;background:#06101c url('/assets/lookers-chat-universe.png') center top / max(100vw, 145svh) auto no-repeat!important}
+.lookers-ai-shell>main{flex:1;min-height:0;display:flex;overflow:hidden}
+.lookers-ai-shell .lookers-ai[data-chat="true"][data-orbital="false"]{height:100%;min-height:0;padding:12px 24px 18px;background:transparent;flex:1;min-width:0}
+.lookers-ai-shell .lookers-ai[data-chat="true"] .lookers-ai__wrap{width:min(1160px,100%);height:100%;min-height:0;display:flex;flex-direction:column}
+.lookers-ai-shell .lookers-ai[data-chat="true"] .lai-trends-header{width:min(800px,100%);max-width:800px;margin:0 auto 14px;flex:none}
+.lookers-ai-shell .lookers-ai[data-chat="true"] .lookers-ai__footer{display:none}
+.lookers-ai-shell .lai-chat.lai-adaptive-chat{width:100%;height:auto;flex:1;min-height:0;max-height:none;margin:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid #c9a05b90;border-radius:22px;background:linear-gradient(130deg,#081522ed,#06101ac9);box-shadow:0 18px 50px #0005;backdrop-filter:blur(12px)}
+.lookers-ai-shell .lai-adaptive-chat .lai-adaptive-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;min-height:52px;border-bottom:1px solid #ffffff12;flex:none;letter-spacing:0;font-size:12px;color:#c7c4bc}
+.lai-adaptive-topbar>span::before{content:'●';color:#e3b967;font-size:9px;margin-inline-end:7px}
+.lai-adaptive-topbar button{border:0;background:transparent;color:#d3b67d;font:inherit;cursor:pointer;min-height:30px}
 .lai-adaptive-chat button{font:inherit;cursor:pointer}
-.lai-adaptive-question-heading button,.lai-adaptive-ready>button,.lai-adaptive-history button{border:1px solid #d5a65a55;background:#171c24;color:#e1c28a;border-radius:9px;padding:8px 12px;font-size:12px}
-.lai-adaptive-help{padding:12px 14px;border-inline-start:2px solid #d3ae6c;background:#ffffff06;border-radius:8px;font-size:13px;line-height:1.85;color:#e4ded5;margin:0;white-space:pre-wrap}
-.lai-adaptive-question textarea,.lai-adaptive-result textarea{width:100%;min-width:0;box-sizing:border-box;resize:none;border:1px solid #d5a65a55;background:#10141a;color:#f2eee8;border-radius:12px;padding:13px;font:inherit;font-size:14px;line-height:1.7}
-.lai-adaptive-question textarea{min-height:112px}
-.lai-adaptive-example{color:#aaa7a1;font-size:12px;line-height:1.7;margin:0}
-.lai-adaptive-question>button[type=submit]{align-self:flex-end;font-size:13px}
-.lai-adaptive-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;padding:0;margin:0;min-width:0}
-.lai-adaptive-options label{display:flex;align-items:center;gap:10px;border:1px solid #ffffff20;border-radius:11px;padding:13px 11px;color:#d8d5ce;font-size:13px;line-height:1.5;cursor:pointer;min-width:0;background:#11171f}
-.lai-adaptive-options label.is-selected{background:#d4aa5a14;border-color:#d4aa5a;color:#f2dcaf}
-.lai-adaptive-options input{accent-color:#d4aa5a;flex-shrink:0}
-.lai-adaptive-footer{border-top:1px solid #ffffff13;padding:12px 20px;flex-shrink:0}
+.lai-adaptive-question{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;margin:0}
+.lai-adaptive-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:24px 30px;scrollbar-width:thin;scrollbar-color:#89939c60 transparent;display:flex;flex-direction:column;gap:18px;overflow-wrap:anywhere;scroll-padding:20px}
+.lai-message{max-width:76%;padding:14px 19px;line-height:1.85;font-size:14px;margin:0;white-space:pre-wrap;border:1px solid #ffffff1c;border-radius:18px;flex:none}
+.lai-message--assistant{align-self:flex-start;background:linear-gradient(130deg,#25323c7a,#14202b85);color:#eeeae2;border-end-start-radius:5px}
+.lai-message--user{align-self:flex-end;background:linear-gradient(130deg,#263f60bb,#1b2d47bb);color:#f1f3f7;border-end-end-radius:5px}
+.lai-current-message{display:flex;flex-direction:column;align-items:flex-start;gap:12px;flex:none;animation:lai-adaptive-turn .18s ease-out}
+.lai-current-message>.lai-message{max-width:85%}
+.lai-adaptive-body h2{font-size:16px;line-height:1.85;color:#f1e9de;margin:0;font-weight:500}
+.lai-adaptive-example{color:#a8afb7;font-size:12px;line-height:1.8;margin:8px 0 0}
+.lai-adaptive-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;border:0;padding:0;margin:0;min-width:0;width:min(570px,100%)}
+.lai-adaptive-options label{display:flex;align-items:center;gap:10px;border:1px solid #a9b1b542;border-radius:10px;padding:12px 14px;color:#e0ded8;font-size:13px;line-height:1.6;cursor:pointer;min-width:0;background:#18222c7a;min-height:44px}
+.lai-adaptive-options label.is-selected{background:#0b192b;border-color:#dfb967;color:#f2dcaf}
+.lai-adaptive-options input{accent-color:#d4aa5a;flex:none}
+.lai-explain,.lai-adaptive-ready>button,.lai-adaptive-history button,.lai-adaptive-refinements>button{border:1px solid #d5a65a35;background:#15202b80;color:#ddc494;border-radius:10px;padding:9px 13px;font-size:12px!important;min-height:38px}
+.lai-adaptive-help{max-width:650px;padding:12px 15px;border-inline-start:2px solid #d3ae6c;background:#ffffff06;border-radius:8px;font-size:13px;line-height:1.85;color:#e4ded5;margin:0;white-space:pre-wrap}
+.lai-adaptive-footer{border-top:1px solid #ffffff13;padding:12px 22px 10px;flex:none;background:#06101a6b}
+.lai-composer{display:flex;align-items:center;gap:12px;min-width:0}
+.lai-composer input{flex:1;min-width:0;height:48px;border:1px solid #b5c0cb32;border-radius:26px;background:#18212b6b;color:#f4eee4;padding:0 18px;font:inherit;font-size:14px;box-sizing:border-box}
+.lai-composer input::placeholder{color:#939da9}
+.lai-composer-hint{flex:1;min-width:0;color:#aab2bd;font-size:13px;margin:0;padding:10px}
+.lai-composer .lai-attach,.lai-attach{display:grid;place-items:center;border:1px solid #c3cbd536;background:transparent;color:#e8e6df;border-radius:50%;width:44px;height:44px;flex:none;font-size:22px}
+.lai-adaptive-footer>.lai-attach{width:auto;height:auto;border-radius:12px;font-size:12px;padding:9px 12px;margin-top:8px}
+.lai-composer .lai-send{display:grid;place-items:center;width:48px;height:48px;border:0;border-radius:50%;background:linear-gradient(130deg,#f9d37e,#e6b24d);color:#10202c;font-size:23px;flex:none}
+[dir=rtl] .lai-send>span{transform:rotate(180deg)}
+.lai-composer-caption{font-size:11px;color:#acb0b7;text-align:center;margin:9px 0 0}
 .lai-adaptive-nav{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.lai-adaptive-nav>button:not(.lai-chat__generate){background:transparent;border:1px solid #ffffff24;color:#cdc4b5;padding:9px 11px;border-radius:9px;font-size:12px}
+.lai-adaptive-nav:empty{display:none}
+.lai-adaptive-nav:not(:empty){margin-bottom:10px}
+.lai-adaptive-nav>button:not(.lai-chat__generate){background:transparent;border:0;color:#c5bdad;padding:6px;font-size:11px}
 .lai-adaptive-nav>.lai-chat__generate{margin-inline-start:auto;font-size:13px}
-.lai-adaptive-files{padding:0;margin:0 0 9px;list-style:none;max-height:48px;overflow-y:auto;color:#c6b18a;font-size:11px;line-height:1.7;overflow-wrap:anywhere}
-.lai-adaptive-ready{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
-.lai-adaptive-ready p{font-size:14px;line-height:1.8;margin:0;color:#bbb8b2}
-.lai-adaptive-idea{max-height:100px;overflow:auto;border-inline-start:2px solid #d3ae6c;padding-inline-start:12px;width:100%;box-sizing:border-box}
-.lai-adaptive-refinements{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;font-size:12px;color:#c9b184}
-.lai-adaptive-refinements select{width:100%;min-width:0;padding:10px;background:#10141a;color:#eee3d0;border:1px solid #d5a65a55;border-radius:9px;font:inherit}
-.lai-adaptive-result{height:100%;display:flex;flex-direction:column;gap:12px;min-height:220px}
+.lai-adaptive-files{padding:0;margin:0 0 8px;list-style:none;max-height:38px;overflow:auto;color:#c6b18a;font-size:11px;line-height:1.7;overflow-wrap:anywhere}
+.lai-adaptive-ready{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.lai-adaptive-ready p{margin:0;font-size:14px;line-height:1.8;color:#c0c3c8}
+.lai-adaptive-refinements{display:flex;flex-direction:column;align-items:flex-start;gap:8px;flex:none;font-size:12px;color:#c9b184}
+.lai-adaptive-refinements select{max-width:100%;width:min(520px,100%);padding:10px;background:#101923;color:#eee3d0;border:1px solid #d5a65a55;border-radius:9px;font:inherit}
+.lai-adaptive-result{flex:1;display:flex;flex-direction:column;gap:12px;min-height:280px}
 .lai-adaptive-result label{font-size:15px;color:#eee3d0}
-.lai-adaptive-result textarea.lookers-ai__prompt-output{flex:1;min-height:120px;max-height:none;box-shadow:none;margin:0;padding:14px;direction:inherit;resize:none}
-.lai-adaptive-notice{font-size:12px;color:#d8c397;line-height:1.7}
-.lai-adaptive-chat button:disabled{opacity:.45;cursor:not-allowed}
+.lai-adaptive-result textarea.lookers-ai__prompt-output{flex:1;min-height:120px;max-height:none;box-shadow:none;margin:0;padding:16px;direction:inherit;resize:none;background:#101923b0;color:#ece7df;border:1px solid #d5a65a55;border-radius:12px;font:inherit;font-size:14px;line-height:1.8;width:100%}
+.lai-adaptive-footer .lai-adaptive-notice{margin:0 0 8px;font-size:11px;color:#d8c397;line-height:1.6}
+.lai-adaptive-chat button:disabled{opacity:.4;cursor:not-allowed}
 .lai-adaptive-chat :focus-visible{outline:2px solid #e3b967;outline-offset:3px}
 @keyframes lai-adaptive-turn{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:none}}
-@media(max-width:600px){.lai-chat.lai-adaptive-chat{height:calc(100svh - 170px);min-height:350px;border-radius:18px;margin-top:5px}.lai-adaptive-chat header{padding:13px 16px}.lai-adaptive-body{padding:16px}.lai-adaptive-progress{padding:10px 16px;font-size:11px}.lai-adaptive-body h2{font-size:17px}.lai-adaptive-footer{padding:10px 12px}.lai-adaptive-nav{gap:6px}.lai-adaptive-nav>button{font-size:11px!important;padding:10px!important}.lai-adaptive-options{grid-template-columns:1fr}.lai-adaptive-chat textarea{font-size:16px}}
-@media(prefers-reduced-motion:reduce){.lai-adaptive-question{animation:none}}
-/* Site navigation is in document flow: reserve it once, rather than adding a second header gap. */
-.lookers-ai[data-chat="true"][data-orbital="false"]{padding:16px 16px 6px;min-height:0;height:calc(100svh - 82px)}
-.lookers-ai[data-chat="true"] .lai-trends-header{flex-shrink:0}
-.lookers-ai[data-chat="true"] .lai-adaptive-chat{flex:1;height:auto;min-height:0;max-height:620px}
-@media(max-width:659px){.lookers-ai[data-chat="true"][data-orbital="false"]{height:calc(100svh - 160px);padding-top:12px}.lookers-ai[data-chat="true"] .lai-adaptive-chat{margin-bottom:8px}}
-
-.lai-adaptive-footer .lai-adaptive-notice{margin:0 0 8px;font-size:11px}
-
-.lai-adaptive-body{display:flex;flex-direction:column;overflow:hidden}
-.lai-adaptive-question{flex:1;min-height:0;overflow:hidden;gap:10px}
-.lai-adaptive-question-content{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 6px;scrollbar-width:thin}
-.lai-adaptive-question-content>*{flex-shrink:0}
-.lai-adaptive-question>button[type=submit]{flex-shrink:0}
-.lai-adaptive-refinements,.lai-adaptive-body>.lai-chat__review{flex-shrink:0}
-.lai-adaptive-ready,.lai-adaptive-history{min-height:0;overflow:auto}
+@media(max-width:659px){
+.lookers-ai-shell .lookers-ai[data-chat="true"][data-orbital="false"]{padding:8px 10px max(10px,env(safe-area-inset-bottom))}
+.lookers-ai-shell .lai-chat.lai-adaptive-chat{border-radius:17px}
+.lookers-ai-shell .lai-adaptive-chat .lai-adaptive-topbar{padding:8px 14px;min-height:44px;font-size:10px}
+.lookers-ai-shell .lookers-ai[data-chat="true"] .lai-trends-header{margin-bottom:10px}
+.lai-adaptive-body{padding:18px 13px;gap:15px}.lai-message{max-width:92%;font-size:13px;padding:11px 13px}.lai-current-message>.lai-message{max-width:100%}
+.lai-adaptive-body h2{font-size:14px}.lai-adaptive-options{gap:7px}.lai-adaptive-options label{font-size:12px;padding:9px 8px;gap:5px}
+.lai-adaptive-footer{padding:10px 12px 8px}.lai-composer{gap:7px}.lai-composer input{font-size:16px;height:44px;padding-inline:12px}.lai-composer .lai-send{width:42px;height:42px}.lai-composer .lai-attach{width:36px;height:36px}
+.lai-composer-caption{font-size:10px}.lai-composer-hint{font-size:11px;padding:5px}.lai-adaptive-help{font-size:12px}.lai-adaptive-result textarea.lookers-ai__prompt-output{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.lai-current-message{animation:none}}

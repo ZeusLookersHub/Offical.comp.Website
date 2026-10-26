@@ -38,7 +38,7 @@ const AppContent: React.FC = () => {
   return (
     <>
       {isLoading && <Loader />}
-      <div className={`min-h-screen flex flex-col selection:bg-gold selection:text-black bg-navy ${lang === 'ar' ? 'font-arabic' : ''} ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-1000'}`}>
+      <div className={`${isLookersAI ? 'lookers-ai-shell' : ''} min-h-screen flex flex-col selection:bg-gold selection:text-black bg-navy ${lang === 'ar' ? 'font-arabic' : ''} ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-1000'}`}>
         <Header scrolled={scrolled} />
         <main className="flex-grow">
           <Routes>

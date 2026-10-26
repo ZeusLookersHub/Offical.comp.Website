@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Clipboard, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clipboard, X, Image, Video, Share2, Sparkles, Compass } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import { trendSections, type TrendSectionId } from '../data/lookersAiTrends';
 import './LookersAIHeader.css';
@@ -46,7 +46,7 @@ export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,o
         {trendSections.map((section,index)=><button key={section.id} ref={el=>{triggers.current[index]=el;}} type="button" className="lai-trends-headline" aria-label={section.title[lang]} aria-expanded={openId===section.id} aria-controls={panelId} onClick={()=>openId===section.id?close():open(section.id)} onKeyDown={event=>{
           if(event.key==='ArrowDown'){event.preventDefault();if(openId===section.id)firstItem.current?.focus();else{focusFirst.current=true;open(section.id);}}
           if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();const offset=(event.key==='ArrowRight'?1:-1)*(ar?-1:1);triggers.current[(index+offset+trendSections.length)%trendSections.length]?.focus();}
-        }}>{short[section.id][ar?1:0]}<ChevronDown size={11} aria-hidden="true" /></button>)}
+        }}><span className="lai-trends-icon" aria-hidden="true">{section.id === 'image' ? <Image size={14}/> : section.id === 'video' ? <Video size={14}/> : section.id === 'social' ? <Share2 size={14}/> : section.id === 'prompt' ? <Sparkles size={14}/> : <Compass size={14}/>}</span>{short[section.id][ar?1:0]}<ChevronDown size={11} aria-hidden="true" /></button>)}
       </nav>
       <button type="button" className="lai-trends-tools" aria-expanded={toolsOpen} onClick={()=>{close();onToolsToggle();}}>{t('AI tools','أدوات AI')}</button>
     </div>

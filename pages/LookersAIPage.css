@@ -588,3 +588,31 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lookers-ai[data-orbital="true"] .orbital-hero{margin-top:0!important}
 .lookers-ai[data-orbital="true"] .orbital-hero__universe--selected{height:min(690px,75svh)!important;min-height:520px!important}
 @media(max-width:700px){.lookers-ai[data-orbital="true"] .orbital-hero__universe:not(.orbital-hero__universe--selected){height:auto!important;min-height:0!important}}
+/* Compact tools stay a single row on phones, with their existing accessible dropdowns. */
+.lookers-ai-shell .lai-trends-topline{grid-template-columns:90px minmax(0,1fr) 70px;background:#081927cc}
+@media(max-width:659px){
+.lookers-ai-shell .lai-trends-header{width:100%;max-width:none}
+.lookers-ai-shell .lai-trends-topline{grid-template-columns:72px minmax(0,1fr) 58px;padding:3px 5px;gap:1px;border-radius:24px}
+.lookers-ai-shell .lai-trends-nav{grid-column:auto;grid-row:auto;gap:1px}
+.lookers-ai-shell .lai-trends-headline{font-size:0!important;min-height:36px!important;padding:6px!important}
+.lookers-ai-shell .lai-trends-headline svg{width:14px;height:14px}
+.lookers-ai-shell .lai-trends-headline>svg:last-child{display:none}
+.lookers-ai-shell .lai-trends-tools,.lookers-ai-shell .lai-trends-library{font-size:9px!important;padding:5px;grid-column:auto;grid-row:auto}
+}
+.lai-trends-icon{display:none}
+@media(max-width:659px){.lookers-ai-shell .lai-trends-icon{display:flex}.lookers-ai-shell .lai-trends-headline>.lai-trends-icon svg{display:block}}
+/* Hide the baked navigation in the universe artwork, keeping its planet hotspots aligned. */
+.lookers-ai-shell .lookers-ai[data-orbital="true"]{height:100%;min-height:0;padding:12px 0 0;flex:1}
+.lookers-ai-shell .lookers-ai[data-orbital="true"] .lookers-ai__wrap{height:100%;min-height:0}
+.lookers-ai-shell .lookers-ai[data-orbital="true"] .orbital-hero{flex:1;min-height:0;overflow:hidden}
+.lookers-ai-shell .lookers-ai[data-orbital="true"] .orbital-hero__heading{display:none}
+.lookers-ai-shell .lookers-ai[data-orbital="true"] .orbital-hero__universe{height:100%;min-height:0}
+.lookers-ai-shell .orbital-hero__master{height:125%;top:-25%}
+.lookers-ai-shell .orbital-hero__universe:not(.orbital-hero__universe--selected) .orbital-hero__planet--design{top:17.5%;height:52.5%}
+.lookers-ai-shell .orbital-hero__universe:not(.orbital-hero__universe--selected) .orbital-hero__planet--marketing{top:12.5%;height:30%}
+.lookers-ai-shell .orbital-hero__universe:not(.orbital-hero__universe--selected) .orbital-hero__planet--business{top:10%;height:28.75%}
+.lookers-ai-shell .orbital-hero__universe:not(.orbital-hero__universe--selected) .orbital-hero__planet--presentations{top:56.25%;height:33.75%}
+.lookers-ai-shell .orbital-hero__universe:not(.orbital-hero__universe--selected) .orbital-hero__planet--technology{top:55%;height:33.75%}
+.lookers-ai-shell>main:has(.lookers-ai[data-chat="false"][data-orbital="false"]){overflow:auto;display:block}
+.lai-send svg{display:block}
+[dir=rtl] .lai-send svg{transform:scaleX(-1)}
