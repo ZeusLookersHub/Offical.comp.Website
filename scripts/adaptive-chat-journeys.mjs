@@ -72,7 +72,7 @@ try {
   assert.equal(await active().getAttribute('data-question-id'), 'videoSubject');
   const subjectBox = await measure('desktop-subject'); assert.ok(Math.abs(initial.height-subjectBox.height)<1);
   const beforeHelp = await state();
-  await button('AR').click();
+  await button('عربي').click();
   await button('وضح لي السؤال').click();
   const help = await page.getByRole('note').innerText(); assert.match(help, /قولّي|تخيّل/); assert.match(help,/مثال/);
   assert.deepEqual(await state(), beforeHelp);
