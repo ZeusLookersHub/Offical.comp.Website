@@ -1,0 +1,19 @@
+{
+  "status": "completed",
+  "source": "local-fallback",
+  "network": [
+    {
+      "path": "/auth/v1/signup",
+      "failure": "net::ERR_EMPTY_RESPONSE"
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "Actual integrated application called existing transport without request mocks",
+    "Generated prompt rendered",
+    "Reload and Previous Projects restored identical result"
+  ],
+  "provenance": [
+    "AI service unavailable. This is the local prompt compiled from your answers."
+  ]
+}

@@ -1,0 +1,125 @@
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/cormorant-garamond-500.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./fonts/cormorant-garamond-600.ttf") format("truetype");
+}
+/* The existing website and AI headers own their space. The preview fills the remainder. */
+.wormhole-hero {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  --head: 0px;
+}
+.wormhole-hero .view {
+  position: absolute;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  z-index: 1;
+}
+.wormhole-hero .lh-space {
+  position: absolute;
+  z-index: 0;
+}
+.wormhole-hero .back {
+  top: 14px;
+}
+.wormhole-hero .pill {
+  padding-inline: 15px;
+}
+.wormhole-hero .title {
+  font-size: clamp(23px, 2.8vw, 38px);
+}
+.wormhole-hero .intro {
+  flex: none;
+}
+.wormhole-hero .lh-cursor,
+.wormhole-hero .lh-cursor-dot {
+  position: fixed;
+}
+.wormhole-hero .wormhole-notice {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  translate: -50%;
+  z-index: 20;
+  text-align: center;
+  color: var(--gold);
+  font-size: 12px;
+}
+.wormhole-hero .view.is-behind {
+  visibility: hidden;
+}
+.wormhole-hero .view.is-away {
+  visibility: hidden;
+  transition:
+    opacity 0.7s,
+    transform 0.9s,
+    filter 0.7s,
+    visibility 0s 0.9s;
+}
+.wormhole-hero.is-entering-chat .view {
+  opacity: 0;
+  transform: scale(1.6);
+  filter: blur(10px);
+  transition:
+    opacity 0.7s,
+    transform 0.9s,
+    filter 0.7s;
+}
+@media (max-width: 640px) {
+  .wormhole-hero .view {
+    padding-inline: 12px;
+  }
+  .wormhole-hero .sub {
+    max-width: 32ch;
+  }
+  .wormhole-hero .back {
+    top: 8px;
+    height: 32px;
+    font-size: 12px;
+  }
+  .wormhole-hero .view:has(.back) .intro {
+    margin-top: 34px;
+  }
+  .wormhole-hero .pl-name {
+    font-size: 12.5px;
+  }
+  .wormhole-hero[lang="ar"] .pl-name {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wormhole-hero *,
+  .wormhole-hero *::before,
+  .wormhole-hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .wormhole-hero .wh-dust {
+    display: none;
+  }
+}
+.wormhole-hero .pill {
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(5, 4, 12, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}

@@ -6,7 +6,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 const output = process.env.ADAPTIVE_QA_OUTPUT || 'node_modules/.cache/adaptive-chat-qa';
 await mkdir(output, { recursive: true });
 const server = await createServer({ server: { host: '127.0.0.1', port: 5283, strictPort: true } });
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.QA_CHROMIUM_EXECUTABLE, args: ['--no-sandbox'] });
 const checks = [], geometry = [], errors = [];
 let page, context;
 const button = name => page.getByRole('button', { name, exact: true });
@@ -37,6 +37,7 @@ async function enter(world = 'DESIGN', mission = 'Motion Design') {
   page.setDefaultTimeout(15000);
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('http://127.0.0.1:5283/#/lookers-ai');
+  await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('#root > div.min-h-screen')).opacity) > .99);
   await button(world).click(); await button(mission).click();
   await page.getByTestId('adaptive-chat').waitFor();
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('#root > div.min-h-screen')).opacity) > .99);

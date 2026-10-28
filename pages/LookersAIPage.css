@@ -436,7 +436,7 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lai-starter-number{font-size:11px;font-weight:800;color:var(--lai-gold)}
 .lai-starter-panel>p{margin:12px 0 0;font-size:11px;color:var(--lai-muted)}
 @media(max-width:650px){.lai-starter-grid{grid-template-columns:1fr}.lai-starter-card{min-height:0}}
-@media(prefers-reduced-motion:reduce){.lookers-ai *,.lookers-ai *::before,.lookers-ai *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.lookers-ai button:hover,.lookers-ai button:active{transform:none!important}}
+@media(prefers-reduced-motion:reduce){.lookers-ai *,.lookers-ai *::before,.lookers-ai *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.lookers-ai button:hover:not(.lh-planet),.lookers-ai button:active:not(.lh-planet){transform:none!important}}
 
 /* Studio: one centered workspace, contextual choices below the brief, references in their step. */
 .lookers-ai{--lai-bg:#0b0d10;--lai-surface:#181b20;--lai-surface-raised:#20242a;--lai-ink:#f1eee6;--lai-muted:#a6a8ad;--lai-border:#35383f;--lai-gold:#e7c25c;padding:14px 22px 42px;overflow:visible;background:radial-gradient(ellipse at 49% 12%,#242217 0%,#121417 35%,#0b0d10 75%)}
@@ -485,7 +485,7 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 @media(max-width:800px){.lookers-ai{padding:14px 16px 36px}.lai-steps{gap:6px}.lai-steps>button:not(:last-child)::after{width:10px}.lai-steps>button small{font-size:11px}}
 @media(max-width:520px){.lookers-ai{padding:12px 13px 32px}.lookers-ai__hero,.lookers-ai:not([data-stage=home]) .lookers-ai__hero{padding:12px 0 23px}.lookers-ai__hero h1,.lookers-ai:not([data-stage=home]) .lookers-ai__hero h1{font-size:23px}.lookers-ai__hero>p{font-size:12px}.lookers-ai .lai-card{padding:16px}.lai-card-heading{gap:8px}.lai-card-heading h2{font-size:16px}.lai-card-heading p{font-size:12px}.lai-steps,.lookers-ai[data-stage=home] .lai-steps{gap:4px}.lai-steps>button{gap:3px}.lai-steps>button:not(:last-child)::after{width:4px;margin-inline-start:1px}.lai-steps>button>span{min-width:19px;height:19px}.lai-steps>button small{font-size:10px}.lookers-ai .lai-suggestion{font-size:11px;padding:8px 9px;min-height:40px}.lai-vision-caption{font-size:12px}.lai-field-heading label{font-size:13px}.lai-starter-grid{grid-template-columns:1fr}.lai-starter-card{min-height:55px}.lai-question-navigation{flex-wrap:wrap}.lai-question-navigation>button{min-width:0}.lai-file-main{flex-basis:120px}.lai-history-grid{grid-template-columns:1fr}.lai-brief-footer .lai-primary-button{width:auto}.lai-result-actions>button{flex-basis:auto}}
 @media(pointer:coarse){.lai-help-button{width:32px;height:32px;margin:6px}.lai-vision-options .lai-suggestion,.lai-vision-more{min-height:44px}}
-@media(prefers-reduced-motion:reduce){.lookers-ai__main,.lai-vision-options{animation:none!important}.lookers-ai button:hover,.lookers-ai button:active{transform:none!important}}
+@media(prefers-reduced-motion:reduce){.lookers-ai__main,.lai-vision-options{animation:none!important}.lookers-ai button:hover:not(.lh-planet),.lookers-ai button:active:not(.lh-planet){transform:none!important}}
 /* Anchor explanations to the full label row so they fit on narrow RTL screens. */
 .lai-field-heading .lai-question-help{position:static}
 
@@ -616,3 +616,10 @@ body.scanlines:has(.lookers-ai)::after{display:none;}
 .lookers-ai-shell>main:has(.lookers-ai[data-chat="false"][data-orbital="false"]){overflow:auto;display:block}
 .lai-send svg{display:block}
 [dir=rtl] .lai-send svg{transform:scaleX(-1)}
+
+/* Phase 1: live recovered scene replaces the baked orbital artwork only. */
+.lookers-ai-shell .lookers-ai[data-orbital="true"] .lookers-ai__wrap{display:flex;flex-direction:column}
+.lookers-ai-shell .lookers-ai[data-orbital="true"] .wormhole-hero{flex:1;min-height:0}
+
+.lookers-ai[data-orbital="true"] .lookers-ai__footer{display:block;position:absolute;bottom:4px;inset-inline-start:16px;z-index:20;padding:0;background:transparent}
+.lookers-ai[data-orbital="true"] .lai-history-toggle{padding:6px 10px;background:#090b15c9;border-radius:20px;font-size:11px}

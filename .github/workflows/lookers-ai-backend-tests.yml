@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/lookers-orbital-hero
+      - feature/lookers-ai-phase1-wormhole-integration
   workflow_dispatch:
 jobs:
   backend-tests:
@@ -17,12 +18,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: npm run test:core
+      - run: npm run test:brain
+      - run: npm run test:stage05
+      - run: npm run test:library
+      - run: npm run test:tools
+      - run: npm run test:studio
       - run: npm run test:chat
       - run: npm run test:topics
       - run: npm run test:workflow-schemas
       - run: npm run test:questions
       - run: npm run test:agent
       - run: npm run test:application
+      - run: npm run test:wormhole
       - run: npm run test:ui
       - run: npm run build:ai-function
       - run: npm run build
@@ -40,9 +48,12 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:adaptive-journeys
+      - run: npm run test:wormhole-journeys
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: adaptive-chat-browser-qa
           include-hidden-files: true
-          path: node_modules/.cache/adaptive-chat-qa
+          path: |
+            node_modules/.cache/adaptive-chat-qa
+            node_modules/.cache/wormhole-qa

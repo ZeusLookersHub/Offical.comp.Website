@@ -10,7 +10,7 @@ import { useLanguage } from '../LanguageContext';
 import LookersAdaptiveChat from '../components/LookersAdaptiveChat';
 import { nextChatTurn } from '../services/lookersAiChatWorkflow';
 import LookersAIHeader from '../components/LookersAIHeader';
-import OrbitalHero from '../components/OrbitalHero';
+import WormholeHero from '../components/wormhole/WormholeHero';
 import LookersPromptLibrary from '../components/LookersPromptLibrary';
 import LookersAIToolDirectory from '../components/LookersAIToolDirectory';
 import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProjectState';
@@ -400,7 +400,7 @@ const LookersAIPage: React.FC = () => {
       <div className="lookers-ai__wrap">
         <LookersAIHeader libraryOpen={showLibrary} onLibraryToggle={() => {setShowTools(false);setShowLibrary(value => !value);}} toolsOpen={showTools} onToolsToggle={() => {setShowLibrary(false);setShowTools(value=>!value);}} />
 
-        {showOrbital && !showTools && !showLibrary && <OrbitalHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' && task !== 'Motion Design' && task !== 'UI / UX' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
+        {showOrbital && !showTools && !showLibrary && <WormholeHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' && task !== 'Motion Design' && task !== 'UI / UX' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
         {!chatMode && stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
         {chatMode && !showOrbital && !showTools && !showLibrary && <LookersAdaptiveChat
           key={current.id} draft={current} lang={lang} busy={busy} generating={generating} notice={generationNotice} prompt={prompt}
@@ -620,7 +620,7 @@ const LookersAIPage: React.FC = () => {
         <footer className="lookers-ai__footer">
           <button type="button" className="lai-history-toggle" aria-expanded={showHistory} aria-controls="lai-project-history" onClick={() => setShowHistory(value => !value)}><FolderClock size={16} aria-hidden="true" />Previous Projects</button>
           {showHistory && <section id="lai-project-history" className="lai-card lai-history" aria-label="Previous Projects"><h2>Previous Projects</h2><div className="lai-history-grid">
-            {[current, ...projectState.archived].filter(project => String(project.answers.idea || '').trim() || project.attachments.length || project.generatedPrompt).map(project => <button type="button" className="lai-secondary-button" key={project.id} data-project-id={project.id} onClick={() => {if(project.id !== current.id) restoreProject(project.id);setShowHistory(false);setShowTools(false);setShowLibrary(false);}}><span>{project.title || copy(lang,'Untitled project','مشروع من غير اسم')}</span><small>{new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')} · {stageTitles[project.step][lang]}</small></button>)}
+            {[current, ...projectState.archived].filter(project => String(project.answers.idea || '').trim() || project.attachments.length || project.generatedPrompt).map(project => <button type="button" className="lai-secondary-button" key={project.id} data-project-id={project.id} onClick={() => {if(project.id !== current.id) restoreProject(project.id);setShowHistory(false);setShowTools(false);setShowLibrary(false);setShowOrbital(false);setChatMode(true);}}><span>{project.title || copy(lang,'Untitled project','مشروع من غير اسم')}</span><small>{new Date(project.updatedAt).toLocaleDateString(ar ? 'ar-EG' : 'en-US')} · {stageTitles[project.step][lang]}</small></button>)}
           </div>{!projectState.archived.length && !String(answers.idea || '').trim() && <p>{copy(lang,'Your projects will appear here when you start one.','أول ما تبدأ فكرة، مشروعك هيظهر هنا.')}</p>}<button type="button" className="lai-secondary-button" onClick={() => {startOver(false);setShowHistory(false);}}>{copy(lang,'New project','مشروع جديد')}</button></section>}
           {!saved && <p role="alert">{copy(lang,'Could not save. Export your project before leaving.','الحفظ متاحش دلوقتي. صدّر مشروعك قبل ما تقفل الصفحة.')}</p>}
         </footer>

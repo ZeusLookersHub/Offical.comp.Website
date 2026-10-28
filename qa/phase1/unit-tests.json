@@ -1,0 +1,75 @@
+{
+  "total": 184,
+  "suites": [
+    {
+      "suite": "agent",
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "suite": "application",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "suite": "brain",
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "suite": "chat",
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "suite": "core",
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "suite": "library",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "suite": "questions",
+      "passed": 29,
+      "failed": 0
+    },
+    {
+      "suite": "stage05",
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "suite": "studio",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "suite": "tools",
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "suite": "topics",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "suite": "ui",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "suite": "workflow-schemas",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "suite": "wormhole-source",
+      "passed": 2,
+      "failed": 0
+    }
+  ]
+}
