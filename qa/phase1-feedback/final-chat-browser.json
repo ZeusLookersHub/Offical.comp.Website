@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "checks": [
+    "Actual image question shows four proportional shape references and all five action choices have clear Egyptian explanations",
+    "Optional answer saves exactly once, closes the active card, confirms completion and exposes the explicit prompt-generation action",
+    "Pasted AI response and user revision travel through the existing canonical generator; original answers survive; revised result restores after reload"
+  ],
+  "geometry": [],
+  "errors": [],
+  "provider": "Existing real transport deliberately failed in browser QA; output is the explicitly disclosed compiled local prompt."
+}

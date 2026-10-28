@@ -1,0 +1,81 @@
+[
+  {
+    "name": "test:core",
+    "status": 0,
+    "pass": 7
+  },
+  {
+    "name": "test:brain",
+    "status": 0,
+    "pass": 13
+  },
+  {
+    "name": "test:questions",
+    "status": 0,
+    "pass": 29
+  },
+  {
+    "name": "test:agent",
+    "status": 0,
+    "pass": 35
+  },
+  {
+    "name": "test:stage05",
+    "status": 0,
+    "pass": 35
+  },
+  {
+    "name": "test:application",
+    "status": 0,
+    "pass": 6
+  },
+  {
+    "name": "test:ui",
+    "status": 0,
+    "pass": 12
+  },
+  {
+    "name": "test:library",
+    "status": 0,
+    "pass": 6
+  },
+  {
+    "name": "test:tools",
+    "status": 0,
+    "pass": 7
+  },
+  {
+    "name": "test:studio",
+    "status": 0,
+    "pass": 4
+  },
+  {
+    "name": "test:chat",
+    "status": 0,
+    "pass": 19
+  },
+  {
+    "name": "test:topics",
+    "status": 0,
+    "pass": 3
+  },
+  {
+    "name": "test:workflow-schemas",
+    "status": 0,
+    "pass": 6
+  },
+  {
+    "name": "test:wormhole",
+    "status": 0,
+    "pass": 2
+  },
+  {
+    "name": "test:feedback",
+    "status": 0,
+    "pass": 3
+  },
+  {
+    "name": "build:ai-function",
+    "status": 0
+  }
+]

@@ -106,9 +106,13 @@ try {
   await button('Add optional refinements').click();
   await page.getByLabel('Optional refinement',{exact:true}).selectOption('videoAudio');
   await active().getByLabel('Voice-over',{exact:true}).check(); await send();
+  assert.equal(await active().count(),0);
+  await button('Add optional refinements').click();
   await page.getByLabel('Optional refinement',{exact:true}).selectOption('voiceoverScript');
   await text('Meet your new fragrance');
   assert.equal((await state()).voiceoverScript,'Meet your new fragrance');
+  assert.equal(await active().count(),0);
+  await button('Add optional refinements').click();
   await button('Skip refinements').click();
   assert.ok(await button('Generate result').isEnabled());
   // Actual existing upload capability: a synthetic, non-personal text fixture.

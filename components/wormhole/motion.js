@@ -623,6 +623,8 @@ export function createMotion(root) {
         maxRx: 470,
         maxRy: 230,
         speed: 0.0009,
+        startAngle: -Math.PI / 2,
+        centerCards: false,
         innerSpeed: -1.4,
         depthScale: [0.82, 0.22],
         ringEls: true,
@@ -660,7 +662,7 @@ export function createMotion(root) {
     const labelObserver = new ResizeObserver(() => ctl.layout());
     const ctl = {
       layout() {
-        const r = stage.getBoundingClientRect();
+        const r = { width: stage.clientWidth, height: stage.clientHeight };
         const scale = o.depthScale[0] + o.depthScale[1];
         // Keep the recovered elliptical motion, limiting only radii that would
         // crop labels at another orbital angle or after a font has loaded.
@@ -673,7 +675,10 @@ export function createMotion(root) {
           ...items.map(
             (it) =>
               (it.el.offsetHeight * (1 + scale)) / 2 -
-              (it.size || it.el.offsetHeight) / 2,
+              (o.centerCards
+                ? it.el.offsetHeight
+                : it.size || it.el.offsetHeight) /
+                2,
           ),
         );
         const rx = Math.max(
@@ -709,21 +714,23 @@ export function createMotion(root) {
             it.rx = ring === "outer" ? rx : rx2;
             it.ry = ring === "outer" ? ry : ry2;
             it.base =
-              (i / group.length) * Math.PI * 2 -
-              Math.PI / 2 +
+              (i / group.length) * Math.PI * 2 +
+              o.startAngle +
               (ring === "inner" ? Math.PI / group.length : 0);
             it.dir = ring === "outer" ? 1 : o.innerSpeed;
           });
         });
         ctl.place(r);
       },
-      place(r = stage.getBoundingClientRect()) {
+      place(r = { width: stage.clientWidth, height: stage.clientHeight }) {
         items.forEach((it) => {
           const a = it.base + angle * it.dir;
           const x = r.width / 2 + Math.cos(a) * it.rx,
             y = r.height / 2 + Math.sin(a) * it.ry;
           const depth = (Math.sin(a) + 1) / 2;
-          const size = it.size || it.el.offsetHeight;
+          const size = o.centerCards
+            ? it.el.offsetHeight
+            : it.size || it.el.offsetHeight;
           it.el.style.transform = `translate(${x - it.el.offsetWidth / 2}px, ${y - size / 2}px) scale(${o.depthScale[0] + depth * o.depthScale[1]})`;
           it.el.style.zIndex = 3 + Math.round(depth * 10);
         });

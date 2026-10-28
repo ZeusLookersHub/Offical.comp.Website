@@ -123,3 +123,14 @@
   align-items: center;
   gap: 7px;
 }
+
+/* Face-on mission view: four equally sized choices around the selected world. */
+.wormhole-hero .wormhole-missions .lh-planet--rock{width:184px}
+.wormhole-hero .wormhole-missions .pl-name{white-space:normal;text-wrap:balance;line-height:1.15;font-size:21px;letter-spacing:.035em}
+.wormhole-hero .wormhole-missions .focus .pl-name{font-size:23px;max-width:180px}
+.wormhole-hero .wormhole-missions .focus .pl-sub{font-size:9px;letter-spacing:.12em}
+.wormhole-hero .wormhole-missions .lh-planet--rock .pl-text{width:100%}
+.wormhole-hero .wormhole-missions .ms-desc{max-width:180px;font-size:11px}
+@media(max-width:640px){.wormhole-hero .wormhole-missions .lh-planet--rock{width:100px}.wormhole-hero .wormhole-missions .pl-name,.wormhole-hero[lang=ar] .wormhole-missions .pl-name{font-size:12px;line-height:1.5}.wormhole-hero .wormhole-missions .focus .pl-text{display:none}}
+/* The world name is already in the heading; keep the centre clear for its planet. */
+.wormhole-hero .wormhole-missions .focus .pl-text{display:none}

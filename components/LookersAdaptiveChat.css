@@ -63,3 +63,17 @@
 .lai-composer-caption{font-size:10px}.lai-composer-hint{font-size:11px;padding:5px}.lai-adaptive-help{font-size:12px}.lai-adaptive-result textarea.lookers-ai__prompt-output{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){.lai-current-message{animation:none}}
+/* Choice explanations and proportions are visible before sending. */
+.lai-option-copy{display:flex;flex-direction:column;gap:5px;min-width:0;text-align:start}
+.lai-option-copy strong{font-weight:500}.lai-option-copy small{font-size:11px;line-height:1.8;color:#b2bdc8}
+.lai-ratio-preview{width:46px;height:46px;display:grid;place-items:center;flex:none;color:#e5bf75}
+.lai-ratio-preview>span{display:block;border:2px solid currentColor;border-radius:3px;background:linear-gradient(145deg,#e8c77838,#172736);box-sizing:border-box}
+.lai-saved-confirmation{padding:8px 12px;margin:0 0 8px;border:1px solid #8bc9ac55;border-radius:9px;background:#74bc9b12;color:#b9e2cc;font-size:12px;line-height:1.8}
+.lai-continuation-editor{margin-top:22px;padding-top:18px;border-top:1px solid #ffffff20}
+.lai-continuation-editor>p{font-size:13px;color:#b5c0cc;line-height:1.9;margin:8px 0 14px}
+.lai-continuation-editor form{display:flex;flex-direction:column;gap:10px}
+.lai-continuation-editor label{font-size:13px;color:#e9ddc8}
+.lai-continuation-editor textarea{width:100%;min-height:96px;resize:vertical;background:#09151f;border:1px solid #ccaa6255;color:#eee9e0;border-radius:12px;padding:12px;font:inherit;font-size:14px;line-height:1.8;box-sizing:border-box}
+.lai-continuation-editor .lai-chat__actions{display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:520px){.lai-adaptive-options:has(.lai-option-copy small){grid-template-columns:1fr}.lai-ratio-preview{width:34px}.lai-ratio-preview>span{transform:scale(.8)}.lai-continuation-editor textarea{font-size:16px}}
+.lai-adaptive-result textarea.lookers-ai__prompt-output{flex:none;height:clamp(180px,28svh,300px)}

@@ -28,7 +28,9 @@
     "test:topics": "esbuild tests/lookers-ai-topic-registry.test.ts --bundle --platform=node --format=esm --outfile=.lookers-topics.test.mjs --log-level=info && test -s .lookers-topics.test.mjs && node --test .lookers-topics.test.mjs",
     "test:workflow-schemas": "esbuild tests/lookers-ai-workflow-schemas.test.ts --bundle --platform=node --format=esm --outfile=.lookers-workflows.test.mjs --log-level=info && test -s .lookers-workflows.test.mjs && node --test .lookers-workflows.test.mjs",
     "test:wormhole": "esbuild tests/wormhole-source.test.ts --bundle --platform=node --format=esm --outfile=.lookers-wormhole.test.mjs && node --test .lookers-wormhole.test.mjs",
-    "test:wormhole-journeys": "node scripts/wormhole-qa.mjs"
+    "test:wormhole-journeys": "node scripts/wormhole-qa.mjs",
+    "test:feedback": "esbuild tests/lookers-phase1-feedback.test.ts --bundle --platform=node --format=esm --outfile=.lookers-feedback.test.mjs && node --test .lookers-feedback.test.mjs",
+    "test:feedback-journeys": "node scripts/phase1-feedback-qa.mjs"
   },
   "dependencies": {
     "@fontsource/almarai": "5.3.0",

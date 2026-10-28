@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import LookersAdaptiveChat from '../components/LookersAdaptiveChat';
+import { preparePromptContinuation } from '../services/lookersAiContinuation';
 import { nextChatTurn } from '../services/lookersAiChatWorkflow';
 import LookersAIHeader from '../components/LookersAIHeader';
 import WormholeHero from '../components/wormhole/WormholeHero';
@@ -404,10 +405,11 @@ const LookersAIPage: React.FC = () => {
         {!chatMode && stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
         {chatMode && !showOrbital && !showTools && !showLibrary && <LookersAdaptiveChat
           key={current.id} draft={current} lang={lang} busy={busy} generating={generating} notice={generationNotice} prompt={prompt}
-          onCommit={draft => patchCurrent({ answers: draft.answers, taskType: draft.taskType, title: String(draft.answers.idea || '').slice(0,64), step: 'details' }, 'chat_answer_saved')}
+          onCommit={draft => {setGenerationNotice('');patchCurrent({ answers: draft.answers, taskType: draft.taskType, title: String(draft.answers.idea || '').slice(0,64), step: 'details' }, 'chat_answer_saved');}}
           onGenerate={() => void createPrompt()} onAttach={openFilePicker}
           onUniverses={() => {setShowOrbital(true);setChatMode(false);}} onCopy={() => void copyPrompt()} onDownload={downloadPrompt}
-          onEditPrompt={value => patchCurrent({generatedPrompt:value}, 'prompt_edited')} onImprove={() => setStage('review')} />}
+          onEditPrompt={value => patchCurrent({generatedPrompt:value}, 'prompt_edited')} onImprove={() => setStage('review')}
+          onContinue={async (response,request) => { const next=preparePromptContinuation(projectStateRef.current.current,response,request,lang); patchCurrent({answers:next.answers,step:next.step},'prompt_continuation_requested'); await createPrompt(); }} />}
         <div className="lai-atmosphere" aria-hidden="true"><svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"><path d="M0 170L85 95L155 190L230 70L310 110M85 95L230 70M0 310L155 190L285 285M905 65L980 150L1090 90L1200 170M980 150L1040 270L1150 300L1200 170M905 65L1090 90M1040 270L1090 90" />{[[85,95],[230,70],[285,285],[980,150],[1090,90],[1150,300]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="2.5" />)}</svg></div>
         <header className="lookers-ai__hero">
           <ConstellationName />

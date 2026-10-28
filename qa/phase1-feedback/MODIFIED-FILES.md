@@ -1,0 +1,30 @@
+# Changed files for the feedback correction
+
+- `.github/workflows/lookers-ai-backend-tests.yml`
+- `components/LookersAdaptiveChat.css`
+- `components/LookersAdaptiveChat.tsx`
+- `components/lookersChatPresentation.ts`
+- `components/wormhole/WormholeHero.css`
+- `components/wormhole/WormholeHero.tsx`
+- `components/wormhole/motion.js`
+- `package.json`
+- `pages/LookersAIPage.tsx`
+- `qa/phase1-feedback/MODIFIED-FILES.md`
+- `qa/phase1-feedback/README.md`
+- `qa/phase1-feedback/adaptive-regression.json`
+- `qa/phase1-feedback/desktop-marketing.png`
+- `qa/phase1-feedback/egyptian-image-choices.png`
+- `qa/phase1-feedback/final-chat-browser.json`
+- `qa/phase1-feedback/full-browser.json`
+- `qa/phase1-feedback/mobile-continued-result.png`
+- `qa/phase1-feedback/mobile-egyptian-choices.png`
+- `qa/phase1-feedback/mobile-missions.png`
+- `qa/phase1-feedback/mobile-ratio-previews.png`
+- `qa/phase1-feedback/ratio-previews-ar.png`
+- `qa/phase1-feedback/saved-ready-state.png`
+- `qa/phase1-feedback/unit-tests.json`
+- `qa/phase1-feedback/wormhole-regression.json`
+- `scripts/adaptive-chat-journeys.mjs`
+- `scripts/phase1-feedback-qa.mjs`
+- `services/lookersAiContinuation.ts`
+- `tests/lookers-phase1-feedback.test.ts`

@@ -118,7 +118,10 @@ export default function WormholeHero({
       })),
     });
     const observer = new ResizeObserver(() => {
-      const r = homeStage.current?.getBoundingClientRect();
+      const stage = homeStage.current;
+      const r = stage
+        ? { width: stage.clientWidth, height: stage.clientHeight }
+        : null;
       if (r)
         setBounds((old) =>
           old.width === r.width && old.height === r.height
@@ -163,34 +166,15 @@ export default function WormholeHero({
     const missionItems = Array.from(
       steps.querySelectorAll(".lh-planet") as NodeListOf<HTMLElement>,
     ).map((el) => ({ el, ring: "outer", size: rockSize }));
-    const rect = steps.getBoundingClientRect();
-    // The source anchors each globe by its diameter; reserve the labels below it
-    // when the available viewport is shorter, particularly for Arabic missions.
-    const maxHeight = Math.max(
-      0,
-      ...missionItems.map((item) => item.el.offsetHeight),
-    );
-    const maxWidth = Math.max(
-      0,
-      ...missionItems.map((item) => item.el.offsetWidth),
-    );
-    const maxRy = Math.max(
-      0,
-      Math.min(
-        small ? 250 : Math.max(190, bounds.height * 0.37),
-        rect.height / 2 - (maxHeight - rockSize / 2) * 1.04 - 14,
-      ),
-    );
-    const maxRx = Math.max(
-      0,
-      Math.min(540, rect.width / 2 - maxWidth * 0.52 - 14),
-    );
     const mission = active
       ? kit.orbit(steps, missionItems, {
           outer: small ? [0.36, 0.4] : [0.44, 0.4],
-          maxRy,
-          maxRx,
-          speed: 0.0012,
+          maxRy: small ? 250 : 260,
+          maxRx: 540,
+          startAngle: -3 * Math.PI / 4,
+          centerCards: true,
+          speed: 0,
+          depthScale: [1, 0],
         })
       : null;
     return () => {
@@ -312,7 +296,7 @@ export default function WormholeHero({
         </div>
       </section>
       <section
-        className={`view lh-view ${active ? "" : "is-behind"}`}
+        className={`view lh-view wormhole-missions ${active ? "" : "is-behind"}`}
         aria-hidden={!active}
         inert={!active}
       >
