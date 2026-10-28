@@ -1,0 +1,115 @@
+/* Lookers Hub Motion Kit v1.0: motion tokens, keyframes and motion classes.
+   Colours here are only what the motion itself needs (gold glow, void); the interface brings its own look. */
+:root{
+  --lh-void:#05040c;
+  --lh-gold:#e3b866;
+  --lh-gold-hi:#fff0bf;
+  --lh-gold-lo:#8a5f1e;
+  --lh-teal:#1fb6c9;
+  --lh-ease-out:cubic-bezier(.16,1,.3,1);      /* entrances, view changes */
+  --lh-ease-spring:cubic-bezier(.34,1.56,.64,1); /* hover, press, pop */
+  --lh-dur-press:120ms;
+  --lh-dur-hover:350ms;
+  --lh-dur-enter:900ms;
+  --lh-dur-view:900ms;
+  --lh-stagger-word:80ms;
+  --lh-stagger-item:120ms;
+}
+
+/* ---------- background canvas ---------- */
+.lh-space{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+
+/* ---------- cursor ---------- */
+.lh-has-cursor,.lh-has-cursor *{cursor:none!important}
+.lh-cursor,.lh-cursor-dot{position:fixed;left:0;top:0;pointer-events:none;z-index:9999;border-radius:50%;transform:translate3d(-100px,-100px,0)}
+.lh-cursor{width:34px;height:34px;margin:-17px 0 0 -17px;border:1.5px solid rgba(227,184,102,.7);mix-blend-mode:screen;
+  transition:width .35s var(--lh-ease-spring),height .35s var(--lh-ease-spring),margin .35s var(--lh-ease-spring),background .3s,border-color .3s}
+.lh-cursor.is-hot{width:64px;height:64px;margin:-32px 0 0 -32px;background:rgba(227,184,102,.12);border-color:var(--lh-gold)}
+.lh-cursor.is-down{width:22px;height:22px;margin:-11px 0 0 -11px}
+.lh-cursor-dot{width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--lh-gold);box-shadow:0 0 12px 3px rgba(227,184,102,.8)}
+
+/* ---------- click ripple ---------- */
+.lh-ripple{position:fixed;left:0;top:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:1.5px solid var(--lh-gold);pointer-events:none;z-index:9998;animation:lh-ripple .8s var(--lh-ease-out) forwards}
+@keyframes lh-ripple{to{transform:scale(14);opacity:0}}
+
+/* ---------- text reveal (LookersMotion.splitWords) ---------- */
+.lh-word{display:inline-block;opacity:0;transform:translateY(18px) rotate(3deg);animation:lh-word-in var(--lh-dur-enter) var(--lh-ease-out) forwards;animation-delay:calc(150ms + var(--i,0)*var(--lh-stagger-word))}
+.lh-shimmer{background:linear-gradient(90deg,var(--lh-gold),#fff3d1,var(--lh-gold));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:lh-word-in var(--lh-dur-enter) var(--lh-ease-out) forwards,lh-shimmer 5s linear infinite;animation-delay:calc(150ms + var(--i,0)*var(--lh-stagger-word)),0s}
+.lh-fade-up{opacity:0;animation:lh-word-in var(--lh-dur-enter) var(--lh-ease-out) forwards;animation-delay:var(--delay,700ms)}
+@keyframes lh-word-in{to{opacity:1;transform:none}}
+@keyframes lh-shimmer{to{background-position:-200% 0}}
+
+/* ---------- entrances ---------- */
+.lh-pop{animation:lh-pop 1s var(--lh-ease-spring) both;animation-delay:calc(400ms + var(--i,0)*var(--lh-stagger-item))}
+@keyframes lh-pop{from{opacity:0;scale:.2}to{opacity:1;scale:1}}
+
+/* ---------- view change (pair with LookersMotion.warp) ---------- */
+.lh-view{transition:opacity .7s var(--lh-ease-out),transform var(--lh-dur-view) var(--lh-ease-out),filter .7s}
+.lh-view.is-away{opacity:0;transform:scale(1.6);filter:blur(10px);pointer-events:none}   /* the view you leave, flying past you */
+.lh-view.is-behind{opacity:0;transform:scale(.6);filter:blur(10px);pointer-events:none}  /* the view waiting ahead, small and far */
+
+/* ---------- orbit rings (drawn by LookersMotion.orbit) ---------- */
+.lh-orbit{position:absolute;left:50%;top:50%;border:1px dashed rgba(255,255,255,.1);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.lh-orbit--inner{border-style:solid;border-color:rgba(227,184,102,.12)}
+
+/* ---------- button micro-interactions ---------- */
+.lh-lift{transition:transform var(--lh-dur-hover) var(--lh-ease-spring),border-color .25s,background-color .25s,box-shadow .3s}
+.lh-lift:hover{transform:translateY(-2px)}
+.lh-lift:active{transform:scale(.95);transition-duration:var(--lh-dur-press)}
+.lh-sheen{position:relative;overflow:hidden}
+.lh-sheen::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(227,184,102,.28) 50%,transparent 70%);transform:translateX(-120%);animation:lh-sheen 4.5s 2s ease-in-out infinite;pointer-events:none}
+@keyframes lh-sheen{0%,70%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.lh-pulse{width:8px;height:8px;border-radius:50%;background:var(--lh-gold);animation:lh-ping 2s infinite}
+@keyframes lh-ping{0%{box-shadow:0 0 0 0 rgba(227,184,102,.6)}80%,100%{box-shadow:0 0 0 9px rgba(227,184,102,0)}}
+.lh-spin-icon svg{transition:transform .6s var(--lh-ease-out)}
+.lh-spin-icon:hover svg{transform:rotate(180deg)}
+
+/* ---------- planet (motion parts; colours come in as custom properties) ----------
+   <button class="lh-planet" style="--s:120px;--base:…;--bands:…;--glow:…">
+     <span class="lh-globe"><span class="lh-atmo"></span><span class="lh-surface"></span><span class="lh-ring"></span><span class="lh-moon"></span></span>
+     <span class="lh-label">Name</span>
+   </button> */
+.lh-planet{position:absolute;left:0;top:0;border:0;padding:0;background:none;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;gap:12px;will-change:transform}
+.lh-globe{position:relative;width:var(--s,120px);height:var(--s,120px);border-radius:50%;transition:transform .5s var(--lh-ease-spring),filter .4s}
+.lh-surface{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:var(--base,radial-gradient(circle at 35% 35%,#fff1c9,#e3b866 45%,#6b4512));
+  box-shadow:inset -18px -14px 40px rgba(0,0,0,.65),inset 8px 6px 22px rgba(255,255,255,.25),0 0 40px -6px var(--glow,rgba(227,184,102,.7))}
+.lh-surface::before{content:"";position:absolute;inset:0 -100% 0 0;background:var(--bands,repeating-linear-gradient(90deg,rgba(255,255,255,.25) 0 5%,transparent 5% 15%));background-size:50% 100%;animation:lh-rotate-surface var(--spin,24s) linear infinite;opacity:.75;mix-blend-mode:overlay}
+.lh-surface::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.55),transparent 38%),radial-gradient(circle at 75% 80%,rgba(0,0,0,.5),transparent 55%)}
+@keyframes lh-rotate-surface{to{transform:translateX(50%)}}
+.lh-atmo{position:absolute;inset:-10%;border-radius:50%;background:radial-gradient(circle,transparent 58%,var(--glow,rgba(227,184,102,.7)) 66%,transparent 74%);opacity:.55;transition:opacity .4s,transform .6s var(--lh-ease-out)}
+.lh-ring{position:absolute;left:50%;top:50%;width:175%;height:44%;border-radius:50%;transform:translate(-50%,-50%) rotate(-18deg);border:3px solid rgba(255,235,190,.5);box-shadow:0 0 14px rgba(227,184,102,.35),inset 0 0 10px rgba(227,184,102,.3);
+  -webkit-mask:linear-gradient(#000 0 45%,transparent 45% 55%,#000 55%);mask:linear-gradient(#000 0 45%,transparent 45% 55%,#000 55%);transition:transform .6s var(--lh-ease-spring)}
+.lh-moon{position:absolute;width:14%;height:14%;left:43%;top:43%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#8d86a3);animation:lh-moon 7s linear infinite}
+@keyframes lh-moon{from{transform:rotate(0) translateX(calc(var(--s,120px)*.75)) rotate(0)}to{transform:rotate(360deg) translateX(calc(var(--s,120px)*.75)) rotate(-360deg)}}
+.lh-planet:hover .lh-globe,.lh-planet:focus-visible .lh-globe{transform:scale(1.14);filter:brightness(1.15)}
+.lh-planet:hover .lh-atmo{opacity:1;transform:scale(1.08)}
+.lh-planet:hover .lh-ring{transform:translate(-50%,-50%) rotate(-6deg) scale(1.06)}
+.lh-planet:active .lh-globe{transform:scale(.95)}
+.lh-planet .lh-hint{opacity:0;transform:translateY(-4px);transition:opacity .3s,transform .3s}
+.lh-planet:hover .lh-hint,.lh-planet:focus-visible .lh-hint{opacity:1;transform:none}
+/* reserved slot for a future planet */
+.lh-planet--slot .lh-globe{background:radial-gradient(circle,rgba(255,255,255,.05),transparent 70%)}
+.lh-planet--slot .lh-globe::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(255,255,255,.3);animation:lh-spin 30s linear infinite;transition:border-color .3s}
+.lh-planet--slot .lh-globe::after{content:"+";position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--s,48px)*.4);font-weight:300;color:rgba(255,255,255,.4);transition:transform .5s var(--lh-ease-spring),color .3s}
+.lh-planet--slot:hover .lh-globe::before{border-color:var(--lh-gold)}
+.lh-planet--slot:hover .lh-globe::after{transform:rotate(90deg);color:var(--lh-gold)}
+
+/* ---------- hub core (the sun in the middle) ---------- */
+.lh-core{position:relative;border-radius:50%}
+.lh-core .lh-sun{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 38% 34%,#fff8e2 0%,#f3cf83 22%,#c58a32 55%,#5a3510 100%);
+  box-shadow:0 0 40px 8px rgba(227,184,102,.45),0 0 120px 40px rgba(227,140,60,.18);animation:lh-breathe 5s ease-in-out infinite}
+.lh-core .lh-corona{position:absolute;inset:-26px;border-radius:50%;background:conic-gradient(from 0deg,transparent,rgba(227,184,102,.35),transparent 30%,rgba(255,220,150,.25),transparent 60%,rgba(227,184,102,.3),transparent);filter:blur(8px);animation:lh-spin 14s linear infinite}
+.lh-core:hover .lh-sun{animation-duration:1.2s}
+@keyframes lh-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes lh-spin{to{transform:rotate(360deg)}}
+
+/* ---------- toast ---------- */
+.lh-toast{transform:translate(-50%,20px);opacity:0;transition:opacity .3s,transform .4s var(--lh-ease-spring)}
+.lh-toast.is-shown{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion:reduce){
+  .lh-word,.lh-shimmer,.lh-fade-up,.lh-pop{animation:none!important;opacity:1;transform:none}
+  .lh-sheen::before,.lh-pulse,.lh-surface::before,.lh-moon,.lh-core .lh-sun,.lh-core .lh-corona,.lh-planet--slot .lh-globe::before{animation:none}
+  .lh-view,.lh-lift,.lh-globe{transition-duration:.01ms}
+}
