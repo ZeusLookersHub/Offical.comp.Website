@@ -30,8 +30,9 @@ separate source-identical shader strings, original world/task content, scoped
 styles and a lifecycle-managed instance port of the recovered JavaScript Motion
 Kit. Original texture and image assets are imported from the intact handoff.
 The original orbital speed, flow, shader grading, hover/press behavior, planet
-art, light spill and transition timing are retained. Viewport-aware mission
-orbit limits reserve room for Arabic labels on shorter screens.
+art, light spill and transition timing are retained. Viewport-aware orbit
+limits reserve room for labels at every angle. Per-orbit ResizeObservers account
+for font loading and translated label sizes and are disconnected on cleanup.
 
 The existing headers continue to own their layout. Mission selection calls the
 existing Phase 1 selection adapter; question progression, optional refinements,
@@ -49,6 +50,11 @@ changes. Cormorant Garamond is bundled locally under its OFL license.
 
 No Phase 2 orchestration, new backend, fabricated AI output or screenshot-based
 scene replacement was introduced.
+
+The initial CI run at `823a3d3f` passed the backend and chat checks but caught
+normal-motion desktop label clipping in Chromium 151. The follow-up correction
+reserves each label’s full scaled extent throughout the orbit and observes
+font reflow. The final local scene suite passed all six groups again.
 
 ## Verified results
 
@@ -81,8 +87,8 @@ The anonymous Supabase `/auth/v1/signup` request failed with `net::ERR_EMPTY_RES
 before provider generation. The app correctly disclosed the local compiled
 prompt. **Successful live provider inference is not claimed.**
 
-Software WebGL performance sample: 60 frames, mean **293.8 ms/frame**, maximum
-**700 ms**. This environment is slow and is not evidence of acceptable GPU-backed
+Software WebGL performance sample: 60 frames, mean **279.0 ms/frame**, maximum
+**533.4 ms**. This environment is slow and is not evidence of acceptable GPU-backed
 desktop/mobile performance. No physical phone/tablet was available.
 
 ## Evidence and reproduction

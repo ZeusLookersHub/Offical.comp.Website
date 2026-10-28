@@ -657,11 +657,41 @@ export function createMotion(root) {
       stage.addEventListener("pointerover", onOver);
       stage.addEventListener("pointerout", onOut);
     }
+    const labelObserver = new ResizeObserver(() => ctl.layout());
     const ctl = {
       layout() {
         const r = stage.getBoundingClientRect();
-        const rx = Math.min(r.width * o.outer[0], o.maxRx),
-          ry = Math.min(r.height * o.outer[1], o.maxRy);
+        const scale = o.depthScale[0] + o.depthScale[1];
+        // Keep the recovered elliptical motion, limiting only radii that would
+        // crop labels at another orbital angle or after a font has loaded.
+        const halfWidth = Math.max(
+          0,
+          ...items.map((it) => (it.el.offsetWidth * scale) / 2),
+        );
+        const lowerExtent = Math.max(
+          0,
+          ...items.map(
+            (it) =>
+              (it.el.offsetHeight * (1 + scale)) / 2 -
+              (it.size || it.el.offsetHeight) / 2,
+          ),
+        );
+        const rx = Math.max(
+            0,
+            Math.min(
+              r.width * o.outer[0],
+              o.maxRx,
+              r.width / 2 - halfWidth - 14,
+            ),
+          ),
+          ry = Math.max(
+            0,
+            Math.min(
+              r.height * o.outer[1],
+              o.maxRy,
+              r.height / 2 - lowerExtent - 14,
+            ),
+          );
         const rx2 = rx * o.inner[0],
           ry2 = ry * o.inner[1];
         if (ringO) {
@@ -706,6 +736,7 @@ export function createMotion(root) {
         paused = v;
       },
       destroy() {
+        labelObserver.disconnect();
         orbits.delete(ctl);
         ringO && ringO.remove();
         ringI && ringI.remove();
@@ -714,6 +745,7 @@ export function createMotion(root) {
       },
     };
     orbits.add(ctl);
+    items.forEach((it) => labelObserver.observe(it.el));
     ctl.layout();
     return ctl;
   }
