@@ -61,7 +61,7 @@ const explanationReasons: Record<string, Copy> = {
 
 const step = (id: string, en: string, ar: string, exampleEn: string, exampleAr: string, priority: number, optional = false): WorkflowStep => ({
   id, kind: 'textarea', label: c(en, ar), example: c(exampleEn, exampleAr),
-  why: c(explanationReasons[id]?.en || `${en} Your answer keeps this part of the result aligned with your brief.`, (egyptianHelp[id] || 'قولّي اللي تعرفه ببساطة.') + ' ' + (explanationReasons[id]?.ar || 'عشان النتيجة تمشي على طلبك بالظبط.')),
+  why: c(explanationReasons[id]?.en || `${en} Use confirmed details to define this requirement.`, egyptianHelp[id] || `المقصود بـ «${ar}»: وضّح النقطة دي من معلومات مشروعك.`),
   priority, optional
 });
 const goal = (en: string, ar: string): WorkflowStep => step('goal', en, ar, 'Make a clear, ready-to-use result.', 'عايز نتيجة واضحة وجاهزة للاستخدام.', 1);

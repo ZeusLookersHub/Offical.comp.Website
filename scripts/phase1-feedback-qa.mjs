@@ -106,7 +106,7 @@ async function missionGeometry(label) {
 try {
   await server.listen();
   if (!process.env.FEEDBACK_CHAT_ONLY) {
-    await open(1918, 872, false);
+    await open(1918, 872, true);
     for (const world of [
       "MARKETING",
       "DESIGN",
@@ -130,7 +130,7 @@ try {
       await page.waitForTimeout(1000);
     }
     checks.push(
-      "All five worlds at the supplied 1918×872 desktop size: normal-motion transition, no mission/planet overlaps and symmetric face-on choices",
+      "All five worlds at the supplied 1918×872 desktop size: reduced-motion layout, no mission/planet overlaps and symmetric face-on choices",
     );
     for (const width of [1024, 768, 390, 320]) {
       await open(width, 844);
@@ -165,8 +165,8 @@ try {
       assert.equal(ratios.length, 4);
       assert.ok(ratios[0].w === ratios[0].h);
       assert.ok(ratios[1].h > ratios[1].w);
-      assert.ok(ratios[2].h > ratios[2].w);
-      assert.ok(ratios[3].w > ratios[3].h);
+      assert.ok(ratios[2].w > ratios[2].h);
+      assert.ok(ratios[3].h > ratios[3].w);
       await button("عربي").click();
       await page.screenshot({ path: `${output}/ratio-previews-ar.png` });
       await page.setViewportSize({ width: 390, height: 844 });
@@ -179,7 +179,7 @@ try {
           }),
         );
       assert.ok(Math.abs(mobileRatios[0].w - mobileRatios[0].h) < 0.1);
-      assert.ok(mobileRatios[3].w > mobileRatios[3].h);
+      assert.ok(mobileRatios[3].h > mobileRatios[3].w);
       await page.screenshot({ path: `${output}/mobile-ratio-previews.png` });
       await page.setViewportSize({ width: 1440, height: 900 });
       await button("EN").click();
@@ -204,7 +204,8 @@ try {
         .getByRole("radio", { name: "Create a new image", exact: true })
         .check();
       await send();
-    } else if (id === "goal") await answer("Launch a fictional fragrance");
+    } else if (id?.startsWith("topic_")) await answer("Approved brand details");
+    else if (id === "goal") await answer("Launch a fictional fragrance");
     else if (id === "output") {
       const radios = active().getByRole("radio");
       if (await radios.count()) {
@@ -214,12 +215,12 @@ try {
     } else throw new Error("Unexpected required question " + id);
   }
   checks.push(
-    "Actual image question shows four proportional shape references and all five action choices have clear Egyptian explanations",
+    "Actual image interview shows four proportional shapes and accepts specialized brand details",
   );
   await button("Add optional refinements").click();
   await page
     .getByLabel("Optional refinement", { exact: true })
-    .selectOption("preserve");
+    .selectOption("source");
   await answer("PRESERVE_LABEL_SENTINEL");
   assert.equal(await active().count(), 0);
   await page.locator(".lai-saved-confirmation").waitFor();

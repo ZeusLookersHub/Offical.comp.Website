@@ -134,3 +134,9 @@
 @media(max-width:640px){.wormhole-hero .wormhole-missions .lh-planet--rock{width:100px}.wormhole-hero .wormhole-missions .pl-name,.wormhole-hero[lang=ar] .wormhole-missions .pl-name{font-size:12px;line-height:1.5}.wormhole-hero .wormhole-missions .focus .pl-text{display:none}}
 /* The world name is already in the heading; keep the centre clear for its planet. */
 .wormhole-hero .wormhole-missions .focus .pl-text{display:none}
+
+.wormhole-hero .mission-rings{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;position:relative;z-index:24;margin:6px 0;color:var(--gold);font-size:11px}
+.wormhole-hero .mission-rings button{border:1px solid var(--line);border-radius:24px;padding:7px 13px;background:#090d19;color:var(--ink);cursor:pointer}
+.wormhole-hero .mission-rings button[aria-pressed=true]{border-color:var(--gold);color:var(--gold)}
+.wormhole-hero .mission-rings button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+@media(max-width:640px){.wormhole-hero .mission-rings{gap:5px;margin:0}.wormhole-hero .mission-rings span{flex-basis:100%;text-align:center;font-size:10px}.wormhole-hero .wormhole-missions .ms-desc{font-size:10px;line-height:1.35}}

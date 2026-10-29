@@ -634,7 +634,8 @@ export function createMotion(root) {
     );
     let angle = 0,
       paused = false,
-      hover = false;
+      hover = false,
+      focused = false;
     let ringO, ringI;
     if (o.ringEls) {
       ringO = document.createElement("div");
@@ -658,6 +659,12 @@ export function createMotion(root) {
     if (o.pauseOnHover) {
       stage.addEventListener("pointerover", onOver);
       stage.addEventListener("pointerout", onOut);
+    }
+    const onFocus = () => { focused = true; };
+    const onBlur = (e) => { focused = !!e.relatedTarget && items.some(it => it.el.contains(e.relatedTarget)); };
+    if (o.pauseOnFocus) {
+      stage.addEventListener('focusin', onFocus);
+      stage.addEventListener('focusout', onBlur);
     }
     const labelObserver = new ResizeObserver(() => ctl.layout());
     const ctl = {
@@ -736,7 +743,7 @@ export function createMotion(root) {
         });
       },
       tick(dt) {
-        if (!paused && !hover && !reduced) angle += o.speed * dt;
+        if (!paused && !hover && !focused && !reduced) angle += o.speed * dt;
         if (stage.offsetParent !== null) ctl.place();
       },
       pause(v = true) {
@@ -749,6 +756,8 @@ export function createMotion(root) {
         ringI && ringI.remove();
         stage.removeEventListener("pointerover", onOver);
         stage.removeEventListener("pointerout", onOut);
+        stage.removeEventListener('focusin', onFocus);
+        stage.removeEventListener('focusout', onBlur);
       },
     };
     orbits.add(ctl);

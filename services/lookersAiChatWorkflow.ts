@@ -1,9 +1,11 @@
+import { questionCopy } from '../data/lookersAiQuestionCopy';
+import { topicQuestions } from './lookersAiTopicQuestions';
 import { draftObjective } from './lookersAiAnswerContext';
 import { questions, type Lang, type ProjectDraft, type Question, type TaskType } from '../data/lookersAi';
 import { extractIdeaContext, mergeIdeaContext } from './lookersAiContextExtraction';
 import { videoChatQuestions } from './lookersAiVideoQuestions';
 import { resolveTopic } from './lookersAiTopicRegistry';
-import { egyptianHelp, workflowSchemas, getWorkflowSteps, type WorkflowStep } from './lookersAiWorkflowSchemas';
+import { egyptianHelp, getWorkflowSteps, type WorkflowStep } from './lookersAiWorkflowSchemas';
 
 /**
  * Headless chat contract. Frontend owns presentation; backend owns progression.
@@ -81,17 +83,17 @@ const fallbackExamples: Record<string, Record<Lang, string>> = {
 const translate = (lang: Lang, en: string, ar: string) => lang === 'ar' ? ar : en;
 
 function toChatQuestion(question: Question | WorkflowStep, lang: Lang): ChatQuestion {
-  const example = question.example?.[lang] || '';
+  const copy = questionCopy[question.id];
+  const example = question.example?.[lang] || (lang === 'ar' ? copy?.[3] : '') || '';
   const placeholder = question.placeholder?.[lang] ||
-    translate(lang, 'Write a short, specific answer here…', 'اكتب إجابة قصيرة وواضحة هنا…');
+    (lang === 'ar' ? copy?.[1] : '') || example || question.label[lang];
   const contextualWhy = 'why' in question ? question.why[lang] + ' ' : '';
   const detail = fallbackHelp[question.id];
-  const familyExample = Object.values(workflowSchemas).flatMap(schema => schema.steps).find(q => q.id === question.id)?.example?.[lang];
   const deliveryFormat = question.id === 'format' && question.options?.some(o => o.value === 'excel');
-  const meaning = deliveryFormat ? translate(lang, 'Choose the delivery format so your team can open and maintain the dashboard.', 'اختار هتستلم الداشبورد في إيه، عشان فريقك يعرف يفتحه ويعدّل عليه.') : 'why' in question ? contextualWhy : detail?.[lang] ||
+  const meaning = deliveryFormat ? translate(lang, 'Choose the delivery format so your team can open and maintain the dashboard.', 'اختار هتستلم الداشبورد في إيه، عشان فريقك يعرف يفتحه ويعدّل عليه.') : 'why' in question ? contextualWhy : detail?.[lang] || (lang === 'ar' && copy ? `${copy[1]} ${copy[2]}` : '') ||
     (lang === 'ar' ? (egyptianHelp[question.id] || `قولّي إجابتك على «${question.label.ar}» بطريقتك.`) + ' عشان النتيجة تتظبط على طلبك.'
       : `Tell us your preference for “${question.label.en}” so the result follows your choices.`);
-  const sample = fallbackExamples[question.id]?.[lang] || (deliveryFormat ? question.options?.[0]?.[lang] : lang === 'ar' ? familyExample : example) || question.options?.[0]?.[lang] || translate(lang, 'Keep the result concise and practical.', 'خلي النتيجة قصيرة وعملية.');
+  const sample = ('why' in question ? example : fallbackExamples[question.id]?.[lang] || example) || (deliveryFormat ? question.options?.[0]?.[lang] : undefined) || question.options?.[0]?.[lang] || translate(lang, 'Keep the result concise and practical.', 'خلي النتيجة قصيرة وعملية.');
   const help = meaning + ' ' + translate(lang, 'For example: ', 'مثال على إجابة مناسبة: ') + sample;
   const options = (question.options || []).map(option => ({ value: option.value, label: option[lang] }));
   const control: ChatControl = question.kind === 'single'
@@ -128,7 +130,7 @@ function activeQuestions(draft: ProjectDraft, lang: Lang): ChatQuestion[] {
   const video = draft.answers.contentType === 'video';
   const topicId = typeof draft.answers.topicId === 'string' ? draft.answers.topicId : '';
   const topic = resolveTopic(topicId);
-  const selected = topic ? getWorkflowSteps(topic.family, draft.answers)
+  const selected = topic ? [...getWorkflowSteps(topic.family, draft.answers), ...topicQuestions(topic.id)]
     : video ? [...videoChatQuestions, ...getWorkflowSteps('video', draft.answers).filter(q => q.id === 'voiceoverScript')]
       : questions[draft.taskType];
   const mapped = selected.map(q => toChatQuestion(q, lang));

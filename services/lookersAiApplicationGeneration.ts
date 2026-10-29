@@ -33,7 +33,7 @@ export function createApplicationGenerator(transport: AgentAITransport) {
       }
     }
     if (snapshot.taskType === 'presentation') user('details.slideCount', snapshot.answers.slideCount);
-    if (snapshot.taskType === 'campaign') user('details.businessFacts', snapshot.answers.product);
+    if (snapshot.taskType === 'campaign') user('details.businessFacts', Object.hasOwn(snapshot.answers, 'product') ? snapshot.answers.product : snapshot.answers.offer);
     const questionSession = { projectId: project.id, engineId: project.engineId, fields };
     const enhancement = validateEnhancement(project, questionSession);
     const agent = await new Agent({ access: { projectId: project.id, canSave: false } }).run({ project, questionSession }, signal);

@@ -4,6 +4,7 @@ on:
     branches:
       - feature/lookers-orbital-hero
       - feature/lookers-ai-phase1-wormhole-integration
+      - feature/lookers-ai-expanded-orbits
   workflow_dispatch:
 jobs:
   backend-tests:
@@ -32,6 +33,7 @@ jobs:
       - run: npm run test:application
       - run: npm run test:wormhole
       - run: npm run test:feedback
+      - run: npm run test:expanded
       - run: npm run test:ui
       - run: npm run build:ai-function
       - run: npm run build
@@ -51,6 +53,7 @@ jobs:
       - run: npm run test:adaptive-journeys
       - run: npm run test:wormhole-journeys
       - run: npm run test:feedback-journeys
+      - run: npm run test:expanded-journeys
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -60,3 +63,4 @@ jobs:
             node_modules/.cache/adaptive-chat-qa
             node_modules/.cache/wormhole-qa
             node_modules/.cache/phase1-feedback
+            node_modules/.cache/expanded-orbits

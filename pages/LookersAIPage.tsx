@@ -1,3 +1,4 @@
+import { missionSelection } from '../components/wormhole/worlds';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -401,7 +402,7 @@ const LookersAIPage: React.FC = () => {
       <div className="lookers-ai__wrap">
         <LookersAIHeader libraryOpen={showLibrary} onLibraryToggle={() => {setShowTools(false);setShowLibrary(value => !value);}} toolsOpen={showTools} onToolsToggle={() => {setShowLibrary(false);setShowTools(value=>!value);}} />
 
-        {showOrbital && !showTools && !showLibrary && <WormholeHero lang={lang} onSelect={(world,task) => { const type: TaskType = world === 'DESIGN' && task !== 'Motion Design' && task !== 'UI / UX' ? 'image' : world === 'MARKETING' ? 'campaign' : world === 'PRESENTATIONS' ? 'presentation' : 'general'; patchCurrent({taskType:type,answers:{...projectStateRef.current.current.answers,taskDescription:task,_taskSuggestion:task}},'task_type_'+type); setChatMode(true);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
+        {showOrbital && !showTools && !showLibrary && <WormholeHero lang={lang} onSelect={(world,task) => { const selection = missionSelection(world, task); patchCurrent({taskType:selection.taskType,answers:{...projectStateRef.current.current.answers,...selection.answers}},'task_type_'+selection.taskType); setChatMode(true);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
         {!chatMode && stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
         {chatMode && !showOrbital && !showTools && !showLibrary && <LookersAdaptiveChat
           key={current.id} draft={current} lang={lang} busy={busy} generating={generating} notice={generationNotice} prompt={prompt}

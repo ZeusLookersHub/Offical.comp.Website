@@ -81,6 +81,7 @@ export default function WormholeHero({
     back = useRef<HTMLButtonElement>(null);
   const [active, setActive] = useState<World | null>(null),
     [leaving, setLeaving] = useState(false),
+    [missionRing, setMissionRing] = useState(0),
     [notice, setNotice] = useState("");
   const [reduced, setReduced] = useState(
     () =>
@@ -173,7 +174,8 @@ export default function WormholeHero({
           maxRx: 540,
           startAngle: -3 * Math.PI / 4,
           centerCards: true,
-          speed: 0,
+          speed: missionRing === 0 ? 0.0018 : -0.0018,
+          pauseOnFocus: true,
           depthScale: [1, 0],
         })
       : null;
@@ -181,14 +183,14 @@ export default function WormholeHero({
       orbit.destroy();
       mission?.destroy();
     };
-  }, [active, bounds, big, rockSize, small, reduced, lang]);
+  }, [active, bounds, big, rockSize, small, reduced, lang, missionRing]);
   useEffect(() => {
     if (active) back.current?.focus({ preventScroll: true });
   }, [active]);
   useEffect(() => {
     if (!leaving || !active) return;
     const timer = setTimeout(
-      () => onSelect(active.en.toUpperCase(), leavingTask.current),
+      () => onSelect(active.id, leavingTask.current),
       reduced ? 0 : 700,
     );
     return () => clearTimeout(timer);
@@ -197,6 +199,7 @@ export default function WormholeHero({
   const close = () => {
     motion.current?.warp(-1);
     setActive(null);
+    setMissionRing(0);
   };
   return (
     <section
@@ -318,6 +321,12 @@ export default function WormholeHero({
             />
           </h2>
         </div>
+        <div className="mission-rings" role="group" aria-label={t('Mission orbits', 'مدارات المهمات')}>
+          {[0, 1].map(ring => <button key={ring} type="button" aria-pressed={missionRing === ring} disabled={leaving} onClick={() => setMissionRing(ring)}>
+            {t('Orbit', 'مدار')} {ring + 1} · {t('4 missions', '٤ مهمات')}
+          </button>)}
+          <span>{t('Hover or focus to pause', 'قف على الاختيار عشان توقف حركته')}</span>
+        </div>
         <div className="stage" ref={stepStage}>
           {active && (
             <>
@@ -334,10 +343,11 @@ export default function WormholeHero({
                   </span>
                 </span>
               </div>
-              {active.tasks.map((task, i) => (
+              {active.tasks.slice(missionRing * 4, missionRing * 4 + 4).map((task, i) => (
                 <button
                   type="button"
                   key={task[0]}
+                  data-topic={task[0]}
                   disabled={leaving}
                   className="lh-planet lh-planet--rock lh-pop"
                   style={{ "--i": i } as React.CSSProperties}

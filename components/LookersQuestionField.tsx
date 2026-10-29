@@ -7,8 +7,8 @@ export function QuestionHelp({ id, label, lang, example }: { id:string;label:str
   const copy = questionCopy[id];
   return <span className="lai-question-help"><button type="button" className="lai-help-button" aria-expanded={open} aria-controls={uid} aria-label={(lang === 'ar' ? 'اشرح السؤال: ' : 'Explain: ') + label} onClick={() => setOpen(!open)}>!</button>
     {open && <span id={uid} className="lai-help-copy" role="note">
-      <span><b>{lang === 'ar' ? 'تكتب إيه؟ ' : 'What to write: '}</b>{lang === 'ar' ? copy?.[1] || 'اكتب التفاصيل اللي تعرفها عن فكرتك بكلامك.' : 'Describe the details relevant to this question in your own words.'}</span>
-      <span><b>{lang === 'ar' ? 'بنسأل ليه؟ ' : 'Why we ask: '}</b>{lang === 'ar' ? copy?.[2] || 'عشان نفهم المطلوب من غير تخمين.' : 'This clarifies your requirements without guessing missing information.'}</span>
+      <span><b>{lang === 'ar' ? 'تكتب إيه؟ ' : 'What to write: '}</b>{lang === 'ar' ? copy?.[1] || `المقصود بـ «${label}»: اكتب التفاصيل الخاصة بالنقطة دي.` : `For “${label}”, describe this part of your project.`}</span>
+      <span><b>{lang === 'ar' ? 'بنسأل ليه؟ ' : 'Why we ask: '}</b>{lang === 'ar' ? copy?.[2] || `عشان نحدد «${label}» من كلامك من غير تخمين.` : `This fixes the requirements for “${label}” without guessing.`}</span>
       {(example || copy?.[3]) && <span><b>{lang === 'ar' ? 'مثال: ' : 'Example: '}</b>{lang === 'ar' ? copy?.[3] || example : example || 'Use specific details from your project; no need to choose a suggested category.'}</span>}
     </span>}
   </span>;
