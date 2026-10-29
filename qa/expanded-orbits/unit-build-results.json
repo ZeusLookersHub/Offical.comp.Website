@@ -1,0 +1,78 @@
+[
+  {
+    "name": "test:core",
+    "exit": 0
+  },
+  {
+    "name": "test:brain",
+    "exit": 0
+  },
+  {
+    "name": "test:questions",
+    "exit": 0
+  },
+  {
+    "name": "test:agent",
+    "exit": 0
+  },
+  {
+    "name": "test:stage05",
+    "exit": 0
+  },
+  {
+    "name": "test:ui",
+    "exit": 0
+  },
+  {
+    "name": "test:library",
+    "exit": 0
+  },
+  {
+    "name": "test:application",
+    "exit": 0
+  },
+  {
+    "name": "test:tools",
+    "exit": 0
+  },
+  {
+    "name": "test:studio",
+    "exit": 0
+  },
+  {
+    "name": "test:chat",
+    "exit": 0
+  },
+  {
+    "name": "test:topics",
+    "exit": 0
+  },
+  {
+    "name": "test:workflow-schemas",
+    "exit": 0
+  },
+  {
+    "name": "test:wormhole",
+    "exit": 0
+  },
+  {
+    "name": "test:feedback",
+    "exit": 0
+  },
+  {
+    "name": "test:expanded",
+    "exit": 0
+  },
+  {
+    "name": "build:ai-function",
+    "exit": 0
+  },
+  {
+    "name": "build",
+    "exit": 0
+  },
+  {
+    "name": "typescript",
+    "exit": 0
+  }
+]

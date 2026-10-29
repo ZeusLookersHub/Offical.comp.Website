@@ -1,0 +1,148 @@
+{
+  "checks": [
+    "Detailed idea skips redundant questions; explicit Generate runs canonical path and displays honest offline fallback",
+    "Vague idea asks necessary questions; single selections wait for Send; Explain, language and backward navigation preserve confirmed answers",
+    "Conditional optional voice-over saved; skipping refinements still allows generation; uploaded text and optional answers reach the rendered prompt",
+    "Selected campaign uses marketing and launch-specific questions; source refinement waits for Send and is retained",
+    "Direct chat entry preserves saved project; empty answers do not advance; composer remains fixed while thread scrolls"
+  ],
+  "geometry": [
+    {
+      "label": "desktop-ready",
+      "x": 140,
+      "y": 144.5,
+      "width": 1160,
+      "height": 737.5,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "label": "mobile-ready",
+      "x": 10,
+      "y": 128,
+      "width": 370,
+      "height": 706,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "label": "desktop-idea",
+      "x": 140,
+      "y": 144.5,
+      "width": 1160,
+      "height": 737.5,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "label": "desktop-subject",
+      "x": 140,
+      "y": 144.5,
+      "width": 1160,
+      "height": 737.5,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "label": "mobile-arabic-explain",
+      "x": 10,
+      "y": 128,
+      "width": 370,
+      "height": 706,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "label": "desktop-result",
+      "x": 140,
+      "y": 144.5,
+      "width": 1160,
+      "height": 737.5,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "label": "result-1024",
+      "x": 24,
+      "y": 144.5,
+      "width": 976,
+      "height": 681.5,
+      "viewport": {
+        "width": 1024,
+        "height": 844
+      }
+    },
+    {
+      "label": "result-736",
+      "x": 24,
+      "y": 144.5,
+      "width": 688,
+      "height": 681.5,
+      "viewport": {
+        "width": 736,
+        "height": 844
+      }
+    },
+    {
+      "label": "result-390",
+      "x": 10,
+      "y": 128,
+      "width": 370,
+      "height": 706,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "label": "result-320",
+      "x": 10,
+      "y": 128,
+      "width": 300,
+      "height": 706,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "label": "desktop-refinement",
+      "x": 140,
+      "y": 144.5,
+      "width": 1160,
+      "height": 737.5,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "label": "direct-chat-preview",
+      "x": 140,
+      "y": 144.5,
+      "width": 1160,
+      "height": 737.5,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    }
+  ],
+  "errors": [],
+  "journeys": 10,
+  "provider": "Supabase request failure deliberately simulated; real DeepSeek response is not claimed",
+  "browser": "Chromium",
+  "status": "success"
+}

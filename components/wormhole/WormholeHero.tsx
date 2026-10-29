@@ -95,7 +95,7 @@ export default function WormholeHero({
     ? Math.max(60, Math.min(bounds.width * 0.17, 76))
     : Math.round(Math.min(118, Math.max(84, bounds.height * 0.17)));
   const focusSize = small
-    ? 78
+    ? bounds.width < 360 ? 62 : 78
     : Math.round(Math.min(124, Math.max(96, bounds.height * 0.19)));
   const rockSize = small
     ? Math.max(50, Math.min(bounds.width * 0.14, 60))
@@ -174,6 +174,7 @@ export default function WormholeHero({
           maxRx: 540,
           startAngle: -3 * Math.PI / 4,
           centerCards: true,
+          edgePadding: small ? 6 : 14,
           speed: missionRing === 0 ? 0.0018 : -0.0018,
           pauseOnFocus: true,
           depthScale: [1, 0],

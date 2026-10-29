@@ -140,3 +140,6 @@
 .wormhole-hero .mission-rings button[aria-pressed=true]{border-color:var(--gold);color:var(--gold)}
 .wormhole-hero .mission-rings button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 @media(max-width:640px){.wormhole-hero .mission-rings{gap:5px;margin:0}.wormhole-hero .mission-rings span{flex-basis:100%;text-align:center;font-size:10px}.wormhole-hero .wormhole-missions .ms-desc{font-size:10px;line-height:1.35}}
+/* Keep mission labels in the same line boxes while the recovered globe hover animates. */
+.wormhole-hero .wormhole-missions .lh-planet:is(:hover,:focus-visible) .pl-name{letter-spacing:.035em}
+.wormhole-hero[lang=ar] .wormhole-missions .lh-planet:is(:hover,:focus-visible) .pl-name{letter-spacing:0}

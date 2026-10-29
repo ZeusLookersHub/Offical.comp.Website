@@ -26,7 +26,7 @@ async function geometry(label){
  checks.push(label+': full 360-degree geometry');
 }
 try{
- for(const [width,height,lang] of [[1918,872,'en'],[1440,1000,'en'],[768,1024,'en'],[390,900,'ar'],[320,844,'ar']]){
+ for(const [width,height,lang] of [[320,844,'ar'],[1918,872,'en'],[1440,1000,'en'],[768,1024,'en'],[390,900,'ar']]){
   const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'});await context.route('**/*.supabase.co/**',r=>r.abort());page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:5288/#/lookers-ai');await button('DESIGN').waitFor();await page.waitForTimeout(1100);if(lang==='ar')await button('عربي').click();
   for(const [en,ar] of [['DESIGN','التصميم'],['MARKETING','التسويق'],['BUSINESS','الأعمال'],['TECHNOLOGY','التكنولوجيا'],['PRESENTATIONS','العروض التقديمية']]){
@@ -41,7 +41,7 @@ try{
  }
  // Real frame movement, hover/focus pause, runtime reduced-motion change, and second-orbit routing.
  const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});await context.route('**/*.supabase.co/**',r=>r.abort());page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:5288/#/lookers-ai');await button('DESIGN').waitFor();await page.waitForTimeout(1100);await button('DESIGN').focus();await page.keyboard.press('Enter');await page.mouse.move(0,0);await page.waitForTimeout(1100);
+ await page.goto('http://127.0.0.1:5288/#/lookers-ai');await button('DESIGN').waitFor();await page.waitForTimeout(1100);await page.evaluate(()=>document.fonts.ready);await button('DESIGN').focus();await page.keyboard.press('Enter');await page.mouse.move(0,0);await page.waitForTimeout(2200);
  const rock=page.locator('.wormhole-missions .lh-planet--rock').first(),position=()=>rock.getAttribute('style');let before=await position();await page.waitForTimeout(900);assert.notEqual(await position(),before);checks.push('mission orbit visibly moves');
  const target=await rock.boundingBox();await page.mouse.move(target.x+target.width/2,target.y+target.height/2);await page.waitForTimeout(100);before=await position();await page.waitForTimeout(250);assert.equal(await position(),before);checks.push('pointer hover pauses orbit');
  await page.mouse.move(0,0);await rock.focus();await page.waitForTimeout(100);before=await position();await page.waitForTimeout(250);assert.equal(await position(),before);checks.push('keyboard focus pauses orbit');

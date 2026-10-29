@@ -625,6 +625,7 @@ export function createMotion(root) {
         speed: 0.0009,
         startAngle: -Math.PI / 2,
         centerCards: false,
+        edgePadding: 14,
         innerSpeed: -1.4,
         depthScale: [0.82, 0.22],
         ringEls: true,
@@ -693,7 +694,7 @@ export function createMotion(root) {
             Math.min(
               r.width * o.outer[0],
               o.maxRx,
-              r.width / 2 - halfWidth - 14,
+              r.width / 2 - halfWidth - o.edgePadding,
             ),
           ),
           ry = Math.max(
