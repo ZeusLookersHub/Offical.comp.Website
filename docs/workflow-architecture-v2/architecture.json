@@ -1,0 +1,6290 @@
+{
+  "schemaVersion": 2,
+  "status": "architecture-proposal",
+  "runtimeIntegrated": false,
+  "baselineCommit": "32194938197f501843ef0b62b65cf28d00bff5e1",
+  "scope": "Phase 1 interview and prompt specification; no Phase 2 orchestration",
+  "categories": [
+    {
+      "id": "visual",
+      "label": {
+        "ar": "صور وتصميم",
+        "en": "Visual"
+      },
+      "domain": "Creative",
+      "branches": [
+        {
+          "id": "visual-brand",
+          "label": "هوية وبراند",
+          "topics": [
+            "logo-concept",
+            "brand-identity"
+          ]
+        },
+        {
+          "id": "visual-product",
+          "label": "منتجات وعبوات",
+          "topics": [
+            "product-photography",
+            "packaging-design",
+            "mockup-scene"
+          ]
+        },
+        {
+          "id": "visual-art",
+          "label": "شخصيات ورسوم",
+          "topics": [
+            "illustration",
+            "portrait-character"
+          ]
+        },
+        {
+          "id": "visual-digital",
+          "label": "تصميم رقمي وإعلانات",
+          "topics": [
+            "social-post-design",
+            "poster-design",
+            "ui-visual"
+          ]
+        },
+        {
+          "id": "visual-edit",
+          "label": "تعديل ومحافظة على المرجع",
+          "topics": [
+            "photo-retouch",
+            "background-removal",
+            "image-upscale",
+            "style-transfer",
+            "reference-composite",
+            "object-removal",
+            "resize-reframe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "video",
+      "label": {
+        "ar": "فيديو وموشن",
+        "en": "Video"
+      },
+      "domain": "Creative",
+      "branches": [
+        {
+          "id": "video-generate",
+          "label": "إنشاء فيديو",
+          "topics": [
+            "text-to-video",
+            "image-to-video",
+            "product-commercial"
+          ]
+        },
+        {
+          "id": "video-story",
+          "label": "مشاهد وقصة",
+          "topics": [
+            "cinematic-shot",
+            "video-storyboard",
+            "explainer-video"
+          ]
+        },
+        {
+          "id": "video-short",
+          "label": "سوشيال وموشن",
+          "topics": [
+            "social-reel",
+            "motion-graphics",
+            "avatar-video"
+          ]
+        },
+        {
+          "id": "video-edit",
+          "label": "تعديل وتوطين",
+          "topics": [
+            "video-editing",
+            "video-localization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audio",
+      "label": {
+        "ar": "صوت وموسيقى",
+        "en": "Audio"
+      },
+      "domain": "Creative",
+      "branches": [
+        {
+          "id": "audio-voice",
+          "label": "كلام وتعليق صوتي",
+          "topics": [
+            "voiceover",
+            "text-to-speech",
+            "dubbing"
+          ]
+        },
+        {
+          "id": "audio-create",
+          "label": "محتوى صوتي",
+          "topics": [
+            "podcast",
+            "music-generation",
+            "sound-effects"
+          ]
+        },
+        {
+          "id": "audio-process",
+          "label": "تنضيف وتفريغ",
+          "topics": [
+            "audio-cleanup",
+            "transcription"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writing",
+      "label": {
+        "ar": "كتابة وتواصل",
+        "en": "Writing"
+      },
+      "domain": "Creative",
+      "branches": [
+        {
+          "id": "writing-messages",
+          "label": "رسايل وتواصل",
+          "topics": [
+            "email-draft",
+            "professional-message",
+            "press-release"
+          ]
+        },
+        {
+          "id": "writing-commercial",
+          "label": "نصوص للبيع",
+          "topics": [
+            "social-caption",
+            "ad-copy",
+            "website-copy",
+            "product-description"
+          ]
+        },
+        {
+          "id": "writing-editorial",
+          "label": "مقالات وسكريبتات",
+          "topics": [
+            "blog-article",
+            "script-writing"
+          ]
+        },
+        {
+          "id": "writing-transform",
+          "label": "تعديل وترجمة",
+          "topics": [
+            "translation",
+            "rewrite",
+            "proofreading",
+            "summarization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "marketing",
+      "label": {
+        "ar": "تسويق ونمو",
+        "en": "Marketing"
+      },
+      "domain": "Growth",
+      "branches": [
+        {
+          "id": "marketing-strategy",
+          "label": "استراتيجية وقنوات",
+          "topics": [
+            "marketing-strategy",
+            "social-media-strategy",
+            "seo-plan",
+            "conversion-funnel"
+          ]
+        },
+        {
+          "id": "marketing-campaigns",
+          "label": "حملات وتنشيط",
+          "topics": [
+            "launch-campaign",
+            "paid-ads",
+            "influencer-brief",
+            "email-marketing"
+          ]
+        },
+        {
+          "id": "marketing-calendar",
+          "label": "خطة محتوى",
+          "topics": [
+            "content-calendar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "label": {
+        "ar": "بيزنس وقرارات",
+        "en": "Business"
+      },
+      "domain": "Growth",
+      "branches": [
+        {
+          "id": "business-foundation",
+          "label": "تأسيس ونموذج",
+          "topics": [
+            "business-plan",
+            "business-model",
+            "brand-positioning"
+          ]
+        },
+        {
+          "id": "business-decisions",
+          "label": "جدوى وتسعير",
+          "topics": [
+            "feasibility-study",
+            "swot-analysis",
+            "pricing-strategy",
+            "financial-plan"
+          ]
+        },
+        {
+          "id": "business-growth",
+          "label": "دخول السوق والنمو",
+          "topics": [
+            "go-to-market",
+            "growth-strategy"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "label": {
+        "ar": "بحث ومقارنات",
+        "en": "Research"
+      },
+      "domain": "Growth",
+      "branches": [
+        {
+          "id": "research-market",
+          "label": "جمهور وسوق ومنافسين",
+          "topics": [
+            "competitor-analysis",
+            "market-research",
+            "audience-research"
+          ]
+        },
+        {
+          "id": "research-knowledge",
+          "label": "بحث وأدلة",
+          "topics": [
+            "deep-research",
+            "fact-checking",
+            "literature-review"
+          ]
+        },
+        {
+          "id": "research-compare",
+          "label": "مقارنة بدائل",
+          "topics": [
+            "product-comparison"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": {
+        "ar": "بيانات وتحليل",
+        "en": "Data"
+      },
+      "domain": "Systems",
+      "branches": [
+        {
+          "id": "data-prepare",
+          "label": "تجهيز الداتا",
+          "topics": [
+            "spreadsheet-formula",
+            "data-cleaning"
+          ]
+        },
+        {
+          "id": "data-analyze",
+          "label": "تحليل وتقارير",
+          "topics": [
+            "data-analysis",
+            "sales-analysis",
+            "financial-report",
+            "survey-analysis"
+          ]
+        },
+        {
+          "id": "data-monitor",
+          "label": "مؤشرات وداشبورد",
+          "topics": [
+            "dashboard-design",
+            "kpi-definition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "software",
+      "label": {
+        "ar": "برمجة ومنتجات",
+        "en": "Software"
+      },
+      "domain": "Systems",
+      "branches": [
+        {
+          "id": "software-products",
+          "label": "مواقع وتطبيقات",
+          "topics": [
+            "website",
+            "landing-page",
+            "web-app",
+            "mobile-app",
+            "ui-ux"
+          ]
+        },
+        {
+          "id": "software-ai",
+          "label": "تطبيقات AI",
+          "topics": [
+            "ai-chatbot",
+            "ai-agent"
+          ]
+        },
+        {
+          "id": "software-architecture",
+          "label": "بنية وربط ونشر",
+          "topics": [
+            "api-integration",
+            "database-design",
+            "architecture-review",
+            "deployment-plan"
+          ]
+        },
+        {
+          "id": "software-maintenance",
+          "label": "إصلاح واختبارات",
+          "topics": [
+            "debugging",
+            "refactoring",
+            "testing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "automation",
+      "label": {
+        "ar": "تشغيل وتنظيم",
+        "en": "Automation"
+      },
+      "domain": "Systems",
+      "branches": [
+        {
+          "id": "automation-flows",
+          "label": "ربط وتدفقات شغل",
+          "topics": [
+            "workflow-automation",
+            "no-code-integration",
+            "spreadsheet-automation"
+          ]
+        },
+        {
+          "id": "automation-sop",
+          "label": "إجراءات تشغيل",
+          "topics": [
+            "operational-sop"
+          ]
+        },
+        {
+          "id": "automation-planning",
+          "label": "مشاريع وأولويات",
+          "topics": [
+            "project-plan",
+            "task-prioritization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "presentation",
+      "label": {
+        "ar": "عروض ومستندات",
+        "en": "Presentation"
+      },
+      "domain": "People",
+      "branches": [
+        {
+          "id": "presentation-pitch",
+          "label": "بيع وتمويل وعروض مشاريع",
+          "topics": [
+            "investor-pitch",
+            "sales-deck",
+            "project-proposal"
+          ]
+        },
+        {
+          "id": "presentation-company",
+          "label": "تعريف ومراجعة وقرارات",
+          "topics": [
+            "company-profile",
+            "quarterly-review",
+            "marketing-deck",
+            "strategy-deck",
+            "executive-deck"
+          ]
+        },
+        {
+          "id": "presentation-education",
+          "label": "تعليم وتدريب",
+          "topics": [
+            "training-deck",
+            "workshop-deck",
+            "education-deck"
+          ]
+        },
+        {
+          "id": "presentation-specialized",
+          "label": "منتجات وسياحة وبيانات",
+          "topics": [
+            "product-launch-deck",
+            "data-storytelling",
+            "hotel-deck",
+            "tourism-deck",
+            "report-document"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "label": {
+        "ar": "تعلم وشغل",
+        "en": "Learning"
+      },
+      "domain": "People",
+      "branches": [
+        {
+          "id": "learning-career",
+          "label": "مهنة وتقديم",
+          "topics": [
+            "cv-resume",
+            "cover-letter",
+            "interview-preparation",
+            "linkedin-profile",
+            "career-plan",
+            "job-search"
+          ]
+        },
+        {
+          "id": "learning-skills",
+          "label": "تطوير مهارات",
+          "topics": [
+            "skill-roadmap",
+            "training-curriculum"
+          ]
+        },
+        {
+          "id": "learning-education",
+          "label": "شرح ومذاكرة وتقييم",
+          "topics": [
+            "lesson-plan",
+            "exam-preparation",
+            "tutor",
+            "quiz"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "label": {
+        "ar": "خدمة عملاء وسياحة",
+        "en": "Service"
+      },
+      "domain": "People",
+      "branches": [
+        {
+          "id": "service-support",
+          "label": "خدمة وتصعيد",
+          "topics": [
+            "customer-support",
+            "support-script",
+            "faq-knowledge-base",
+            "escalation"
+          ]
+        },
+        {
+          "id": "service-travel",
+          "label": "رحلات وبرامج",
+          "topics": [
+            "travel-itinerary",
+            "tourism-package"
+          ]
+        },
+        {
+          "id": "service-hotels",
+          "label": "فنادق وحجوزات",
+          "topics": [
+            "hotel-offer",
+            "booking-communication"
+          ]
+        }
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "logo-concept",
+      "categoryId": "visual",
+      "branchId": "visual-brand",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "فكرة لوجو",
+        "en": "Logo Concept"
+      },
+      "detailedBlueprintId": "brand-system",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "brand-identity",
+      "categoryId": "visual",
+      "branchId": "visual-brand",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "هوية براند",
+        "en": "Brand Identity"
+      },
+      "detailedBlueprintId": "brand-system",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "product-photography",
+      "categoryId": "visual",
+      "branchId": "visual-product",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصوير منتج",
+        "en": "Product Photography"
+      },
+      "detailedBlueprintId": "product-image",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "packaging-design",
+      "categoryId": "visual",
+      "branchId": "visual-product",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصميم عبوة",
+        "en": "Packaging Design"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "mockup-scene",
+      "categoryId": "visual",
+      "branchId": "visual-product",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض التصميم على منتج",
+        "en": "Mockup Scene"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "illustration",
+      "categoryId": "visual",
+      "branchId": "visual-art",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "رسم توضيحي",
+        "en": "Illustration"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "portrait-character",
+      "categoryId": "visual",
+      "branchId": "visual-art",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بورتريه أو شخصية",
+        "en": "Portrait Character"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "social-post-design",
+      "categoryId": "visual",
+      "branchId": "visual-digital",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصميم بوست سوشيال",
+        "en": "Social Post Design"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "poster-design",
+      "categoryId": "visual",
+      "branchId": "visual-digital",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بوستر أو إعلان",
+        "en": "Poster Design"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "ui-visual",
+      "categoryId": "visual",
+      "branchId": "visual-digital",
+      "runtimeFamily": "visual-create",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "شكل واجهة",
+        "en": "Ui Visual"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "photo-retouch",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تنقيح صورة",
+        "en": "Photo Retouch"
+      },
+      "detailedBlueprintId": "reference-edit",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "background-removal",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "إزالة الخلفية",
+        "en": "Background Removal"
+      },
+      "detailedBlueprintId": "reference-edit",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "image-upscale",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحسين دقة صورة",
+        "en": "Image Upscale"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "style-transfer",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تغيير ستايل صورة",
+        "en": "Style Transfer"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "reference-composite",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "دمج صور مرجعية",
+        "en": "Reference Composite"
+      },
+      "detailedBlueprintId": "reference-edit",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "object-removal",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "إزالة عنصر من صورة",
+        "en": "Object Removal"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "resize-reframe",
+      "categoryId": "visual",
+      "branchId": "visual-edit",
+      "runtimeFamily": "visual-edit",
+      "patternId": "transformation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تغيير مقاس وكادر",
+        "en": "Resize Reframe"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "text-to-video",
+      "categoryId": "video",
+      "branchId": "video-generate",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "فيديو من وصف",
+        "en": "Text To Video"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "image-to-video",
+      "categoryId": "video",
+      "branchId": "video-generate",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحريك صورة لفيديو",
+        "en": "Image To Video"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "product-commercial",
+      "categoryId": "video",
+      "branchId": "video-generate",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "فيديو إعلان منتج",
+        "en": "Product Commercial"
+      },
+      "detailedBlueprintId": "video-story",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "cinematic-shot",
+      "categoryId": "video",
+      "branchId": "video-story",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "لقطة سينمائية",
+        "en": "Cinematic Shot"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "video-storyboard",
+      "categoryId": "video",
+      "branchId": "video-story",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ستوريبورد فيديو",
+        "en": "Video Storyboard"
+      },
+      "detailedBlueprintId": "video-story",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "explainer-video",
+      "categoryId": "video",
+      "branchId": "video-story",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "فيديو شرح",
+        "en": "Explainer Video"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "social-reel",
+      "categoryId": "video",
+      "branchId": "video-short",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ريل سوشيال",
+        "en": "Social Reel"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "motion-graphics",
+      "categoryId": "video",
+      "branchId": "video-short",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "موشن جرافيك",
+        "en": "Motion Graphics"
+      },
+      "detailedBlueprintId": "video-story",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "avatar-video",
+      "categoryId": "video",
+      "branchId": "video-short",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "فيديو بمقدم افتراضي",
+        "en": "Avatar Video"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "video-editing",
+      "categoryId": "video",
+      "branchId": "video-edit",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مونتاج فيديو",
+        "en": "Video Editing"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "video-localization",
+      "categoryId": "video",
+      "branchId": "video-edit",
+      "runtimeFamily": "video",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "توطين فيديو للغة أو سوق",
+        "en": "Video Localization"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "voiceover",
+      "categoryId": "audio",
+      "branchId": "audio-voice",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تعليق صوتي",
+        "en": "Voiceover"
+      },
+      "detailedBlueprintId": "voice-production",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "text-to-speech",
+      "categoryId": "audio",
+      "branchId": "audio-voice",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحويل نص لصوت",
+        "en": "Text To Speech"
+      },
+      "detailedBlueprintId": "voice-production",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "dubbing",
+      "categoryId": "audio",
+      "branchId": "audio-voice",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "دبلجة",
+        "en": "Dubbing"
+      },
+      "detailedBlueprintId": "voice-production",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "podcast",
+      "categoryId": "audio",
+      "branchId": "audio-create",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بودكاست",
+        "en": "Podcast"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "music-generation",
+      "categoryId": "audio",
+      "branchId": "audio-create",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تأليف موسيقى",
+        "en": "Music Generation"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "sound-effects",
+      "categoryId": "audio",
+      "branchId": "audio-create",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مؤثرات صوتية",
+        "en": "Sound Effects"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "audio-cleanup",
+      "categoryId": "audio",
+      "branchId": "audio-process",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تنضيف تسجيل",
+        "en": "Audio Cleanup"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "transcription",
+      "categoryId": "audio",
+      "branchId": "audio-process",
+      "runtimeFamily": "audio",
+      "patternId": "creation",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تفريغ تسجيل لنص",
+        "en": "Transcription"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "email-draft",
+      "categoryId": "writing",
+      "branchId": "writing-messages",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "كتابة إيميل",
+        "en": "Email Draft"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "professional-message",
+      "categoryId": "writing",
+      "branchId": "writing-messages",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "رسالة شغل",
+        "en": "Professional Message"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "press-release",
+      "categoryId": "writing",
+      "branchId": "writing-messages",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بيان صحفي",
+        "en": "Press Release"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "social-caption",
+      "categoryId": "writing",
+      "branchId": "writing-commercial",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "كابشن سوشيال",
+        "en": "Social Caption"
+      },
+      "detailedBlueprintId": "commercial-writing",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "ad-copy",
+      "categoryId": "writing",
+      "branchId": "writing-commercial",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "نص إعلان",
+        "en": "Ad Copy"
+      },
+      "detailedBlueprintId": "commercial-writing",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "website-copy",
+      "categoryId": "writing",
+      "branchId": "writing-commercial",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "كتابة محتوى موقع",
+        "en": "Website Copy"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "product-description",
+      "categoryId": "writing",
+      "branchId": "writing-commercial",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "وصف منتج",
+        "en": "Product Description"
+      },
+      "detailedBlueprintId": "commercial-writing",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "blog-article",
+      "categoryId": "writing",
+      "branchId": "writing-editorial",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مقال",
+        "en": "Blog Article"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "script-writing",
+      "categoryId": "writing",
+      "branchId": "writing-editorial",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "كتابة سكريبت",
+        "en": "Script Writing"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "translation",
+      "categoryId": "writing",
+      "branchId": "writing-transform",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ترجمة",
+        "en": "Translation"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "rewrite",
+      "categoryId": "writing",
+      "branchId": "writing-transform",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "إعادة صياغة",
+        "en": "Rewrite"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "proofreading",
+      "categoryId": "writing",
+      "branchId": "writing-transform",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مراجعة لغوية",
+        "en": "Proofreading"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "summarization",
+      "categoryId": "writing",
+      "branchId": "writing-transform",
+      "runtimeFamily": "writing",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تلخيص",
+        "en": "Summarization"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "marketing-strategy",
+      "categoryId": "marketing",
+      "branchId": "marketing-strategy",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "استراتيجية تسويق",
+        "en": "Marketing Strategy"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "social-media-strategy",
+      "categoryId": "marketing",
+      "branchId": "marketing-strategy",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة سوشيال ميديا",
+        "en": "Social Media Strategy"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "seo-plan",
+      "categoryId": "marketing",
+      "branchId": "marketing-strategy",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة ظهور في البحث",
+        "en": "Seo Plan"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "conversion-funnel",
+      "categoryId": "marketing",
+      "branchId": "marketing-strategy",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "رحلة تحويل العميل",
+        "en": "Conversion Funnel"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "launch-campaign",
+      "categoryId": "marketing",
+      "branchId": "marketing-campaigns",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "حملة إطلاق",
+        "en": "Launch Campaign"
+      },
+      "detailedBlueprintId": "campaign-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "paid-ads",
+      "categoryId": "marketing",
+      "branchId": "marketing-campaigns",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة إعلانات مدفوعة",
+        "en": "Paid Ads"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "influencer-brief",
+      "categoryId": "marketing",
+      "branchId": "marketing-campaigns",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بريف لصانع محتوى",
+        "en": "Influencer Brief"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "email-marketing",
+      "categoryId": "marketing",
+      "branchId": "marketing-campaigns",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تسويق بالإيميل",
+        "en": "Email Marketing"
+      },
+      "detailedBlueprintId": "campaign-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "content-calendar",
+      "categoryId": "marketing",
+      "branchId": "marketing-calendar",
+      "runtimeFamily": "marketing",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "جدول محتوى",
+        "en": "Content Calendar"
+      },
+      "detailedBlueprintId": "campaign-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "business-plan",
+      "categoryId": "business",
+      "branchId": "business-foundation",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة عمل",
+        "en": "Business Plan"
+      },
+      "detailedBlueprintId": "business-decision",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "business-model",
+      "categoryId": "business",
+      "branchId": "business-foundation",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "نموذج البيزنس",
+        "en": "Business Model"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "brand-positioning",
+      "categoryId": "business",
+      "branchId": "business-foundation",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مكان البراند في السوق",
+        "en": "Brand Positioning"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "feasibility-study",
+      "categoryId": "business",
+      "branchId": "business-decisions",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "دراسة جدوى",
+        "en": "Feasibility Study"
+      },
+      "detailedBlueprintId": "business-decision",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "swot-analysis",
+      "categoryId": "business",
+      "branchId": "business-decisions",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحليل نقاط القوة والفرص",
+        "en": "Swot Analysis"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "pricing-strategy",
+      "categoryId": "business",
+      "branchId": "business-decisions",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "استراتيجية تسعير",
+        "en": "Pricing Strategy"
+      },
+      "detailedBlueprintId": "business-decision",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "financial-plan",
+      "categoryId": "business",
+      "branchId": "business-decisions",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة مالية",
+        "en": "Financial Plan"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "go-to-market",
+      "categoryId": "business",
+      "branchId": "business-growth",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة دخول السوق",
+        "en": "Go To Market"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "growth-strategy",
+      "categoryId": "business",
+      "branchId": "business-growth",
+      "runtimeFamily": "business",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة نمو",
+        "en": "Growth Strategy"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "competitor-analysis",
+      "categoryId": "research",
+      "branchId": "research-market",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحليل منافسين",
+        "en": "Competitor Analysis"
+      },
+      "detailedBlueprintId": "evidence-research",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "market-research",
+      "categoryId": "research",
+      "branchId": "research-market",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بحث سوق",
+        "en": "Market Research"
+      },
+      "detailedBlueprintId": "evidence-research",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "audience-research",
+      "categoryId": "research",
+      "branchId": "research-market",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بحث جمهور",
+        "en": "Audience Research"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "deep-research",
+      "categoryId": "research",
+      "branchId": "research-knowledge",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بحث متعمق",
+        "en": "Deep Research"
+      },
+      "detailedBlueprintId": "evidence-research",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "fact-checking",
+      "categoryId": "research",
+      "branchId": "research-knowledge",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "التحقق من معلومة",
+        "en": "Fact Checking"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "literature-review",
+      "categoryId": "research",
+      "branchId": "research-knowledge",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مراجعة دراسات ومراجع",
+        "en": "Literature Review"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "product-comparison",
+      "categoryId": "research",
+      "branchId": "research-compare",
+      "runtimeFamily": "research",
+      "patternId": "research",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مقارنة منتجات",
+        "en": "Product Comparison"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "spreadsheet-formula",
+      "categoryId": "data",
+      "branchId": "data-prepare",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "معادلة شيت",
+        "en": "Spreadsheet Formula"
+      },
+      "detailedBlueprintId": "data-insight",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "data-cleaning",
+      "categoryId": "data",
+      "branchId": "data-prepare",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تنضيف داتا",
+        "en": "Data Cleaning"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "data-analysis",
+      "categoryId": "data",
+      "branchId": "data-analyze",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحليل داتا",
+        "en": "Data Analysis"
+      },
+      "detailedBlueprintId": "data-insight",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "sales-analysis",
+      "categoryId": "data",
+      "branchId": "data-analyze",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحليل مبيعات",
+        "en": "Sales Analysis"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "financial-report",
+      "categoryId": "data",
+      "branchId": "data-analyze",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تقرير مالي",
+        "en": "Financial Report"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "survey-analysis",
+      "categoryId": "data",
+      "branchId": "data-analyze",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحليل استبيان",
+        "en": "Survey Analysis"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "dashboard-design",
+      "categoryId": "data",
+      "branchId": "data-monitor",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصميم داشبورد",
+        "en": "Dashboard Design"
+      },
+      "detailedBlueprintId": "data-insight",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "kpi-definition",
+      "categoryId": "data",
+      "branchId": "data-monitor",
+      "runtimeFamily": "data",
+      "patternId": "analysis",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تعريف مؤشرات أداء",
+        "en": "Kpi Definition"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "website",
+      "categoryId": "software",
+      "branchId": "software-products",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "موقع إلكتروني",
+        "en": "Website"
+      },
+      "detailedBlueprintId": "software-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "landing-page",
+      "categoryId": "software",
+      "branchId": "software-products",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "صفحة هبوط",
+        "en": "Landing Page"
+      },
+      "detailedBlueprintId": "software-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "web-app",
+      "categoryId": "software",
+      "branchId": "software-products",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تطبيق ويب",
+        "en": "Web App"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "mobile-app",
+      "categoryId": "software",
+      "branchId": "software-products",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تطبيق موبايل",
+        "en": "Mobile App"
+      },
+      "detailedBlueprintId": "software-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "ui-ux",
+      "categoryId": "software",
+      "branchId": "software-products",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصميم واجهة ورحلة مستخدم",
+        "en": "Ui Ux"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "ai-chatbot",
+      "categoryId": "software",
+      "branchId": "software-ai",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "شات بوت",
+        "en": "Ai Chatbot"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "ai-agent",
+      "categoryId": "software",
+      "branchId": "software-ai",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مواصفات إيجنت",
+        "en": "Ai Agent"
+      },
+      "detailedBlueprintId": "software-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "api-integration",
+      "categoryId": "software",
+      "branchId": "software-architecture",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ربط أنظمة عبر API",
+        "en": "Api Integration"
+      },
+      "detailedBlueprintId": "software-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "database-design",
+      "categoryId": "software",
+      "branchId": "software-architecture",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصميم قاعدة بيانات",
+        "en": "Database Design"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "architecture-review",
+      "categoryId": "software",
+      "branchId": "software-architecture",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مراجعة بنية تقنية",
+        "en": "Architecture Review"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "deployment-plan",
+      "categoryId": "software",
+      "branchId": "software-architecture",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة نشر",
+        "en": "Deployment Plan"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "debugging",
+      "categoryId": "software",
+      "branchId": "software-maintenance",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "إصلاح مشكلة برمجية",
+        "en": "Debugging"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "refactoring",
+      "categoryId": "software",
+      "branchId": "software-maintenance",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "إعادة تنظيم كود",
+        "en": "Refactoring"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "testing",
+      "categoryId": "software",
+      "branchId": "software-maintenance",
+      "runtimeFamily": "software",
+      "patternId": "software",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة واختبارات برمجية",
+        "en": "Testing"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "workflow-automation",
+      "categoryId": "automation",
+      "branchId": "automation-flows",
+      "runtimeFamily": "automation",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصميم أتمتة",
+        "en": "Workflow Automation"
+      },
+      "detailedBlueprintId": "operations-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "no-code-integration",
+      "categoryId": "automation",
+      "branchId": "automation-flows",
+      "runtimeFamily": "automation",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ربط من غير كود",
+        "en": "No Code Integration"
+      },
+      "detailedBlueprintId": "operations-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "spreadsheet-automation",
+      "categoryId": "automation",
+      "branchId": "automation-flows",
+      "runtimeFamily": "automation",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "أتمتة شيت",
+        "en": "Spreadsheet Automation"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "operational-sop",
+      "categoryId": "automation",
+      "branchId": "automation-sop",
+      "runtimeFamily": "automation",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "إجراءات تشغيل",
+        "en": "Operational Sop"
+      },
+      "detailedBlueprintId": "operations-spec",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "project-plan",
+      "categoryId": "automation",
+      "branchId": "automation-planning",
+      "runtimeFamily": "automation",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة مشروع",
+        "en": "Project Plan"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "task-prioritization",
+      "categoryId": "automation",
+      "branchId": "automation-planning",
+      "runtimeFamily": "automation",
+      "patternId": "planning",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ترتيب أولويات",
+        "en": "Task Prioritization"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "investor-pitch",
+      "categoryId": "presentation",
+      "branchId": "presentation-pitch",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض للمستثمرين",
+        "en": "Investor Pitch"
+      },
+      "detailedBlueprintId": "decision-deck",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "sales-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-pitch",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض بيع",
+        "en": "Sales Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "project-proposal",
+      "categoryId": "presentation",
+      "branchId": "presentation-pitch",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض مشروع",
+        "en": "Project Proposal"
+      },
+      "detailedBlueprintId": "decision-deck",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "company-profile",
+      "categoryId": "presentation",
+      "branchId": "presentation-company",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "ملف تعريفي لشركة",
+        "en": "Company Profile"
+      },
+      "detailedBlueprintId": "decision-deck",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "quarterly-review",
+      "categoryId": "presentation",
+      "branchId": "presentation-company",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "مراجعة ربع سنوية",
+        "en": "Quarterly Review"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "marketing-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-company",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض خطة تسويق",
+        "en": "Marketing Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "strategy-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-company",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض استراتيجية",
+        "en": "Strategy Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "executive-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-company",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض للإدارة",
+        "en": "Executive Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "training-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-education",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض تدريب",
+        "en": "Training Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "workshop-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-education",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض ورشة عمل",
+        "en": "Workshop Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "education-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-education",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض تعليمي",
+        "en": "Education Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "product-launch-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-specialized",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض إطلاق منتج",
+        "en": "Product Launch Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "data-storytelling",
+      "categoryId": "presentation",
+      "branchId": "presentation-specialized",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "قصة من البيانات",
+        "en": "Data Storytelling"
+      },
+      "detailedBlueprintId": "decision-deck",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "hotel-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-specialized",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض فندق",
+        "en": "Hotel Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "tourism-deck",
+      "categoryId": "presentation",
+      "branchId": "presentation-specialized",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض سياحي",
+        "en": "Tourism Deck"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "report-document",
+      "categoryId": "presentation",
+      "branchId": "presentation-specialized",
+      "runtimeFamily": "presentation",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تقرير منظم",
+        "en": "Report Document"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "cv-resume",
+      "categoryId": "learning",
+      "branchId": "learning-career",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "سيرة ذاتية",
+        "en": "Cv Resume"
+      },
+      "detailedBlueprintId": "career-evidence",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "cover-letter",
+      "categoryId": "learning",
+      "branchId": "learning-career",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطاب تقديم",
+        "en": "Cover Letter"
+      },
+      "detailedBlueprintId": "career-evidence",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "interview-preparation",
+      "categoryId": "learning",
+      "branchId": "learning-career",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحضير مقابلة",
+        "en": "Interview Preparation"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "linkedin-profile",
+      "categoryId": "learning",
+      "branchId": "learning-career",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "بروفايل LinkedIn",
+        "en": "Linkedin Profile"
+      },
+      "detailedBlueprintId": "career-evidence",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "career-plan",
+      "categoryId": "learning",
+      "branchId": "learning-career",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة مهنية",
+        "en": "Career Plan"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "job-search",
+      "categoryId": "learning",
+      "branchId": "learning-career",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة بحث عن شغل",
+        "en": "Job Search"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "skill-roadmap",
+      "categoryId": "learning",
+      "branchId": "learning-skills",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خريطة تعلم مهارة",
+        "en": "Skill Roadmap"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "training-curriculum",
+      "categoryId": "learning",
+      "branchId": "learning-skills",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "منهج تدريب",
+        "en": "Training Curriculum"
+      },
+      "detailedBlueprintId": "learning-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "lesson-plan",
+      "categoryId": "learning",
+      "branchId": "learning-education",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "خطة درس",
+        "en": "Lesson Plan"
+      },
+      "detailedBlueprintId": "learning-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "exam-preparation",
+      "categoryId": "learning",
+      "branchId": "learning-education",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تحضير امتحان",
+        "en": "Exam Preparation"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "tutor",
+      "categoryId": "learning",
+      "branchId": "learning-education",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "شرح ومساعدة في التعلم",
+        "en": "Tutor"
+      },
+      "detailedBlueprintId": "learning-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "quiz",
+      "categoryId": "learning",
+      "branchId": "learning-education",
+      "runtimeFamily": "learning",
+      "patternId": "structured-document",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "اختبار معرفة",
+        "en": "Quiz"
+      },
+      "detailedBlueprintId": "learning-plan",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "customer-support",
+      "categoryId": "service",
+      "branchId": "service-support",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "رد خدمة عملاء",
+        "en": "Customer Support"
+      },
+      "detailedBlueprintId": "customer-response",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "support-script",
+      "categoryId": "service",
+      "branchId": "service-support",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "سكريبت دعم",
+        "en": "Support Script"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "faq-knowledge-base",
+      "categoryId": "service",
+      "branchId": "service-support",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "أسئلة شائعة وقاعدة معرفة",
+        "en": "Faq Knowledge Base"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "escalation",
+      "categoryId": "service",
+      "branchId": "service-support",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تصعيد حالة",
+        "en": "Escalation"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "travel-itinerary",
+      "categoryId": "service",
+      "branchId": "service-travel",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "برنامج رحلة",
+        "en": "Travel Itinerary"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "tourism-package",
+      "categoryId": "service",
+      "branchId": "service-travel",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "باكدج سياحي",
+        "en": "Tourism Package"
+      },
+      "detailedBlueprintId": null,
+      "designCoverage": "shared-pattern-needs-specialization"
+    },
+    {
+      "id": "hotel-offer",
+      "categoryId": "service",
+      "branchId": "service-hotels",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "عرض فندق",
+        "en": "Hotel Offer"
+      },
+      "detailedBlueprintId": "customer-response",
+      "designCoverage": "detailed-example"
+    },
+    {
+      "id": "booking-communication",
+      "categoryId": "service",
+      "branchId": "service-hotels",
+      "runtimeFamily": "service",
+      "patternId": "communication",
+      "status": "existing-topic-new-classification",
+      "label": {
+        "ar": "تواصل بخصوص حجز",
+        "en": "Booking Communication"
+      },
+      "detailedBlueprintId": "customer-response",
+      "designCoverage": "detailed-example"
+    }
+  ],
+  "patterns": [
+    {
+      "id": "creation",
+      "label": "إنشاء عمل جديد",
+      "reusedBy": [
+        "visual-create",
+        "video",
+        "audio"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "transformation",
+      "label": "تعديل مع حفظ الأصل",
+      "reusedBy": [
+        "visual-edit"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "communication",
+      "label": "توصيل رسالة صحيحة",
+      "reusedBy": [
+        "writing",
+        "service"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "planning",
+      "label": "خطة وقرار",
+      "reusedBy": [
+        "marketing",
+        "business",
+        "automation"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "research",
+      "label": "بحث مبني على أدلة",
+      "reusedBy": [
+        "research"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "analysis",
+      "label": "تحويل بيانات لفهم",
+      "reusedBy": [
+        "data"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "structured-document",
+      "label": "قصة أو تعلم منظم",
+      "reusedBy": [
+        "presentation",
+        "learning"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    },
+    {
+      "id": "software",
+      "label": "مواصفات وحل تقني",
+      "reusedBy": [
+        "software"
+      ],
+      "spine": [
+        "brief",
+        "confirmed-context",
+        "domain-work",
+        "quality-gate",
+        "tool-package",
+        "review"
+      ],
+      "nodeRoles": {
+        "brief": "input",
+        "confirmed-context": "reference",
+        "domain-work": "transform",
+        "quality-gate": "decision",
+        "tool-package": "output",
+        "review": "revision"
+      }
+    }
+  ],
+  "blueprints": [
+    {
+      "id": "product-image",
+      "label": "صورة منتج",
+      "family": "visual-create",
+      "patternId": "creation",
+      "primaryTopics": [
+        "product-photography"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "المنتج والاسم بالحرف",
+            "الصورة أو اللوجو المرجع لو الهوية لازم تتطابق",
+            "صورة من غير كتابة ولا إعلان بنص؟"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "brand",
+            "visual-direction",
+            "rendered-text"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "تثبيت شكل المنتج والهوية",
+          "instruction": "تثبيت شكل المنتج والهوية باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "تكوين وإضاءة وخامات",
+          "instruction": "تكوين وإضاءة وخامات باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "ضبط الكتابة المسموحة والممنوعة",
+          "instruction": "ضبط الكتابة المسموحة والممنوعة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "برومبت صورة + إعدادات المقاس منفصلة + قائمة مراجعة الهوية"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "product-image-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "برومبت صورة + إعدادات المقاس منفصلة + قائمة مراجعة الهوية",
+        "fields": {
+          "subject": "string",
+          "preserve": "string",
+          "visualDirection": "string"
+        }
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "brand-system",
+          "contract": "brand-context",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "brand.exactName": "string",
+            "brand.referenceAsset": "string",
+            "brand.approvedColors": "string"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "brand-system",
+      "label": "هوية براند",
+      "family": "visual-create",
+      "patternId": "creation",
+      "primaryTopics": [
+        "brand-identity",
+        "logo-concept"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "اسم البراند المؤكد",
+            "الجمهور والتميّز",
+            "الهوية الحالية واللي مسموح يتغير"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "brand",
+            "audience",
+            "brand-direction"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "تحديد شخصية البراند",
+          "instruction": "تحديد شخصية البراند باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "بدائل اتجاه بصري مع أسباب",
+          "instruction": "بدائل اتجاه بصري مع أسباب باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "قواعد استخدام واتساق",
+          "instruction": "قواعد استخدام واتساق باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف هوية واتجاهات؛ لا يدّعي وجود لوجو معتمد"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "brand-system-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف هوية واتجاهات؛ لا يدّعي وجود لوجو معتمد",
+        "fields": {
+          "brand.exactName": "string",
+          "brand.referenceAsset": "string",
+          "brand.approvedColors": "string"
+        }
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "reference-edit",
+      "label": "تعديل مرجع",
+      "family": "visual-edit",
+      "patternId": "transformation",
+      "primaryTopics": [
+        "photo-retouch",
+        "background-removal",
+        "reference-composite"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الملف الأصلي",
+            "التعديل والمنطقة المطلوبة",
+            "التفاصيل المحمية"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "references",
+            "preserve",
+            "edit-region"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "فصل التعديل عن الثوابت",
+          "instruction": "فصل التعديل عن الثوابت باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "تعليمات منطقة/عنصر",
+          "instruction": "تعليمات منطقة/عنصر باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "مراجعة تطابق الهوية والتكوين",
+          "instruction": "مراجعة تطابق الهوية والتكوين باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "برومبت تعديل + قائمة عناصر لازم تفضل ثابتة"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "reference-edit-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "برومبت تعديل + قائمة عناصر لازم تفضل ثابتة",
+        "fields": {}
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "video-story",
+      "label": "فيديو ومشاهد",
+      "family": "video",
+      "patternId": "creation",
+      "primaryTopics": [
+        "product-commercial",
+        "video-storyboard",
+        "motion-graphics"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "هدف الفيديو ومدته",
+            "العنصر والأحداث",
+            "المراجع والصوت والنص الحرفي"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "brand",
+            "references",
+            "duration",
+            "audio",
+            "continuity"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "تقسيم لقطات يناسب الوقت",
+          "instruction": "تقسيم لقطات يناسب الوقت باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "كاميرا وحركة واستمرارية",
+          "instruction": "كاميرا وحركة واستمرارية باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "نهاية وانتقالات وصوت",
+          "instruction": "نهاية وانتقالات وصوت باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "برومبت مشاهد + توقيتات مخططة + إعدادات الأداة"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "video-story-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "برومبت مشاهد + توقيتات مخططة + إعدادات الأداة",
+        "fields": {
+          "shots": "array",
+          "duration": "string",
+          "approvedMessage": "string"
+        }
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "product-image",
+          "contract": "visual-direction",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "subject": "string",
+            "preserve": "string",
+            "visualDirection": "string"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "voice-production",
+      "label": "تعليق صوتي",
+      "family": "audio",
+      "patternId": "creation",
+      "primaryTopics": [
+        "voiceover",
+        "text-to-speech",
+        "dubbing"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "النص الحرفي ولغته",
+            "النطق والإحساس",
+            "المدة وحدود استخدام الصوت"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "exact-script",
+            "pronunciation",
+            "duration"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "تثبيت الكلمات والنطق",
+          "instruction": "تثبيت الكلمات والنطق باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "توزيع الوقفات والإيقاع",
+          "instruction": "توزيع الوقفات والإيقاع باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "اختيار أسلوب الصوت وصيغة التسليم",
+          "instruction": "اختيار أسلوب الصوت وصيغة التسليم باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف صوت ونص أداء؛ لا يدّعي إنتاج تسجيل"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "voice-production-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف صوت ونص أداء؛ لا يدّعي إنتاج تسجيل",
+        "fields": {}
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "commercial-writing",
+      "label": "نص إعلاني",
+      "family": "writing",
+      "patternId": "communication",
+      "primaryTopics": [
+        "ad-copy",
+        "social-caption",
+        "product-description"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "العرض المؤكد",
+            "الجمهور والقناة",
+            "الهدف وخطوة العميل"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "brand",
+            "audience",
+            "claims",
+            "channel"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "هوك مناسب للجمهور",
+          "instruction": "هوك مناسب للجمهور باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "مميزات مثبتة وحجة مفهومة",
+          "instruction": "مميزات مثبتة وحجة مفهومة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "دعوة فعل واضحة ومراجعة الادعاءات",
+          "instruction": "دعوة فعل واضحة ومراجعة الادعاءات باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بدائل نصوص بنفس الحقائق + CTA"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "commercial-writing-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بدائل نصوص بنفس الحقائق + CTA",
+        "fields": {}
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "campaign-plan",
+          "contract": "campaign-context",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "verifiedOffer": "string",
+            "audience": "string",
+            "channel": "string",
+            "cta": "string"
+          },
+          "reuse": "only-reviewed-values"
+        },
+        {
+          "fromBlueprint": "career-evidence",
+          "contract": "career-context",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "verifiedExperience": "array",
+            "targetRole": "string"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "campaign-plan",
+      "label": "حملة تسويق",
+      "family": "marketing",
+      "patternId": "planning",
+      "primaryTopics": [
+        "launch-campaign",
+        "content-calendar",
+        "email-marketing"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الهدف والعرض",
+            "الميزانية والفترة المتاحة",
+            "القنوات والجمهور والمواد"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "brand",
+            "audience",
+            "budget",
+            "measurement"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "استراتيجية ورسالة مركزية",
+          "instruction": "استراتيجية ورسالة مركزية باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "توزيع القنوات والمواد",
+          "instruction": "توزيع القنوات والمواد باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "تسلسل زمني ومقاييس نجاح",
+          "instruction": "تسلسل زمني ومقاييس نجاح باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف حملة وجدول واحتياجات مواد؛ بدون نشر"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "campaign-plan-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف حملة وجدول واحتياجات مواد؛ بدون نشر",
+        "fields": {
+          "verifiedOffer": "string",
+          "audience": "string",
+          "channel": "string",
+          "cta": "string"
+        }
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "video-story",
+          "contract": "storyboard-brief",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "shots": "array",
+            "duration": "string",
+            "approvedMessage": "string"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "business-decision",
+      "label": "خطة وقرار بيزنس",
+      "family": "business",
+      "patternId": "planning",
+      "primaryTopics": [
+        "business-plan",
+        "feasibility-study",
+        "pricing-strategy"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الوضع والقرار المطلوب",
+            "حقائق وتكاليف مؤكدة",
+            "القيود والبدائل"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "sources",
+            "costs",
+            "assumptions",
+            "decision-criteria"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "تحديد الافتراضات الناقصة",
+          "instruction": "تحديد الافتراضات الناقصة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "مقارنة سيناريوهات ومعايير",
+          "instruction": "مقارنة سيناريوهات ومعايير باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "ترتيب قرار وخطوات تحقق",
+          "instruction": "ترتيب قرار وخطوات تحقق باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف تحليل وقرار مع فصل الحقائق عن الافتراضات"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "business-decision-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف تحليل وقرار مع فصل الحقائق عن الافتراضات",
+        "fields": {
+          "decision": "string",
+          "confirmedFacts": "array",
+          "assumptions": "array",
+          "scenarios": "array"
+        }
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "evidence-research",
+          "contract": "evidence-brief",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "citedFindings": "array",
+            "sourceDates": "array",
+            "uncertainties": "string"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "evidence-research",
+      "label": "بحث ومنافسين",
+      "family": "research",
+      "patternId": "research",
+      "primaryTopics": [
+        "competitor-analysis",
+        "market-research",
+        "deep-research"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "سؤال البحث والقرار",
+            "السوق والفترة",
+            "المصادر المقبولة ومعايير المقارنة"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "sources",
+            "recency",
+            "scope",
+            "citations"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "خطة مصادر وتغطية",
+          "instruction": "خطة مصادر وتغطية باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "جدول أدلة ومقارنة",
+          "instruction": "جدول أدلة ومقارنة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "استنتاجات وحدود وثغرات",
+          "instruction": "استنتاجات وحدود وثغرات باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "برومبت بحث موثق؛ لا يدّعي تنفيذ البحث داخل المرحلة الأولى"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "evidence-research-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "برومبت بحث موثق؛ لا يدّعي تنفيذ البحث داخل المرحلة الأولى",
+        "fields": {
+          "citedFindings": "array",
+          "sourceDates": "array",
+          "uncertainties": "string"
+        }
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "data-insight",
+      "label": "تحليل وداشبورد",
+      "family": "data",
+      "patternId": "analysis",
+      "primaryTopics": [
+        "data-analysis",
+        "dashboard-design",
+        "spreadsheet-formula"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "مصدر الداتا وأعمدتها",
+            "معنى المؤشرات والفترة",
+            "القرار أو السؤال المطلوب"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "data-schema",
+            "metrics",
+            "time-window",
+            "privacy"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "فحص جودة ووحدات وتواريخ",
+          "instruction": "فحص جودة ووحدات وتواريخ باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "حسابات وتحليل مناسب للسؤال",
+          "instruction": "حسابات وتحليل مناسب للسؤال باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "عرض مؤشرات وتفسير وحدود",
+          "instruction": "عرض مؤشرات وتفسير وحدود باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف تحليل أو داشبورد + تعريف حسابات؛ بدون أرقام مخترعة"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "data-insight-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف تحليل أو داشبورد + تعريف حسابات؛ بدون أرقام مخترعة",
+        "fields": {
+          "metricDefinitions": "string",
+          "confirmedFindings": "array",
+          "timeWindow": "string"
+        }
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "decision-deck",
+      "label": "عرض وقرار",
+      "family": "presentation",
+      "patternId": "structured-document",
+      "primaryTopics": [
+        "investor-pitch",
+        "company-profile",
+        "project-proposal",
+        "data-storytelling"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الجمهور والقرار",
+            "الحقائق والمصادر",
+            "المدة وشكل التسليم"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "audience",
+            "sources",
+            "brand",
+            "slide-budget"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "قصة وترتيب حجة",
+          "instruction": "قصة وترتيب حجة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "توزيع شرائح وأدلة",
+          "instruction": "توزيع شرائح وأدلة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "توجيه بصري وملاحظات متحدث",
+          "instruction": "توجيه بصري وملاحظات متحدث باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف عرض وقصة شرائح مع فصل النص عن الملاحظات"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "decision-deck-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف عرض وقصة شرائح مع فصل النص عن الملاحظات",
+        "fields": {}
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "business-decision",
+          "contract": "decision-brief",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "decision": "string",
+            "confirmedFacts": "array",
+            "assumptions": "array",
+            "scenarios": "array"
+          },
+          "reuse": "only-reviewed-values"
+        },
+        {
+          "fromBlueprint": "data-insight",
+          "contract": "data-story-brief",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "metricDefinitions": "string",
+            "confirmedFindings": "array",
+            "timeWindow": "string"
+          },
+          "reuse": "only-reviewed-values"
+        },
+        {
+          "fromBlueprint": "learning-plan",
+          "contract": "training-outline",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "learningOutcomes": "array",
+            "lessonOutline": "array",
+            "assessmentPlan": "array"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "software-spec",
+      "label": "موقع أو تطبيق",
+      "family": "software",
+      "patternId": "software",
+      "primaryTopics": [
+        "website",
+        "landing-page",
+        "mobile-app",
+        "api-integration",
+        "ai-agent"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "المستخدم والمشكلة",
+            "الوظائف وحدود النطاق",
+            "البيئة والربط والداتا"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "requirements",
+            "data-contract",
+            "permissions",
+            "acceptance"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "رحلات وحالات استخدام",
+          "instruction": "رحلات وحالات استخدام باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "عقود بيانات وواجهات وأخطاء",
+          "instruction": "عقود بيانات وواجهات وأخطاء باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "معايير قبول وخطة اختبار",
+          "instruction": "معايير قبول وخطة اختبار باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف تقني قابل للمراجعة؛ بدون نشر أو تشغيل إيجنت"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "software-spec-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف تقني قابل للمراجعة؛ بدون نشر أو تشغيل إيجنت",
+        "fields": {
+          "systems": "array",
+          "interfaces": "array",
+          "failureModes": "array"
+        }
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "operations-spec",
+      "label": "أتمتة وإجراءات",
+      "family": "automation",
+      "patternId": "planning",
+      "primaryTopics": [
+        "workflow-automation",
+        "operational-sop",
+        "no-code-integration"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الحدث والمدخلات",
+            "الخطوات والأنظمة",
+            "الموافقات والاستثناءات"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "trigger",
+            "systems",
+            "permissions",
+            "exceptions"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "ترتيب خطوات ومدخلات ومخرجات",
+          "instruction": "ترتيب خطوات ومدخلات ومخرجات باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "تفرعات وفشل ومنع تكرار",
+          "instruction": "تفرعات وفشل ومنع تكرار باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "مراجعة مسؤوليات وصلاحيات",
+          "instruction": "مراجعة مسؤوليات وصلاحيات باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "مواصفة أتمتة أو SOP؛ التنفيذ الخارجي مؤجل"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "operations-spec-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "مواصفة أتمتة أو SOP؛ التنفيذ الخارجي مؤجل",
+        "fields": {
+          "approvedPolicy": "string",
+          "escalationBoundary": "string"
+        }
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "software-spec",
+          "contract": "system-contract",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "systems": "array",
+            "interfaces": "array",
+            "failureModes": "array"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    },
+    {
+      "id": "career-evidence",
+      "label": "CV ومهنة",
+      "family": "learning",
+      "patternId": "structured-document",
+      "primaryTopics": [
+        "cv-resume",
+        "cover-letter",
+        "linkedin-profile"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الوظيفة المستهدفة",
+            "خبرات وتواريخ مؤكدة",
+            "إنجازات موثقة ولغة التسليم"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "employment-facts",
+            "target-role",
+            "dates"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "ربط الخبرة بمتطلبات الوظيفة",
+          "instruction": "ربط الخبرة بمتطلبات الوظيفة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "صياغة أمينة بلا اختراع",
+          "instruction": "صياغة أمينة بلا اختراع باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "مراجعة تواريخ واتساق وتنسيق",
+          "instruction": "مراجعة تواريخ واتساق وتنسيق باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف CV أو خطاب تقديم؛ بدون خبرات أو أرقام متخيلة"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "career-evidence-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف CV أو خطاب تقديم؛ بدون خبرات أو أرقام متخيلة",
+        "fields": {
+          "verifiedExperience": "array",
+          "targetRole": "string"
+        }
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "learning-plan",
+      "label": "تعلم وتدريب",
+      "family": "learning",
+      "patternId": "structured-document",
+      "primaryTopics": [
+        "lesson-plan",
+        "tutor",
+        "training-curriculum",
+        "quiz"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "الهدف والمستوى",
+            "الوقت والأسلوب",
+            "اختبار قبلي أو ثغرات معروفة"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "level",
+            "learning-outcomes",
+            "time-budget",
+            "assessment"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "تقسيم أهداف ومهارات",
+          "instruction": "تقسيم أهداف ومهارات باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "شرح وتمارين مناسبة",
+          "instruction": "شرح وتمارين مناسبة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "تقييم ومعايير تقدم وتعديل",
+          "instruction": "تقييم ومعايير تقدم وتعديل باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "خطة تعلم وتمارين وتقييم؛ لا يثبت إتقانًا من غير نتائج"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "learning-plan-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "خطة تعلم وتمارين وتقييم؛ لا يثبت إتقانًا من غير نتائج",
+        "fields": {
+          "learningOutcomes": "array",
+          "lessonOutline": "array",
+          "assessmentPlan": "array"
+        }
+      },
+      "contextInputs": []
+    },
+    {
+      "id": "customer-response",
+      "label": "رد عميل أو حجز",
+      "family": "service",
+      "patternId": "communication",
+      "primaryTopics": [
+        "customer-support",
+        "hotel-offer",
+        "booking-communication"
+      ],
+      "status": "design-not-connected",
+      "nodes": [
+        {
+          "id": "brief",
+          "role": "input",
+          "label": "تحديد المطلوب",
+          "questions": [
+            "طلب العميل",
+            "السياسات والأسعار والتوفر المؤكد",
+            "القناة وحدود صلاحية الرد"
+          ]
+        },
+        {
+          "id": "context",
+          "role": "reference",
+          "label": "تثبيت المصادر والثوابت",
+          "modules": [
+            "policy",
+            "verified-offer",
+            "availability",
+            "escalation"
+          ]
+        },
+        {
+          "id": "work-1",
+          "role": "transform",
+          "label": "فهم الطلب وتحديد الناقص",
+          "instruction": "فهم الطلب وتحديد الناقص باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-2",
+          "role": "transform",
+          "label": "صياغة حل ضمن السياسة",
+          "instruction": "صياغة حل ضمن السياسة باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "work-3",
+          "role": "transform",
+          "label": "تأكيد الخطوة التالية أو التصعيد",
+          "instruction": "تأكيد الخطوة التالية أو التصعيد باستخدام المعلومات المؤكدة؛ الناقص المؤثر يتحول لسؤال، مش افتراض."
+        },
+        {
+          "id": "quality",
+          "role": "decision",
+          "label": "مراجعة الجودة والثوابت",
+          "checks": [
+            "intent-retained",
+            "no-invented-facts",
+            "exact-text-policy",
+            "execution-metadata-separated",
+            "output-contract-met"
+          ]
+        },
+        {
+          "id": "package",
+          "role": "output",
+          "label": "تجهيز برومبت الأداة",
+          "artifactKind": "prompt-brief",
+          "contract": "بريف رد يحافظ على الوقائع؛ لا يدّعي تأكيد حجز أو إرسال"
+        },
+        {
+          "id": "review",
+          "role": "revision",
+          "label": "مراجعة وتعديل مع المستخدم",
+          "retainsOriginal": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "brief",
+          "to": "context",
+          "condition": "always"
+        },
+        {
+          "from": "context",
+          "to": "work-1",
+          "condition": "always"
+        },
+        {
+          "from": "work-1",
+          "to": "work-2",
+          "condition": "always"
+        },
+        {
+          "from": "work-2",
+          "to": "work-3",
+          "condition": "always"
+        },
+        {
+          "from": "work-3",
+          "to": "quality",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "package",
+          "condition": "quality-passed"
+        },
+        {
+          "from": "package",
+          "to": "review",
+          "condition": "always"
+        },
+        {
+          "from": "quality",
+          "to": "context",
+          "condition": "missing-or-conflicting-fact",
+          "kind": "return",
+          "maxPasses": 3
+        },
+        {
+          "from": "review",
+          "to": "context",
+          "condition": "user-revision",
+          "kind": "return",
+          "maxPasses": 3
+        }
+      ],
+      "output": {
+        "id": "customer-response-brief",
+        "kind": "prompt-brief",
+        "schemaVersion": 1,
+        "provenanceRequired": true,
+        "userReviewRequired": true,
+        "contract": "بريف رد يحافظ على الوقائع؛ لا يدّعي تأكيد حجز أو إرسال",
+        "fields": {}
+      },
+      "contextInputs": [
+        {
+          "fromBlueprint": "operations-spec",
+          "contract": "policy-context",
+          "kind": "prompt-brief",
+          "version": 1,
+          "fields": {
+            "approvedPolicy": "string",
+            "escalationBoundary": "string"
+          },
+          "reuse": "only-reviewed-values"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "link-1",
+      "from": "brand-system",
+      "to": "product-image",
+      "kind": "manual-context-handoff",
+      "contract": "brand-context",
+      "fields": [
+        "brand.exactName",
+        "brand.referenceAsset",
+        "brand.approvedColors"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-2",
+      "from": "product-image",
+      "to": "video-story",
+      "kind": "manual-context-handoff",
+      "contract": "visual-direction",
+      "fields": [
+        "subject",
+        "preserve",
+        "visualDirection"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-3",
+      "from": "video-story",
+      "to": "campaign-plan",
+      "kind": "manual-context-handoff",
+      "contract": "storyboard-brief",
+      "fields": [
+        "shots",
+        "duration",
+        "approvedMessage"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-4",
+      "from": "campaign-plan",
+      "to": "commercial-writing",
+      "kind": "manual-context-handoff",
+      "contract": "campaign-context",
+      "fields": [
+        "verifiedOffer",
+        "audience",
+        "channel",
+        "cta"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-5",
+      "from": "evidence-research",
+      "to": "business-decision",
+      "kind": "manual-context-handoff",
+      "contract": "evidence-brief",
+      "fields": [
+        "citedFindings",
+        "sourceDates",
+        "uncertainties"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-6",
+      "from": "business-decision",
+      "to": "decision-deck",
+      "kind": "manual-context-handoff",
+      "contract": "decision-brief",
+      "fields": [
+        "decision",
+        "confirmedFacts",
+        "assumptions",
+        "scenarios"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-7",
+      "from": "data-insight",
+      "to": "decision-deck",
+      "kind": "manual-context-handoff",
+      "contract": "data-story-brief",
+      "fields": [
+        "metricDefinitions",
+        "confirmedFindings",
+        "timeWindow"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-8",
+      "from": "software-spec",
+      "to": "operations-spec",
+      "kind": "manual-context-handoff",
+      "contract": "system-contract",
+      "fields": [
+        "systems",
+        "interfaces",
+        "failureModes"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-9",
+      "from": "operations-spec",
+      "to": "customer-response",
+      "kind": "manual-context-handoff",
+      "contract": "policy-context",
+      "fields": [
+        "approvedPolicy",
+        "escalationBoundary"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-10",
+      "from": "learning-plan",
+      "to": "decision-deck",
+      "kind": "manual-context-handoff",
+      "contract": "training-outline",
+      "fields": [
+        "learningOutcomes",
+        "lessonOutline",
+        "assessmentPlan"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    },
+    {
+      "id": "link-11",
+      "from": "career-evidence",
+      "to": "commercial-writing",
+      "kind": "manual-context-handoff",
+      "contract": "career-context",
+      "fields": [
+        "verifiedExperience",
+        "targetRole"
+      ],
+      "requiresUserSelection": true,
+      "autoExecute": false,
+      "acceptedProvenance": [
+        "user-confirmed",
+        "cited-source"
+      ],
+      "forbidUnreviewedGeneratedFacts": true
+    }
+  ],
+  "textContract": {
+    "content": {
+      "renderedText": {
+        "policy": "none-by-default",
+        "exactOnlyWhenRequested": true,
+        "preserveCaseAndLanguage": true
+      },
+      "brand": {
+        "exactName": "user-confirmed only",
+        "transliteration": "never-invent",
+        "unknownName": "ask-or-omit"
+      }
+    },
+    "execution": {
+      "aspectRatio": "configuration-not-rendered-text",
+      "targetTool": "adapter-selection-not-watermark",
+      "provider": "server-metadata-not-image-copy"
+    }
+  },
+  "implementationOrder": [
+    "text-and-brand-regressions",
+    "taxonomy-registry-and-domain-modules",
+    "typed-workflow-contracts",
+    "shared-conditional-interview",
+    "tool-specific-prompt-packaging",
+    "evaluation-baselines",
+    "internal-visual-editor",
+    "manual-context-handoffs"
+  ],
+  "qualityTarget": {
+    "claim": "Release criteria, not achieved benchmark scores",
+    "criticalRegressionsAllowed": 0,
+    "bilingualCoverage": true,
+    "liveModelAndRenderedAssetChecksRequiredBeforeQualityClaims": true
+  },
+  "outputPackaging": {
+    "displayMetadata": [
+      "Lookers AI title",
+      "project name",
+      "generation provenance"
+    ],
+    "copyablePrompt": "Only instructions and explicitly allowed scene copy; no platform signature or invented text.",
+    "executionConfiguration": [
+      "aspectRatio",
+      "targetTool",
+      "provider"
+    ],
+    "unsupportedSettings": "Use a clearly labelled configuration instruction; never add the literal value as scene typography.",
+    "brandFallback": "If exact rendering is unreliable, preserve a supplied approved mark or leave placement for an editing step; never invent replacement letters."
+  },
+  "coverage": {
+    "canonicalTopics": 138,
+    "topicsWithDetailedExamples": 49,
+    "topicsNeedingSpecialization": 89,
+    "patternsWithExamples": 8,
+    "interpretation": "Examples are proposed, not runtime-integrated or benchmark-proven."
+  },
+  "sharedModules": [
+    {
+      "id": "brand",
+      "fieldId": "wf_brand",
+      "question": {
+        "ar": "اسم البراند يتكتب إزاي بالحرف؟",
+        "en": "What is the exact brand spelling?"
+      },
+      "why": {
+        "ar": "عشان منغيرش الاسم أو نخترع ترجمة له.",
+        "en": "To preserve the confirmed brand spelling."
+      },
+      "example": {
+        "ar": "DAVIDOFF، من غير ترجمة.",
+        "en": "DAVIDOFF, without transliteration."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "visual-direction",
+      "fieldId": "wf_visual_direction",
+      "question": {
+        "ar": "تحب الإضاءة والخامات والإحساس يبقوا إزاي؟",
+        "en": "What lighting, materials and mood do you want?"
+      },
+      "why": {
+        "ar": "عشان الصورة تمشي على الاتجاه البصري اللي تقصده.",
+        "en": "To align the visual treatment with your direction."
+      },
+      "example": {
+        "ar": "زجاج عنبري، نار واقعية، وخلفية غامقة.",
+        "en": "Amber glass, realistic flames and a dark background."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "rendered-text",
+      "fieldId": "wf_rendered_text",
+      "question": {
+        "ar": "عايز كلام ظاهر جوه الصورة ولا المنتج بس؟",
+        "en": "Should any text appear inside the image?"
+      },
+      "why": {
+        "ar": "عشان منفترضش عناوين أو توقيع مش مطلوبين.",
+        "en": "To avoid adding unrequested scene typography."
+      },
+      "example": {
+        "ar": "المنتج بس، من غير عنوان أو مقاس مكتوب.",
+        "en": "Product only; no headline or printed ratio."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "audience",
+      "fieldId": "wf_audience",
+      "question": {
+        "ar": "مين الناس اللي عايز توصلهم؟",
+        "en": "Who is the intended audience?"
+      },
+      "why": {
+        "ar": "عشان الرسالة والتفاصيل يناسبوا احتياجهم.",
+        "en": "To tailor the message and detail to its audience."
+      },
+      "example": {
+        "ar": "أصحاب فنادق صغيرة في مصر.",
+        "en": "Owners of small hotels in Egypt."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "brand-direction",
+      "fieldId": "wf_brand_direction",
+      "question": {
+        "ar": "البراند تحب الناس تحس بإيه ناحيته؟",
+        "en": "How should people perceive the brand?"
+      },
+      "why": {
+        "ar": "عشان اتجاه الهوية يبقى له شخصية مفهومة.",
+        "en": "To give the identity a coherent personality."
+      },
+      "example": {
+        "ar": "فاخر وهادي، من غير مبالغة.",
+        "en": "Premium and calm, without exaggeration."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "references",
+      "fieldId": "wf_references",
+      "question": {
+        "ar": "أنهي ملف أو صورة هنعتبرها المرجع؟",
+        "en": "Which file or image is the reference?"
+      },
+      "why": {
+        "ar": "عشان نعرف الأصل اللي هنرجعله عند المقارنة.",
+        "en": "To identify the actual source for comparison."
+      },
+      "example": {
+        "ar": "صورة العبوة الأصلية واللوجو المعتمد.",
+        "en": "The original bottle photo and approved logo."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "preserve",
+      "fieldId": "wf_preserve",
+      "question": {
+        "ar": "إيه اللي لازم يفضل زي ما هو؟",
+        "en": "What must remain unchanged?"
+      },
+      "why": {
+        "ar": "عشان التعديل ميمسش التفاصيل المحمية.",
+        "en": "To protect the immutable parts of the reference."
+      },
+      "example": {
+        "ar": "شكل العبوة والملصق وملامح الشخص.",
+        "en": "Bottle shape, label and facial features."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "edit-region",
+      "fieldId": "wf_edit_region",
+      "question": {
+        "ar": "التعديل فين بالظبط وإيه برّه نطاقه؟",
+        "en": "Where exactly should the edit apply?"
+      },
+      "why": {
+        "ar": "عشان نفرق منطقة التعديل عن باقي الصورة.",
+        "en": "To separate the editable region from the rest."
+      },
+      "example": {
+        "ar": "غيّر الخلفية بس وسيب المنتج زي ما هو.",
+        "en": "Change only the background, preserving the product."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "duration",
+      "fieldId": "wf_duration",
+      "question": {
+        "ar": "المدة كام ثانية أو دقيقة؟",
+        "en": "What is the running time?"
+      },
+      "why": {
+        "ar": "عشان عدد المشاهد والإيقاع يناسبوا الوقت.",
+        "en": "To fit pacing and scene count into the runtime."
+      },
+      "example": {
+        "ar": "15 ثانية.",
+        "en": "15 seconds."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "audio",
+      "fieldId": "wf_audio",
+      "question": {
+        "ar": "عايز تسمع إيه في الفيديو؟",
+        "en": "What audio should the video contain?"
+      },
+      "why": {
+        "ar": "عشان نحدد الكلام والموسيقى والمؤثرات بشكل منفصل.",
+        "en": "To distinguish spoken words, music and sound effects."
+      },
+      "example": {
+        "ar": "مؤثر نار هادي ومن غير تعليق صوتي.",
+        "en": "Subtle fire sounds and no voice-over."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "continuity",
+      "fieldId": "wf_continuity",
+      "question": {
+        "ar": "إيه اللي يفضل ثابت بين اللقطات؟",
+        "en": "What must stay consistent across shots?"
+      },
+      "why": {
+        "ar": "عشان الشخصية والمنتج والإضاءة مايتبدلوش بين المشاهد.",
+        "en": "To maintain subject and visual continuity."
+      },
+      "example": {
+        "ar": "نفس الزجاجة والملصق في كل اللقطات.",
+        "en": "The same bottle and label in every shot."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "exact-script",
+      "fieldId": "wf_exact_script",
+      "question": {
+        "ar": "إيه النص اللي هيتقال بالحرف؟",
+        "en": "What exact words should be spoken?"
+      },
+      "why": {
+        "ar": "عشان الأداء ميضيفش أو يبدّل الرسالة المعتمدة.",
+        "en": "To retain the approved spoken message verbatim."
+      },
+      "example": {
+        "ar": "اكتشف عطرك الجديد.",
+        "en": "Discover your new fragrance."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "pronunciation",
+      "fieldId": "wf_pronunciation",
+      "question": {
+        "ar": "في أسماء أو كلمات نطقها محتاج توضيح؟",
+        "en": "Are there names or words needing pronunciation guidance?"
+      },
+      "why": {
+        "ar": "عشان الأسماء والأرقام تتقال صح.",
+        "en": "To pronounce names and numbers correctly."
+      },
+      "example": {
+        "ar": "اسم الشركة يتقال بالإنجليزي، والرقم بالعربي.",
+        "en": "Say the company name in English and the number in Arabic."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "claims",
+      "fieldId": "wf_claims",
+      "question": {
+        "ar": "إيه المميزات أو الأرقام المؤكدة اللي نقدر نقولها؟",
+        "en": "Which benefits or numbers are confirmed?"
+      },
+      "why": {
+        "ar": "عشان مانكتبش ادعاءات بيع من عندنا.",
+        "en": "To avoid unsupported commercial claims."
+      },
+      "example": {
+        "ar": "خصم 10% معتمد؛ مفيش أرقام مبيعات مؤكدة.",
+        "en": "An approved 10% discount; no verified sales figures."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "channel",
+      "fieldId": "wf_channel",
+      "question": {
+        "ar": "الكلام ده هيتنشر أو يتبعت فين؟",
+        "en": "Where will this message be used?"
+      },
+      "why": {
+        "ar": "عشان الطول والأسلوب يناسبوا القناة.",
+        "en": "To fit the channel’s format and tone."
+      },
+      "example": {
+        "ar": "إيميل للعملاء الحاليين.",
+        "en": "An email to existing customers."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "budget",
+      "fieldId": "wf_budget",
+      "question": {
+        "ar": "المتاح كام وبأي عملة ولمدة قد إيه؟",
+        "en": "What budget, currency and period are available?"
+      },
+      "why": {
+        "ar": "عشان الخطة تتبني على المتاح الفعلي.",
+        "en": "To size the plan to the real resources."
+      },
+      "example": {
+        "ar": "5000 جنيه لمدة أسبوعين.",
+        "en": "EGP 5,000 over two weeks."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "measurement",
+      "fieldId": "wf_measurement",
+      "question": {
+        "ar": "هتعرف إزاي إن الحملة نجحت؟",
+        "en": "How will campaign success be measured?"
+      },
+      "why": {
+        "ar": "عشان كل نشاط يرتبط بمؤشر مفهوم.",
+        "en": "To link activities to meaningful success measures."
+      },
+      "example": {
+        "ar": "عدد طلبات الديمو المكتملة.",
+        "en": "Completed demo requests."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "sources",
+      "fieldId": "wf_sources",
+      "question": {
+        "ar": "إيه المصادر أو الملفات اللي نقدر نعتمد عليها؟",
+        "en": "Which sources or files can we rely on?"
+      },
+      "why": {
+        "ar": "عشان نفصل الدليل عن الرأي والافتراض.",
+        "en": "To separate evidence from opinion and assumption."
+      },
+      "example": {
+        "ar": "تقرير المبيعات المعتمد وروابط المصادر.",
+        "en": "The approved sales report and source links."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "costs",
+      "fieldId": "wf_costs",
+      "question": {
+        "ar": "أنهي تكاليف مؤكدة وعندك مستند ليها؟",
+        "en": "Which costs are confirmed and documented?"
+      },
+      "why": {
+        "ar": "عشان حساب الجدوى مايتبنيش على أرقام متخيلة.",
+        "en": "To ground viability calculations in real inputs."
+      },
+      "example": {
+        "ar": "إيجار 20 ألف جنيه، وباقي التكاليف لسه تقدير.",
+        "en": "EGP 20,000 rent; other costs remain estimates."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "assumptions",
+      "fieldId": "wf_assumptions",
+      "question": {
+        "ar": "إيه اللي لسه افتراض ومحتاج اختبار؟",
+        "en": "Which assumptions still need testing?"
+      },
+      "why": {
+        "ar": "عشان الافتراض مايظهرش كأنه حقيقة مثبتة.",
+        "en": "To keep hypotheses distinct from verified facts."
+      },
+      "example": {
+        "ar": "متوقع طلب أعلى في الصيف، ومفيش داتا تؤكده.",
+        "en": "We expect higher summer demand but lack supporting data."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "decision-criteria",
+      "fieldId": "wf_decision_criteria",
+      "question": {
+        "ar": "هنختار بين البدائل على أساس إيه؟",
+        "en": "What criteria will decide between alternatives?"
+      },
+      "why": {
+        "ar": "عشان المقارنة تخدم القرار بدل آراء عامة.",
+        "en": "To make comparison criteria explicit."
+      },
+      "example": {
+        "ar": "التكلفة، وقت التنفيذ، وسهولة الصيانة.",
+        "en": "Cost, delivery time and maintainability."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "recency",
+      "fieldId": "wf_recency",
+      "question": {
+        "ar": "محتاج بيانات من فترة قد إيه؟",
+        "en": "How recent must the evidence be?"
+      },
+      "why": {
+        "ar": "عشان معلومة قديمة ماتتحسبش كأنها الوضع الحالي.",
+        "en": "To avoid treating outdated evidence as current."
+      },
+      "example": {
+        "ar": "آخر سنة، مع تاريخ لكل مصدر.",
+        "en": "The last year, with a date for every source."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "scope",
+      "fieldId": "wf_scope",
+      "question": {
+        "ar": "البحث يشمل أنهي سوق وفترة وحدود؟",
+        "en": "What market, period and scope should be covered?"
+      },
+      "why": {
+        "ar": "عشان البحث ميتوسعش بعيد عن السؤال.",
+        "en": "To bound the investigation to the actual question."
+      },
+      "example": {
+        "ar": "فنادق الغردقة الأربع نجوم خلال السنة دي.",
+        "en": "Four-star Hurghada hotels during this year."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "citations",
+      "fieldId": "wf_citations",
+      "question": {
+        "ar": "تحب الأدلة تتوثق في شكل إيه؟",
+        "en": "How should supporting evidence be cited?"
+      },
+      "why": {
+        "ar": "عشان تقدر تراجع كل معلومة وترجع لمصدرها.",
+        "en": "To make every factual claim traceable."
+      },
+      "example": {
+        "ar": "رابط المصدر وتاريخه جنب كل رقم.",
+        "en": "The source link and date beside every figure."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "data-schema",
+      "fieldId": "wf_data_schema",
+      "question": {
+        "ar": "الداتا فيها أنهي أعمدة وكل عمود معناه إيه؟",
+        "en": "What columns exist and what does each represent?"
+      },
+      "why": {
+        "ar": "عشان الحسابات ماتخلطش وحدات أو معاني مختلفة.",
+        "en": "To avoid mixing different units and meanings."
+      },
+      "example": {
+        "ar": "التاريخ، الفرع، قيمة البيع بالجنيه.",
+        "en": "Date, branch and sales value in EGP."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "metrics",
+      "fieldId": "wf_metrics",
+      "question": {
+        "ar": "المؤشرات دي بتتحسب إزاي بالظبط؟",
+        "en": "How exactly should each metric be calculated?"
+      },
+      "why": {
+        "ar": "عشان تعريف الرقم يبقى واحد في كل التقارير.",
+        "en": "To keep metric definitions consistent."
+      },
+      "example": {
+        "ar": "صافي اليوم = الإجمالي الحالي ناقص إجمالي أمس.",
+        "en": "Daily net = current cumulative total minus yesterday’s total."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "time-window",
+      "fieldId": "wf_time_window",
+      "question": {
+        "ar": "فترة التحليل وإقفال اليوم إمتى؟",
+        "en": "What time window and daily cutoff apply?"
+      },
+      "why": {
+        "ar": "عشان المقارنة ماتخلطش أيام أو مناطق زمنية.",
+        "en": "To align date windows and time zones."
+      },
+      "example": {
+        "ar": "اليوم بيتقفل الساعة 3 عصرًا بتوقيت القاهرة.",
+        "en": "The day closes at 3 pm Cairo time."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "privacy",
+      "fieldId": "wf_privacy",
+      "question": {
+        "ar": "في بيانات شخصية أو سرية لازم نستبعدها؟",
+        "en": "Is there personal or confidential data to exclude?"
+      },
+      "why": {
+        "ar": "عشان نستخدم بس الحقول الضرورية للتحليل.",
+        "en": "To include only necessary analysis fields."
+      },
+      "example": {
+        "ar": "استخدم أرقام مجمعة من غير أسماء أو تليفونات.",
+        "en": "Use aggregate figures without names or phone numbers."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "slide-budget",
+      "fieldId": "wf_slide_budget",
+      "question": {
+        "ar": "معاك كام دقيقة أو محتاج كام سلايد؟",
+        "en": "How much time or how many slides are available?"
+      },
+      "why": {
+        "ar": "عشان القصة تتوزع من غير زحمة أو تطويل.",
+        "en": "To fit the narrative into the presentation budget."
+      },
+      "example": {
+        "ar": "10 سلايدز في 7 دقايق.",
+        "en": "Ten slides in seven minutes."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "requirements",
+      "fieldId": "wf_requirements",
+      "question": {
+        "ar": "إيه الوظائف الأساسية وإيه خارج النطاق؟",
+        "en": "What functions are required and what is out of scope?"
+      },
+      "why": {
+        "ar": "عشان النسخة المطلوبة يبقى ليها حدود واضحة.",
+        "en": "To define the actual delivery scope."
+      },
+      "example": {
+        "ar": "بحث وحجز؛ الدفع أونلاين مؤجل.",
+        "en": "Search and booking; online payments are deferred."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "data-contract",
+      "fieldId": "wf_data_contract",
+      "question": {
+        "ar": "أنهي بيانات هتدخل وتخرج وبأي شكل؟",
+        "en": "What data enters and leaves, and in which format?"
+      },
+      "why": {
+        "ar": "عشان الربط مايعتمدش على تخمين أسماء الحقول.",
+        "en": "To define stable integration contracts."
+      },
+      "example": {
+        "ar": "رقم الحجز نص والتواريخ بصيغة ISO.",
+        "en": "Booking ID as text and dates in ISO format."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "permissions",
+      "fieldId": "wf_permissions",
+      "question": {
+        "ar": "مين مسموح له يعمل إيه وإمتى نرجعلك؟",
+        "en": "Who may do what, and when is approval needed?"
+      },
+      "why": {
+        "ar": "عشان حدود الصلاحية تبقى جزء من المواصفة.",
+        "en": "To make authorization boundaries explicit."
+      },
+      "example": {
+        "ar": "الموظف يشوف بس والمدير يعتمد التعديلات.",
+        "en": "Staff can view; a manager approves changes."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "acceptance",
+      "fieldId": "wf_acceptance",
+      "question": {
+        "ar": "إيه اللي لازم ينجح عشان نقول التسليم تمام؟",
+        "en": "What must pass for the work to be accepted?"
+      },
+      "why": {
+        "ar": "عشان اختبار التسليم يبقى قابل للتكرار.",
+        "en": "To make acceptance checks repeatable."
+      },
+      "example": {
+        "ar": "حجز صحيح يتحفظ، وتاريخ غلط يطلع رسالة واضحة.",
+        "en": "A valid booking saves; invalid dates show a clear error."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "trigger",
+      "fieldId": "wf_trigger",
+      "question": {
+        "ar": "إيه الحدث اللي يبدأ العملية؟",
+        "en": "What event starts the process?"
+      },
+      "why": {
+        "ar": "عشان العملية ما تشتغلش في توقيت أو حالة غلط.",
+        "en": "To define when the process should begin."
+      },
+      "example": {
+        "ar": "وصول إيميل حجز جديد.",
+        "en": "A new booking email arrives."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "systems",
+      "fieldId": "wf_systems",
+      "question": {
+        "ar": "هنستخدم أنهي أنظمة وإيه المتاح فعلًا؟",
+        "en": "Which systems are involved and actually available?"
+      },
+      "why": {
+        "ar": "عشان المواصفة ماتعتمدش على أدوات مش متوصلة.",
+        "en": "To avoid assuming nonexistent integrations."
+      },
+      "example": {
+        "ar": "Gmail وGoogle Sheets، من غير ربط حالي.",
+        "en": "Gmail and Google Sheets, currently not connected."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "exceptions",
+      "fieldId": "wf_exceptions",
+      "question": {
+        "ar": "لو خطوة فشلت أو الطلب اتكرر يحصل إيه؟",
+        "en": "What happens on failure or duplicate input?"
+      },
+      "why": {
+        "ar": "عشان الفشل والتكرار يبقوا محسوبين من الأول.",
+        "en": "To specify error and duplicate handling."
+      },
+      "example": {
+        "ar": "نسجل الحالة للمراجعة ومنبعتش نفس الرد مرتين.",
+        "en": "Queue the item for review without sending duplicate replies."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "employment-facts",
+      "fieldId": "wf_employment_facts",
+      "question": {
+        "ar": "إيه الخبرات والمسؤوليات اللي تقدر تؤكدها؟",
+        "en": "Which experience and responsibilities can you confirm?"
+      },
+      "why": {
+        "ar": "عشان السيرة الذاتية متضيفش خبرة مش موجودة.",
+        "en": "To avoid inventing experience or credentials."
+      },
+      "example": {
+        "ar": "مبيعات وتشغيل وتسويق، من غير أرقام إنجازات مؤكدة.",
+        "en": "Sales, operations and marketing, without verified achievement figures."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "target-role",
+      "fieldId": "wf_target_role",
+      "question": {
+        "ar": "بتقدم على أنهي وظيفة أو نوع شغل؟",
+        "en": "Which role or type of job are you targeting?"
+      },
+      "why": {
+        "ar": "عشان نختار الخبرة والصياغة المناسبة للدور.",
+        "en": "To focus the application on the target role."
+      },
+      "example": {
+        "ar": "Sales Operations Specialist.",
+        "en": "Sales Operations Specialist."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "dates",
+      "fieldId": "wf_dates",
+      "question": {
+        "ar": "تواريخ البداية والنهاية المؤكدة إيه؟",
+        "en": "What are the confirmed start and end dates?"
+      },
+      "why": {
+        "ar": "عشان الخط الزمني ميبقاش فيه تعارض أو تواريخ متألفة.",
+        "en": "To maintain an accurate employment timeline."
+      },
+      "example": {
+        "ar": "بدأت في أكتوبر 2025، ومش متأكد من اليوم.",
+        "en": "Started in October 2025; the exact day is unknown."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "level",
+      "fieldId": "wf_level",
+      "question": {
+        "ar": "مستواك الحالي إيه وجربت إيه قبل كده؟",
+        "en": "What is your current level and prior experience?"
+      },
+      "why": {
+        "ar": "عشان الشرح والتمارين يبقوا في مستواك.",
+        "en": "To adapt instruction to the learner’s starting point."
+      },
+      "example": {
+        "ar": "مبتدئ وعارف أساسيات Excel.",
+        "en": "A beginner familiar with Excel basics."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "learning-outcomes",
+      "fieldId": "wf_learning_outcomes",
+      "question": {
+        "ar": "تحب تقدر تعمل إيه بعد التعلم؟",
+        "en": "What should you be able to do afterwards?"
+      },
+      "why": {
+        "ar": "عشان التقدم يتقاس بمهارة قابلة للتطبيق.",
+        "en": "To define observable learning outcomes."
+      },
+      "example": {
+        "ar": "أبني تقرير مبيعات وشارت من داتا خام.",
+        "en": "Build a sales report and chart from raw data."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "time-budget",
+      "fieldId": "wf_time_budget",
+      "question": {
+        "ar": "تقدر تخصص وقت قد إيه ولمدة كام أسبوع؟",
+        "en": "How much time can you commit, and for how many weeks?"
+      },
+      "why": {
+        "ar": "عشان الخطة تناسب وقتك وتقدر تكملها.",
+        "en": "To make the learning plan sustainable."
+      },
+      "example": {
+        "ar": "نص ساعة يوميًا لمدة شهر.",
+        "en": "Thirty minutes daily for one month."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "assessment",
+      "fieldId": "wf_assessment",
+      "question": {
+        "ar": "هنختبر الفهم أو المهارة إزاي؟",
+        "en": "How should understanding or skill be assessed?"
+      },
+      "why": {
+        "ar": "عشان مانعتبرش مجرد قراءة الشرح إتقانًا.",
+        "en": "To distinguish reading from demonstrated skill."
+      },
+      "example": {
+        "ar": "تمرين عملي وبعده اختبار قصير.",
+        "en": "A practical task followed by a short quiz."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "policy",
+      "fieldId": "wf_policy",
+      "question": {
+        "ar": "إيه السياسة المؤكدة اللي لازم نمشي عليها؟",
+        "en": "Which confirmed policy must the response follow?"
+      },
+      "why": {
+        "ar": "عشان منوعدش العميل باستثناء مش مسموح.",
+        "en": "To avoid promising unauthorized exceptions."
+      },
+      "example": {
+        "ar": "الإلغاء حسب شروط الفندق المكتوبة.",
+        "en": "Cancellation follows the hotel’s written terms."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "verified-offer",
+      "fieldId": "wf_verified_offer",
+      "question": {
+        "ar": "العرض والسعر والشروط المؤكدة إيه؟",
+        "en": "What offer, price and conditions are confirmed?"
+      },
+      "why": {
+        "ar": "عشان السعر والشروط مايتغيروش أثناء الصياغة.",
+        "en": "To preserve the actual commercial terms."
+      },
+      "example": {
+        "ar": "السعر شامل الإفطار بس والانتقالات مش شاملة.",
+        "en": "Breakfast is included; transfers are not."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "availability",
+      "fieldId": "wf_availability",
+      "question": {
+        "ar": "التوفر مؤكد ولا لسه محتاج استعلام؟",
+        "en": "Is availability confirmed or still awaiting a check?"
+      },
+      "why": {
+        "ar": "عشان الرد مايتفهمش كتأكيد حجز من غير تحقق.",
+        "en": "To avoid treating an inquiry as a confirmed booking."
+      },
+      "example": {
+        "ar": "لسه محتاج تأكيد من الفندق.",
+        "en": "Still awaiting hotel confirmation."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    },
+    {
+      "id": "escalation",
+      "fieldId": "wf_escalation",
+      "question": {
+        "ar": "إمتى الحالة تتحول لمين بدل رد عادي؟",
+        "en": "When and to whom should the case be escalated?"
+      },
+      "why": {
+        "ar": "عشان الحالات اللي برّه الصلاحية توصل للشخص المناسب.",
+        "en": "To route out-of-scope cases to the responsible person."
+      },
+      "example": {
+        "ar": "طلبات الاسترداد تتحول لمدير الحجوزات.",
+        "en": "Refund requests go to the reservations manager."
+      },
+      "kind": "text",
+      "askWhen": "missing-and-relevant",
+      "doNotInfer": true,
+      "status": "design-not-connected"
+    }
+  ]
+}

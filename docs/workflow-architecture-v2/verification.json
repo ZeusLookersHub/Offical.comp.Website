@@ -1,0 +1,202 @@
+{
+  "scope": "Architecture proposal; not connected to runtime; no live model evaluation",
+  "date": "2026-10-30",
+  "contractTests": {
+    "passed": 31,
+    "failed": 0
+  },
+  "nativeDiagramChecks": [
+    {
+      "name": "taxonomy-creative",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "taxonomy-growth",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "taxonomy-systems",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "taxonomy-people",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-product-image",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-brand-system",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-reference-edit",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-video-story",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-voice-production",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-commercial-writing-review",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-campaign-plan",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-business-decision",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-evidence-research",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-data-insight",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-decision-deck",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-software-spec",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-operations-spec",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-career-evidence",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-learning-plan",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "flow-customer-response",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    },
+    {
+      "name": "connections-review",
+      "ok": true,
+      "status": "pass",
+      "failedStage": null,
+      "diagnostics": [],
+      "update": null
+    }
+  ],
+  "indexQA": {
+    "status": "passed",
+    "checks": [
+      "13 category groups",
+      "category expands into branches and readable topics",
+      "all local diagram links resolve",
+      "16 workflow detail cards and 25 repository decisions",
+      "index fits 1440px",
+      "index fits 768px",
+      "index fits 390px",
+      "native taxonomy opens"
+    ],
+    "errors": []
+  },
+  "visualInspection": [
+    "atlas index at 1440px",
+    "product-image workflow at 1440px light"
+  ],
+  "archifySourceCommit": "f325d86230553e1dd15d3464324f1fcd01f02352",
+  "coverage": {
+    "topics": 138,
+    "detailedExamples": 49,
+    "needsSpecialization": 89
+  }
+}
