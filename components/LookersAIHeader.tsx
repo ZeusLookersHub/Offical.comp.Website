@@ -1,3 +1,4 @@
+import type { ProjectDraft } from '../data/lookersAi';
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight, Clipboard, X, Image, Video, Share2, Sparkles, Compass } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
@@ -26,15 +27,16 @@ function TrendArtwork({ section, index, label }: { section: TrendSectionId; inde
 }
 
 
-interface Props { libraryOpen:boolean;onLibraryToggle:()=>void;toolsOpen:boolean;onToolsToggle:()=>void }
-export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,onToolsToggle}:Props) {
+interface Props { libraryOpen:boolean;onLibraryToggle:()=>void;toolsOpen:boolean;onToolsToggle:()=>void;onUsePrompt:(prompt:string,title:string)=>void }
+export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,onToolsToggle,onUsePrompt}:Props) {
   const {lang}=useLanguage(),ar=lang==='ar';
   const t=(en:string,arabic:string)=>ar?arabic:en;
   const root=useRef<HTMLElement>(null), triggers=useRef<(HTMLButtonElement|null)[]>([]), firstItem=useRef<HTMLButtonElement>(null),focusFirst=useRef(false);
   const [openId,setOpenId]=useState<TrendSectionId|null>(null),[itemIndex,setItemIndex]=useState(0),[showPrompt,setShowPrompt]=useState(false),[clipboardStatus,setClipboardStatus]=useState('');
+  const [editablePrompt,setEditablePrompt]=useState('');
   const panelId=useId(),activeSection=trendSections.find(s=>s.id===openId),activeItem=activeSection?.items[itemIndex];
   const close=()=>setOpenId(null);
-  const open=(id:TrendSectionId)=>{setItemIndex(0);setShowPrompt(false);setClipboardStatus('');setOpenId(id);};
+  const open=(id:TrendSectionId)=>{setItemIndex(0);setShowPrompt(false);setClipboardStatus('');setOpenId(id);const section=trendSections.find(s=>s.id===id);setEditablePrompt(section?.items[0]?.prompt[lang]||'');};
   useEffect(()=>{const outside=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpenId(null);};document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside);},[]);
   useEffect(()=>{setOpenId(null);},[lang]);
   useEffect(()=>{if(openId&&focusFirst.current){focusFirst.current=false;firstItem.current?.focus();}},[openId]);
@@ -54,14 +56,14 @@ export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,o
       {activeSection&&activeItem&&<div className="lai-trends-panel">
         <section className="lai-trends-items" dir={ar?'rtl':'ltr'} aria-label={activeSection.title[lang]}>
           <div className="lai-trends-section-label">{activeSection.title[lang]}</div>
-          {activeSection.items.map((item,index)=><button key={item.id} ref={index===0?firstItem:undefined} type="button" className="lai-trends-item" aria-pressed={index===itemIndex} onClick={()=>{setItemIndex(index);setShowPrompt(false);setClipboardStatus('');}} onKeyDown={event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const items=(event.currentTarget.parentElement as HTMLElement | null)?.querySelectorAll<HTMLButtonElement>('.lai-trends-item');if(items)items[(index+(event.key==='ArrowDown'?1:items.length-1))%items.length].focus();}}}><span>{item.title[lang]}</span><ChevronRight size={14} aria-hidden="true" /></button>)}
+          {activeSection.items.map((item,index)=><button key={item.id} ref={index===0?firstItem:undefined} type="button" className="lai-trends-item" aria-pressed={index===itemIndex} onClick={()=>{setItemIndex(index);setEditablePrompt(item.prompt[lang]);setShowPrompt(false);setClipboardStatus('');}} onKeyDown={event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const items=(event.currentTarget.parentElement as HTMLElement | null)?.querySelectorAll<HTMLButtonElement>('.lai-trends-item');if(items)items[(index+(event.key==='ArrowDown'?1:items.length-1))%items.length].focus();}}}><span>{item.title[lang]}</span><ChevronRight size={14} aria-hidden="true" /></button>)}
         </section>
         <section className="lai-trends-preview" dir={ar?'rtl':'ltr'} aria-label={t('Selected idea preview','معاينة الفكرة')}>
           <button type="button" className="lai-trends-close" aria-label={t('Close trends','اقفل الترندات')} onClick={()=>{const index=trendSections.findIndex(s=>s.id===openId);close();triggers.current[index]?.focus();}}><X size={15}/></button>
           <TrendArtwork section={activeSection.id} index={itemIndex} label={activeItem.title[lang]}/>
           <div className="lai-trends-preview-copy" aria-live="polite"><h2>{activeItem.title[lang]}</h2><p>{activeItem.description[lang]}</p></div>
           <button type="button" className="lai-trends-preview-button" aria-expanded={showPrompt} aria-controls={`${panelId}-prompt`} onClick={()=>setShowPrompt(!showPrompt)}>{t('Preview prompt','شوف البرومبت')}<ChevronDown size={14}/></button>
-          <div id={`${panelId}-prompt`} className="lai-trends-prompt" hidden={!showPrompt}><p>{activeItem.prompt[lang]}</p><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(activeItem.prompt[lang]);setClipboardStatus(t('Copied','اتنسخ'));}catch{setClipboardStatus(t('Select the text and copy it manually.','حدد النص وانسخه بإيدك.'));}}}><Clipboard size={14}/>{t('Copy example','انسخ المثال')}</button><span role="status">{clipboardStatus}</span></div>
+          <div id={`${panelId}-prompt`} className="lai-trends-prompt" hidden={!showPrompt}><label htmlFor={`${panelId}-editor`}>{t('Edit before opening chat','عدّل البرومبت قبل فتح الشات')}</label><textarea id={`${panelId}-editor`} value={editablePrompt} onChange={event=>setEditablePrompt(event.target.value)} rows={5} maxLength={5000}/><button type="button" disabled={!editablePrompt.trim()} onClick={()=>{onUsePrompt(editablePrompt,activeItem.title[lang]);close();}}>{t('Continue in chat','كمل في الشات')}</button><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(editablePrompt);setClipboardStatus(t('Copied','اتنسخ'));}catch{setClipboardStatus(t('Select the text and copy it manually.','حدد النص وانسخه بإيدك.'));}}}><Clipboard size={14}/>{t('Copy example','انسخ المثال')}</button><span role="status">{clipboardStatus}</span></div>
         </section>
       </div>}
     </div>
