@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Clipboard, X, Image, Video, Share2, Sparkles, Compass } from 'lucide-react';
+import { ChevronDown, Clipboard, X, Image, Video, Share2, Sparkles, Compass, BookOpen, Pencil, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import { trendSections, type TrendSectionId } from '../data/lookersAiTrends';
 import './LookersAIHeader.css';
@@ -42,7 +42,7 @@ export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,o
   const short:Record<TrendSectionId,string[]>={image:['Images','صور AI'],video:['Videos','فيديو AI'],social:['Social','سوشيال'],prompt:['Prompts','برومبت'],creative:['Explore','تجارب']};
   return <header ref={root} className="lai-trends-header" aria-label={t('Lookers AI navigation','تنقل Lookers AI')} onBlur={event=>{if(event.relatedTarget&&!event.currentTarget.contains(event.relatedTarget as Node))close();}} onKeyDown={event=>{if(event.key==='Escape'&&openId){event.preventDefault();const index=trendSections.findIndex(s=>s.id===openId);close();triggers.current[index]?.focus();}}}>
     <div className="lai-trends-topline" dir="ltr">
-      <button type="button" className="lai-trends-library" aria-expanded={libraryOpen} onClick={()=>{close();onLibraryToggle();}}>{t('Prompt Library','مكتبة البرومبت')}</button>
+      <button type="button" className="lai-trends-library" aria-expanded={libraryOpen} onClick={()=>{close();onLibraryToggle();}}><BookOpen size={15} aria-hidden="true"/>{t('Prompt Library','مكتبة البرومبت')}</button>
       <nav className="lai-trends-nav" dir={ar?'rtl':'ltr'} aria-label={t('Creative trends','الترندات الإبداعية')}>
         {trendSections.map((section,index)=><button key={section.id} ref={el=>{triggers.current[index]=el;}} type="button" className="lai-trends-headline" aria-label={section.title[lang]} aria-expanded={openId===section.id} aria-controls={panelId} onClick={()=>openId===section.id?close():open(section.id)} onKeyDown={event=>{
           if(event.key==='ArrowDown'){event.preventDefault();if(openId===section.id)firstItem.current?.focus();else{focusFirst.current=true;open(section.id);}}
@@ -52,19 +52,30 @@ export default function LookersAIHeader({libraryOpen,onLibraryToggle,toolsOpen,o
       <button type="button" className="lai-trends-tools" aria-expanded={toolsOpen} onClick={()=>{close();onToolsToggle();}}>{t('AI tools','أدوات AI')}</button>
     </div>
     <div id={panelId} className="lai-trends-popover" hidden={!activeSection}>
-      {activeSection&&activeItem&&<div className="lai-trends-panel">
-        <section className="lai-trends-items" dir={ar?'rtl':'ltr'} aria-label={activeSection.title[lang]}>
-          <div className="lai-trends-section-label">{activeSection.title[lang]}</div>
-          {activeSection.items.map((item,index)=><button key={item.id} ref={index===0?firstItem:undefined} type="button" className="lai-trends-item" aria-pressed={index===itemIndex} onClick={()=>{setItemIndex(index);setEditablePrompt(item.prompt[lang]);setShowPrompt(false);setClipboardStatus('');}} onKeyDown={event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const items=(event.currentTarget.parentElement as HTMLElement | null)?.querySelectorAll<HTMLButtonElement>('.lai-trends-item');if(items)items[(index+(event.key==='ArrowDown'?1:items.length-1))%items.length].focus();}}}><span>{item.title[lang]}</span><ChevronRight size={14} aria-hidden="true" /></button>)}
-        </section>
-        <section className="lai-trends-preview" dir={ar?'rtl':'ltr'} aria-label={t('Selected idea preview','معاينة الفكرة')}>
-          <button type="button" className="lai-trends-close" aria-label={t('Close trends','اقفل الترندات')} onClick={()=>{const index=trendSections.findIndex(s=>s.id===openId);close();triggers.current[index]?.focus();}}><X size={15}/></button>
-          <TrendArtwork section={activeSection.id} index={itemIndex} label={activeItem.title[lang]}/>
-          <div className="lai-trends-preview-copy" aria-live="polite"><h2>{activeItem.title[lang]}</h2><p>{activeItem.description[lang]}</p></div>
-          <button type="button" className="lai-trends-preview-button" aria-expanded={showPrompt} aria-controls={`${panelId}-prompt`} onClick={()=>setShowPrompt(!showPrompt)}>{t('Preview prompt','شوف البرومبت')}<ChevronDown size={14}/></button>
-          <div id={`${panelId}-prompt`} className="lai-trends-prompt" hidden={!showPrompt}><label htmlFor={`${panelId}-editor`}>{t('Edit before opening chat','عدّل البرومبت قبل فتح الشات')}</label><textarea id={`${panelId}-editor`} value={editablePrompt} onChange={event=>setEditablePrompt(event.target.value)} rows={5} maxLength={5000}/><button type="button" disabled={!editablePrompt.trim()} onClick={()=>{onUsePrompt(editablePrompt,activeItem.title[lang]);close();}}>{t('Continue in chat','كمل في الشات')}</button><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(editablePrompt);setClipboardStatus(t('Copied','اتنسخ'));}catch{setClipboardStatus(t('Select the text and copy it manually.','حدد النص وانسخه بإيدك.'));}}}><Clipboard size={14}/>{t('Copy example','انسخ المثال')}</button><span role="status">{clipboardStatus}</span></div>
-        </section>
-      </div>}
+      {activeSection&&activeItem&&<section className="lai-trends-panel" dir={ar?'rtl':'ltr'} aria-label={activeSection.title[lang]}>
+        <div className="lai-trends-panel-heading">
+          <div><span className="lai-trends-eyebrow">{t('LOOKERS AI / CURATED IDEAS','LOOKERS AI / أفكار مختارة')}</span><h2><Sparkles size={16}/>{activeSection.title[lang]}</h2></div>
+          <button type="button" className="lai-trends-close" aria-label={t('Close','إغلاق')} onClick={close}><X size={17}/></button>
+        </div>
+        <div className="lai-trends-card-grid">
+          {activeSection.items.map((item,index)=><article key={item.id} className="lai-trends-card">
+            <button ref={index===0?firstItem:undefined} type="button" className="lai-trends-art-button" onClick={()=>{setItemIndex(index);setEditablePrompt(item.prompt[lang]);setShowPrompt(true);}} aria-label={t('Edit prompt: ','تعديل البرومبت: ')+item.title[lang]}>
+              <TrendArtwork section={activeSection.id} index={index} label={item.title[lang]}/>
+            </button>
+            <div className="lai-trends-card-body"><h3>{item.title[lang]}</h3><p>{item.description[lang]}</p>
+              <div className="lai-trends-card-actions">
+                <button type="button" className="lai-trends-edit" onClick={()=>{setItemIndex(index);setEditablePrompt(item.prompt[lang]);setShowPrompt(true);}} aria-label={t('Edit ','تعديل ')+item.title[lang]}><Pencil size={14}/></button>
+                <button type="button" className="lai-trends-use" onClick={()=>{setItemIndex(index);setEditablePrompt(item.prompt[lang]);setShowPrompt(true);}}>{t('Edit & use in chat','عدّل واستخدم في الشات')}<ArrowRight size={14}/></button>
+              </div>
+            </div>
+          </article>)}
+        </div>
+        {showPrompt&&<div className="lai-trends-editor" id={`${panelId}-prompt`}>
+          <div className="lai-trends-editor-heading"><label htmlFor={`${panelId}-editor`}>{t('Edit before opening chat: ','عدّل قبل فتح الشات: ')}{activeItem.title[lang]}</label><button type="button" onClick={()=>setShowPrompt(false)} aria-label={t('Close editor','إغلاق المحرر')}><X size={15}/></button></div>
+          <textarea id={`${panelId}-editor`} value={editablePrompt} onChange={event=>setEditablePrompt(event.target.value)} rows={3} maxLength={5000}/>
+          <div className="lai-trends-editor-actions"><button type="button" disabled={!editablePrompt.trim()} onClick={()=>{onUsePrompt(editablePrompt,activeItem.title[lang]);close();}}>{t('Continue in existing AI chat','تابع في شات الذكاء الاصطناعي')}<ArrowRight size={14}/></button><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(editablePrompt);setClipboardStatus(t('Copied','تم النسخ'));}catch{setClipboardStatus(t('Copy manually','انسخ يدويًا'));}}}><Clipboard size={14}/>{t('Copy','نسخ')}</button><span role="status">{clipboardStatus}</span></div>
+        </div>}
+      </section>}
     </div>
   </header>;
 }
