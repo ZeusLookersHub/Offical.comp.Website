@@ -47,3 +47,42 @@
 @media(max-width:730px){.lai-trends-header{width:calc(100% - 20px)}.lai-trends-topline{grid-template-columns:90px minmax(0,1fr) 80px;padding:5px 7px}.lai-trends-header .lai-trends-headline{font-size:10px;padding:7px 3px}.lai-trends-nav{gap:3px}}
 @media(max-width:560px){.lai-trends-topline{grid-template-columns:1fr 1fr}.lai-trends-panel{grid-template-columns:1fr}.lai-trends-header .lai-trends-headline{min-height:40px}}
 @media(prefers-reduced-motion:reduce),(update:slow){.lai-trends-topline:before{animation:none}.lai-trends-panel{animation:none}.lai-trends-header *{transition:none!important}}
+
+
+/* Compact galaxy navigation: preserves the underlying orbital and chat layouts. */
+.lai-trends-header{max-width:850px;width:calc(100% - 36px);margin-bottom:10px}
+.lai-trends-topline{min-height:40px;padding:3px 9px;grid-template-columns:116px minmax(0,1fr) 72px;border-color:#8565a980;background:linear-gradient(100deg,#07111de8,#100c20ee 54%,#07121be8);box-shadow:0 0 12px #9d58d122,inset 0 1px #ffffff10}
+.lai-trends-header .lai-trends-headline{font-size:11px;padding:7px 5px;gap:4px;transform:none}
+.lai-trends-header .lai-trends-headline[aria-expanded=true]{transform:none}
+.lai-trends-nav{gap:6px}
+.lai-trends-library,.lai-trends-tools{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:29px;padding:5px 9px;font-size:10px!important}
+.lai-trends-library[aria-expanded=true]{border-color:#edbc65;color:#ffe0a0;box-shadow:0 0 13px #d79c4855}
+.lai-trends-popover{top:calc(100% + 7px);left:50%;right:auto;inset-inline:auto;width:min(100%,750px);transform:translateX(-50%)}
+.lai-trends-panel{display:block;padding:13px 15px 15px;border-radius:16px;border:1px solid #8e58ad;background:linear-gradient(125deg,#101020f9,#080d1bf9);box-shadow:0 15px 40px #000b,0 0 13px #9a50cb44}
+.lai-trends-panel-heading{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:11px}
+.lai-trends-eyebrow{font-size:9px;letter-spacing:.13em;color:#a5a5b7}
+.lai-trends-panel-heading h2{display:flex;align-items:center;gap:8px;margin:4px 0 0;font-size:15px;color:#f4e9ff}
+.lai-trends-panel-heading h2 svg{color:#e1b66d}
+.lai-trends-panel .lai-trends-close{position:static;flex:none;width:28px;height:28px;border-radius:8px;color:#d8cde4}
+.lai-trends-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.lai-trends-card{overflow:hidden;min-width:0;border:1px solid #79549d9c;border-radius:12px;background:#101322;box-shadow:inset 0 1px #ffffff0a}
+.lai-trends-art-button{display:block;width:100%;padding:0;border:0;background:#0b1021;cursor:pointer}
+.lai-trends-art-button .lai-trend-art{width:100%;height:90px;max-height:none;object-fit:cover;border-radius:0}
+.lai-trends-card-body{padding:9px}
+.lai-trends-card h3{font-size:12px;line-height:1.35;margin:0 0 4px;color:#f8f0ff}
+.lai-trends-card p{font-size:10px;line-height:1.45;min-height:29px;max-height:30px;overflow:hidden;color:#b6b5c6;margin:0 0 9px}
+.lai-trends-card-actions{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.lai-trends-edit{display:grid;place-items:center;width:29px;height:28px;border:1px solid #ffffff25;border-radius:8px;background:#202138;color:#d7c3ee}
+.lai-trends-use{display:flex;align-items:center;justify-content:center;gap:5px;min-height:28px;padding:5px 8px;border:1px solid #b88a42;border-radius:8px;background:#332315;color:#ffe3aa;font-size:10px!important}
+.lai-trends-editor{margin-top:11px;padding:11px;border:1px solid #73529b;border-radius:10px;background:#101324}
+.lai-trends-editor-heading{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.lai-trends-editor-heading label{font-size:11px;color:#f2e3ff}
+.lai-trends-editor-heading button{border:0;background:transparent;color:#d5c8e4}
+.lai-trends-editor textarea{display:block;width:100%;box-sizing:border-box;resize:vertical;min-height:72px;margin:8px 0;padding:9px;border:1px solid #79549d;border-radius:8px;background:#080c18;color:#f9f3ff;font:inherit;font-size:12px;line-height:1.5}
+.lai-trends-editor-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.lai-trends-editor-actions button{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid #9e7a4b;border-radius:8px;background:#322516;color:#fce0ad;font-size:11px!important}
+.lai-trends-editor-actions button:disabled{opacity:.45;cursor:not-allowed}
+.lai-trends-editor-actions [role=status]{font-size:10px;color:#d6c6e3}
+@media(max-width:730px){.lai-trends-header{width:calc(100% - 20px)}.lai-trends-topline{grid-template-columns:95px minmax(0,1fr) 66px;padding:3px 5px}.lai-trends-nav{gap:2px}.lai-trends-header .lai-trends-headline{font-size:10px;padding:6px 2px}.lai-trends-library,.lai-trends-tools{font-size:9px!important;padding:5px}}
+@media(max-width:560px){.lai-trends-header{max-width:calc(100% - 16px)}.lai-trends-topline{grid-template-columns:1fr 1fr}.lai-trends-nav{grid-column:1/-1;grid-row:2;justify-content:space-between}.lai-trends-header .lai-trends-headline{font-size:10px;min-height:30px}.lai-trends-card-grid{grid-template-columns:1fr;gap:7px}.lai-trends-card{display:grid;grid-template-columns:88px minmax(0,1fr)}.lai-trends-art-button .lai-trend-art{height:100%;min-height:92px}.lai-trends-card p{min-height:0;max-height:28px;margin-bottom:5px}.lai-trends-panel{padding:11px}.lai-trends-popover{width:100%}}
+@media(prefers-reduced-motion:reduce),(update:slow){.lai-trends-topline:before{animation:none}.lai-trends-panel{animation:none}.lai-trends-card *{transition:none!important}}
