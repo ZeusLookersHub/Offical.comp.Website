@@ -1,4 +1,3 @@
-import type { ProjectDraft } from '../data/lookersAi';
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight, Clipboard, X, Image, Video, Share2, Sparkles, Compass } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
