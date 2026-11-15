@@ -32,7 +32,8 @@
     "test:feedback": "esbuild tests/lookers-phase1-feedback.test.ts --bundle --platform=node --format=esm --outfile=.lookers-feedback.test.mjs && node --test .lookers-feedback.test.mjs",
     "test:feedback-journeys": "node scripts/phase1-feedback-qa.mjs",
     "test:expanded": "esbuild tests/lookers-expanded-orbits.test.ts --bundle --platform=node --format=esm --outfile=.lookers-expanded.test.mjs && node --test .lookers-expanded.test.mjs",
-    "test:expanded-journeys": "node scripts/expanded-orbits-qa.mjs"
+    "test:expanded-journeys": "node scripts/expanded-orbits-qa.mjs",
+    "test:mission-engine": "esbuild tests/mission-engine.test.ts --bundle --platform=node --format=esm --outfile=.lookers-mission-engine.test.mjs --log-level=warning && node --test .lookers-mission-engine.test.mjs"
   },
   "dependencies": {
     "@fontsource/almarai": "5.3.0",
