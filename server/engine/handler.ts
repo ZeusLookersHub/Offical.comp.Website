@@ -4,6 +4,8 @@ import { compose, extract, ideas, sanitizeSession, type BlueprintLookup } from '
 import { ModelError, type JsonModel } from './model.ts';
 
 const DEFAULT_ORIGINS = ['https://lookershub.com', 'https://www.lookershub.com', 'http://localhost:3000', 'http://localhost:5173'];
+/** Vercel previews of this team only (the scope suffix cannot be claimed by anyone else). */
+const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/;
 const MAX_BODY = 60000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -33,8 +35,9 @@ export function createEngineHandler(options: { env: (name: string) => string | u
   const transport = options.transport ?? fetch;
   const blueprintById = options.blueprints;
   const allowed = new Set([...DEFAULT_ORIGINS, ...(options.env('ENGINE_ALLOWED_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)]);
+  const isAllowed = (origin: string) => allowed.has(origin) || PREVIEW_ORIGIN.test(origin);
   const cors = (origin: string | null) => ({
-    ...(origin && allowed.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
+    ...(origin && isAllowed(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS', Vary: 'Origin',
   });
@@ -44,7 +47,7 @@ export function createEngineHandler(options: { env: (name: string) => string | u
 
   return async (req: Request): Promise<Response> => {
     const origin = req.headers.get('Origin');
-    if (origin && !allowed.has(origin)) return json({ error: 'origin_not_allowed' }, 403, null);
+    if (origin && !isAllowed(origin)) return json({ error: 'origin_not_allowed' }, 403, null);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
     if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, origin);
     if (Number(req.headers.get('content-length') || 0) > MAX_BODY) return json({ error: 'request_too_large' }, 413, origin);

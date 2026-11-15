@@ -79,6 +79,8 @@ test('handler: anonymous auth, origin and op routing', async () => {
   assert.equal((await post({ op: 'compose' }, { Origin: 'https://lookershub.com' })).status, 401);
   assert.equal((await post({ op: 'compose' }, { Authorization: 'Bearer t', Origin: 'https://evil.example' })).status, 403);
   assert.equal((await post({ op: 'nope' })).status, 400);
+  assert.equal((await post({ op: 'nope' }, { Authorization: 'Bearer t', Origin: 'https://offical-comp-website-2e784yao4-zeuslookershubs-projects.vercel.app' })).status, 400, 'team preview allowed');
+  assert.equal((await post({ op: 'nope' }, { Authorization: 'Bearer t', Origin: 'https://evil-zeuslookershubs-projects.vercel.app.evil.com' })).status, 403);
   const res = await post({ op: 'compose', session: confirmedPerfume() });
   assert.equal(res.status, 200);
   const data = await res.json();
