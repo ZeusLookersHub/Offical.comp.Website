@@ -59,11 +59,13 @@ export function levenshtein(a: string, b: string): number {
 export function nearMisses(text: string, target: string): string[] {
   const key = target.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
   if (key.length < 4) return [];
-  const tokens = text.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  // Exact occurrences are correct; only what remains can be a misspelling.
+  const tokens = text.split(target).join(' \u0000 ').split(/[^\p{L}\p{N}\u0000]+/u).filter(Boolean);
   const limit = Math.max(1, Math.floor(key.length * 0.4));
   const found = new Set<string>();
   for (let i = 0; i < tokens.length; i++) {
     for (let n = 1; n <= 3 && i + n <= tokens.length; n++) {
+      if (tokens.slice(i, i + n).includes('\u0000')) break;
       const raw = tokens.slice(i, i + n).join(' ');
       const joined = raw.toLowerCase().replace(/\s/g, '');
       if (joined === key || joined[0] !== key[0]) continue;

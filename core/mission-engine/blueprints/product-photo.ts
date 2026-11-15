@@ -24,7 +24,7 @@ export const productPhoto: Blueprint = {
   questionBudget: 3,
   slots: [
     {
-      id: 'product', kind: 'longtext', importance: 'critical', maxLength: 600,
+      id: 'product', kind: 'longtext', layer: 'understanding', importance: 'critical', maxLength: 600,
       label: c('Product', 'المنتج'),
       question: c('What is the product, and what does it look like?', 'المنتج إيه، وشكله عامل إزاي؟'),
       why: c('So the image shows your exact product, not something similar.', 'عشان الصورة تطلع منتجك بالظبط، مش حاجة شبهه.'),
@@ -36,7 +36,7 @@ export const productPhoto: Blueprint = {
       patterns: [{ regex: '(?:product|المنتج)\\s*[:：]\\s*([^\\n.]{3,200})', group: 1 }],
     },
     {
-      id: 'brandName', kind: 'exact', importance: 'important', maxLength: 80,
+      id: 'brandName', kind: 'exact', layer: 'control', importance: 'important', maxLength: 80,
       label: c('Brand name on the product', 'اسم البراند على المنتج'),
       question: c('Is a brand name visible on the product? Write it exactly as on the label.', 'في اسم براند باين على المنتج؟ اكتبه بالحرف زي ما هو على الليبل.'),
       why: c('We copy it letter by letter — image tools often misspell brand names.', 'هننقله حرف بحرف، لأن أدوات الصور ساعات بتغلط في أسماء البراندات.'),
@@ -50,7 +50,7 @@ export const productPhoto: Blueprint = {
       defaults: [{ value: 'none', reason: c('No brand text unless you write it.', 'مش هنكتب اسم براند غير لو انت كتبته.') }],
     },
     {
-      id: 'usage', kind: 'single', importance: 'important',
+      id: 'usage', kind: 'single', layer: 'understanding', importance: 'important',
       label: c('Where it will be used', 'هتتستخدم فين'),
       question: c('Where will you use the image?', 'هتستخدم الصورة فين؟'),
       why: c('This decides the size and how much space the product gets.', 'ده بيحدد المقاس والمساحة اللي المنتج هياخدها.'),
@@ -66,23 +66,23 @@ export const productPhoto: Blueprint = {
       defaults: [{ value: 'ig-post', reason: c('Most product shots go to social posts.', 'أغلب صور المنتجات بتنزل بوستات سوشيال.') }],
     },
     {
-      id: 'style', kind: 'single', importance: 'important',
+      id: 'style', kind: 'single', layer: 'intelligence', importance: 'important',
       label: c('Mood', 'الإحساس'),
       question: c('What mood do you want?', 'تحب إحساس الصورة يبقى إزاي؟'),
       why: c('The mood sets the light, background and colours.', 'الإحساس بيحدد الإضاءة والخلفية والألوان.'),
       example: c('Luxury, dark and dramatic.', 'فخم وغامق ودرامي.'),
       options: [
-        { value: 'luxury-dark', label: c('Luxury · dark & dramatic', 'فخم · غامق ودرامي'), keywords: ['luxury', 'premium', 'dramatic', 'فاخر', 'فاخرة', 'فخم', 'فخمة', 'غامق'] },
-        { value: 'clean-studio', label: c('Clean studio · white background', 'ستوديو نضيف · خلفية بيضا'), keywords: ['clean', 'white background', 'studio', 'خلفية بيضا', 'خلفية بيضاء', 'ستوديو'] },
-        { value: 'lifestyle', label: c('Lifestyle · in real use', 'لايف ستايل · في الاستخدام'), keywords: ['lifestyle', 'in use', 'real life', 'لايف ستايل', 'دافي'] },
-        { value: 'natural', label: c('Natural · plants, stone, water', 'طبيعي · زرع وحجر ومية'), keywords: ['natural', 'nature', 'organic', 'طبيعي', 'طبيعة', 'ورد'] },
-        { value: 'bold-color', label: c('Bold colour pop', 'ألوان جريئة'), keywords: ['bold', 'colorful', 'colourful', 'vibrant', 'جريئة', 'ملون', 'ملونة'] },
-        { value: 'minimal-pastel', label: c('Soft minimal pastel', 'هادي · ألوان باستيل'), keywords: ['pastel', 'minimal', 'soft', 'باستيل', 'هادي', 'هادية'] },
+        { value: 'luxury-dark', label: c('Luxury · dark & dramatic', 'فخم · غامق ودرامي'), keywords: ['luxury', 'premium', 'dramatic', 'فاخر', 'فاخرة', 'فخم', 'فخمة', 'غامق'], visual: { media: 'image', asset: '/assets/lookers-ai/examples/product-photo/style-luxury-dark.webp', description: c('Deep shadows, a single rim light tracing the product edges, glossy black or marble surface, rich reflections.', 'ضل غامق، ونور جانبي واحد بيرسم حواف المنتج، وسطح إسود لامع أو رخام، وانعكاسات غنية.'), generate: 'luxury perfume bottle on black marble, single rim light, deep shadows, glossy reflections, product photography' } },
+        { value: 'clean-studio', label: c('Clean studio · white background', 'ستوديو نضيف · خلفية بيضا'), keywords: ['clean', 'white background', 'studio', 'خلفية بيضا', 'خلفية بيضاء', 'ستوديو'], visual: { media: 'image', asset: '/assets/lookers-ai/examples/product-photo/style-clean-studio.webp', description: c('Pure white or light grey background, soft even light, gentle shadow under the product, every detail sharp.', 'خلفية بيضا أو رمادي فاتح، ونور ناعم متساوي، وضل خفيف تحت المنتج، وكل التفاصيل واضحة.'), generate: 'skincare bottle on seamless white background, soft even studio light, subtle contact shadow, e-commerce product photo' } },
+        { value: 'lifestyle', label: c('Lifestyle · in real use', 'لايف ستايل · في الاستخدام'), keywords: ['lifestyle', 'in use', 'real life', 'لايف ستايل', 'دافي'], visual: { media: 'image', asset: '/assets/lookers-ai/examples/product-photo/style-lifestyle.webp', description: c('The product in a real moment of use — a hand, a table, a morning scene — warm natural light, shallow depth of field.', 'المنتج في لحظة استخدام حقيقية: إيد، أو ترابيزة، أو صباحية، بنور طبيعي دافي وخلفية مغبشة.'), generate: 'coffee bag on a wooden breakfast table, morning window light, steam from a cup, lifestyle product photo, shallow depth of field' } },
+        { value: 'natural', label: c('Natural · plants, stone, water', 'طبيعي · زرع وحجر ومية'), keywords: ['natural', 'nature', 'organic', 'طبيعي', 'طبيعة', 'ورد'], visual: { media: 'image', asset: '/assets/lookers-ai/examples/product-photo/style-natural.webp', description: c('Organic setting: leaves, stone, sand or water drops; soft daylight; earthy palette.', 'مشهد طبيعي: ورق شجر، أو حجر، أو رمل، أو نقط مية، بنور نهار ناعم وألوان ترابية.'), generate: 'natural cosmetics jar on wet stone with green leaves and water droplets, soft daylight, earthy tones' } },
+        { value: 'bold-color', label: c('Bold colour pop', 'ألوان جريئة'), keywords: ['bold', 'colorful', 'colourful', 'vibrant', 'جريئة', 'ملون', 'ملونة'], visual: { media: 'image', asset: '/assets/lookers-ai/examples/product-photo/style-bold-color.webp', description: c('Saturated solid background in one or two strong colours, hard light, graphic shadows, high energy.', 'خلفية بلون واحد أو اتنين جامدين، ونور حاد، وضلال واضحة، وطاقة عالية.'), generate: 'sneaker on a saturated orange background with a hard light and graphic blue shadow, bold commercial product photo' } },
+        { value: 'minimal-pastel', label: c('Soft minimal pastel', 'هادي · ألوان باستيل'), keywords: ['pastel', 'minimal', 'soft', 'باستيل', 'هادي', 'هادية'], visual: { media: 'image', asset: '/assets/lookers-ai/examples/product-photo/style-minimal-pastel.webp', description: c('Soft pastel backdrop, simple geometric props, airy diffused light, calm and clean.', 'خلفية باستيل هادية، وأشكال هندسية بسيطة، ونور منتشر ناعم، وإحساس هادي ونضيف.'), generate: 'minimal pastel product photo, lipstick on a pale pink cylinder podium, soft diffused light, airy and calm' } },
       ],
       defaults: [{ value: 'clean-studio', reason: c('Clean studio light shows the product clearly.', 'إضاءة الستوديو النضيفة بتبيّن المنتج بوضوح.') }],
     },
     {
-      id: 'scene', kind: 'text', importance: 'nice', maxLength: 300,
+      id: 'scene', kind: 'text', layer: 'intelligence', importance: 'nice', maxLength: 300,
       label: c('Background and props', 'الخلفية والإكسسوارات'),
       question: c('Any specific background or props?', 'في خلفية أو حاجات معينة تحب تبان جنب المنتج؟'),
       why: c('Props tell the story; we keep them few so the product stays the hero.', 'الإكسسوارات بتحكي القصة، وهنخليها قليلة عشان المنتج يفضل البطل.'),
@@ -95,7 +95,7 @@ export const productPhoto: Blueprint = {
       defaults: [{ value: 'none', reason: c('We pick a background that fits the mood.', 'هنختار خلفية تناسب الإحساس.') }],
     },
     {
-      id: 'ratio', kind: 'single', importance: 'nice',
+      id: 'ratio', kind: 'single', layer: 'delivery', importance: 'nice',
       label: c('Size', 'المقاس'),
       question: c('Which size?', 'أنهي مقاس؟'),
       why: c('The right size avoids cropping your product later.', 'المقاس الصح بيمنع إن المنتج يتقص بعدين.'),
@@ -117,7 +117,7 @@ export const productPhoto: Blueprint = {
       ],
     },
     {
-      id: 'exactText', kind: 'exact', importance: 'nice', maxLength: 120,
+      id: 'exactText', kind: 'exact', layer: 'control', importance: 'nice', maxLength: 120,
       label: c('Words on the image', 'كلام على الصورة'),
       question: c('Any words that must appear on the image itself (not the label)? Write them exactly.', 'في كلام لازم يظهر على الصورة نفسها (غير الليبل)؟ اكتبه بالحرف.'),
       why: c('Image tools often misspell words, so we only add text you write.', 'أدوات الصور بتغلط في الكتابة، فمش هنضيف غير الكلام اللي انت تكتبه.'),
@@ -127,7 +127,7 @@ export const productPhoto: Blueprint = {
       defaults: [{ value: 'none', reason: c('No text on the image — add it later in Canva, or write it here.', 'من غير كلام على الصورة. ممكن تضيفه بعدين في Canva، أو تكتبه هنا.') }],
     },
     {
-      id: 'avoid', kind: 'text', importance: 'nice', role: 'exclusion', maxLength: 300,
+      id: 'avoid', kind: 'text', layer: 'control', importance: 'nice', role: 'exclusion', maxLength: 300,
       label: c('Avoid', 'ممنوع'),
       question: c('Anything that must not appear?', 'في حاجة مش عايزها تظهر خالص؟'),
       why: c('We exclude it explicitly so the tool does not add it.', 'هنمنعها بوضوح عشان الأداة ما تضيفهاش.'),
@@ -140,7 +140,7 @@ export const productPhoto: Blueprint = {
       defaults: [{ value: 'none', reason: c('Nothing extra to exclude.', 'مفيش حاجة زيادة نمنعها.') }],
     },
     {
-      id: 'tool', kind: 'single', importance: 'nice', role: 'target-tool',
+      id: 'tool', kind: 'single', layer: 'delivery', importance: 'nice', role: 'target-tool',
       label: c('Target tool', 'الأداة'),
       question: c('Which tool will you use?', 'هتستخدم أنهي أداة؟'),
       why: c('Each tool reads prompts differently.', 'كل أداة بتفهم البرومبت بطريقة مختلفة.'),
@@ -157,7 +157,7 @@ export const productPhoto: Blueprint = {
       defaults: [{ value: 'universal', reason: c('One universal prompt plus ready versions for the main tools.', 'برومبت عام ومعاه نسخ جاهزة لأشهر الأدوات.') }],
     },
     {
-      id: 'reference', kind: 'single', importance: 'nice',
+      id: 'reference', kind: 'single', layer: 'understanding', importance: 'nice',
       label: c('Product photo reference', 'صورة مرجعية للمنتج'),
       question: c('Will you upload a real photo of the product as a reference?', 'هترفع صورة حقيقية للمنتج كمرجع؟'),
       why: c('A real photo keeps the product shape and label accurate.', 'الصورة الحقيقية بتحافظ على شكل المنتج والليبل.'),
@@ -195,23 +195,40 @@ export const productPhoto: Blueprint = {
   ],
   tools: [
     { id: 'universal', label: 'Universal', notes: 'Descriptive prose, no tool syntax.' },
-    { id: 'midjourney', label: 'Midjourney', notes: 'Prose then parameters: --ar <ratio> --style raw --v 7. Negative goes in --no.' },
+    { id: 'midjourney', label: 'Midjourney', notes: 'Prose then parameters: --ar <ratio> --style raw (no version flag). Negative goes in --no.' },
     { id: 'chatgpt', label: 'ChatGPT image', notes: 'Conversational instruction: "Create a photo of…", state the size in words.' },
     { id: 'flux', label: 'Flux', notes: 'Natural detailed prose; quoted label text is supported.' },
     { id: 'firefly', label: 'Adobe Firefly', notes: 'Prose, photo content type, avoid brand of other companies.' },
     { id: 'ideogram', label: 'Ideogram', notes: 'Best for in-image text; put exact text in quotes.' },
     { id: 'gemini', label: 'Gemini / Imagen', notes: 'Prose with camera and lighting terms.' },
   ],
-  composeRules: [
-    'Write prompt and variants in English even when the user writes Arabic. Verbatim values stay exactly as given (they may be Arabic).',
-    'The product from brief.product is the hero: describe shape, material, colour, finish and packaging precisely; sharp focus, correct proportions.',
-    'Turn the style into concrete lighting, background, palette, lens and composition. Use scene if given; otherwise choose a background that fits the style.',
-    'If brandName is given, mention it once as the label printed on the product, in double quotes (label reads "BRAND"). Add no other words unless exactText is given.',
-    'If exactText is given: textOverlay.mode = "in-image", textOverlay.text = exactText verbatim, and mention it once in double quotes with its placement. Otherwise textOverlay.mode = "add-later" for ad, web-banner or print usage and "none" for the rest; leave clean space for text when add-later; the negative must exclude text, letters, watermark and extra logos.',
-    'params.aspectRatio = ratio exactly. Never write the ratio, sizes or tool names inside prompt.',
-    'variants: include "universal" and the chosen tool; when tool is universal include every listed tool. Follow each tool note.',
-    'If reference = yes, every variant starts with how to use the uploaded product photo as the image reference and keeps the product, label and colours unchanged.',
-    'Respect avoid as hard exclusions in negative.',
-    'checklist: 4 to 6 concrete checks for the generated image (brand spelling, product shape, colours, text, crop), in the user language. title and summary in the user language (Egyptian Arabic for ar).',
-  ],
+  role: 'Senior product photographer and prompt engineer for AI image tools.',
+  strategy: {
+    understanding: [
+      'brief.product is the hero subject: keep its real shape, material, colour, finish and packaging exactly as described.',
+      'usage tells you where the image lives (feed, story, ad, banner, store listing, print); compose for that placement.',
+      'If reference = yes, the user will upload a real product photo: every variant starts with how to use it as the image reference and keeps product, label and colours unchanged.',
+    ],
+    intelligence: [
+      'Translate style (see its label) into concrete lighting, background, palette, lens and composition; use scene if given, otherwise pick props that support the mood and keep them few.',
+      'Order the prompt: subject and product details, then setting, then light, then camera/lens, then mood. Product sharp, correctly proportioned, centred or on a clear third.',
+    ],
+    control: [
+      'If brandName is given, mention it once as the label printed on the product, in double quotes (label reads "BRAND"). Add no other words unless exactText is given.',
+      'If exactText is given: textOverlay.mode = "in-image", textOverlay.text = exactText verbatim, and mention it once in double quotes with its placement.',
+      'Otherwise textOverlay.mode = "add-later" for ad, web-banner or print usage (leave clean space for text) and "none" for the rest; the negative must exclude text, letters, watermark and extra logos.',
+      'Respect avoid as hard exclusions in negative. Never show other brands.',
+    ],
+    delivery: [
+      'prompt and variants in English even when the user writes Arabic; verbatim values stay exactly as given. prompt ≤ 120 words.',
+      'params.aspectRatio = ratio exactly. Never write the ratio, sizes or tool names inside prompt.',
+      'variants: include "universal" and the chosen tool; when tool is universal include every listed tool. Follow each tool note.',
+      'checklist: 4 to 6 concrete checks for the generated image (brand spelling, product shape, colours, text, crop), in the user language. title and summary in the user language (Egyptian Arabic for ar).',
+    ],
+  },
+  examples: [{
+    good: 'Luxury product photo of a deep blue glass perfume bottle with a silver cap, label reads "DAVIDOFF", standing on black marble with scattered water drops, single rim light tracing the edges, deep shadows, 85mm lens, shallow depth of field, rich and elegant.',
+    bad: 'A beautiful high quality 4K perfume image with the text DAVIE DOVE, Instagram 4:5, Midjourney style, amazing lighting.',
+    why: 'The bad one misspells the brand, leaks size and tool names into the scene, and uses empty adjectives instead of concrete light, surface and lens.',
+  }],
 };

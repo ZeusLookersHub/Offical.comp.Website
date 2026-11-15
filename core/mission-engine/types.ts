@@ -21,9 +21,27 @@ export type Importance = 'critical' | 'important' | 'nice';
 
 export interface Condition { slot: string; equals?: SlotValueRaw; notEquals?: string; filled?: boolean }
 
+/**
+ * The four prompt layers. Every slot belongs to one; every blueprint states its rules per layer.
+ * understanding: what is wanted and from what facts · intelligence: how to decide/approach
+ * control: hard limits, verbatim values, exclusions · delivery: format, target tool, checks.
+ */
+export type LayerId = 'understanding' | 'intelligence' | 'control' | 'delivery';
+
+/** Visual example for an option: shown as a thumbnail/clip; description is the fallback and the explanation. */
+export interface OptionVisual {
+  media: 'image' | 'video' | 'layout';
+  description: Copy;
+  /** Public path (may not exist yet — see RESOURCES.md). */
+  asset?: string;
+  /** English prompt we use to produce the example asset ourselves. */
+  generate?: string;
+}
+
 export interface SlotOption {
   value: string;
   label: Copy;
+  visual?: OptionVisual;
   /** Words that, when written by the user, select this option during intake. */
   keywords?: string[];
 }
@@ -37,6 +55,7 @@ export interface SlotDefault {
 export interface Slot {
   id: string;
   kind: SlotKind;
+  layer: LayerId;
   importance: Importance;
   /** Short noun used in the brief card. */
   label: Copy;
@@ -77,7 +96,11 @@ export type Gate =
   | { id: string; kind: 'equals-slot'; slot: string; field: string; message: Copy }
   | { id: string; kind: 'no-leak'; fields: string[]; terms: string[]; slotTerms?: string[]; message: Copy }
   | { id: string; kind: 'no-invented-text'; whenEmpty: string[]; field: string; negativeField: string; message: Copy }
-  | { id: string; kind: 'latin-ratio'; field: string; min: number; exceptSlots: string[]; message: Copy };
+  | { id: string; kind: 'latin-ratio'; field: string; min: number; exceptSlots: string[]; message: Copy }
+  /** Every number (≥ 21, or with %, $, K, M…) must come from what the user wrote. */
+  | { id: string; kind: 'no-invented-numbers'; fields: string[]; message: Copy }
+  | { id: string; kind: 'array-length'; slot: string; field: string; message: Copy }
+  | { id: string; kind: 'includes-when'; when: Condition[]; field: string; anyOf: string[]; message: Copy };
 
 export interface ToolTarget { id: string; label: string; notes: string }
 
@@ -94,8 +117,11 @@ export interface Blueprint {
   output: OutputContract;
   gates: Gate[];
   tools: ToolTarget[];
-  /** Instructions for the server composer (English, model-facing). */
-  composeRules: string[];
+  /** Internal system prompt: one-line role + model-facing rules per layer (English). */
+  role: string;
+  strategy: Record<LayerId, string[]>;
+  /** Gold examples: a short excellent output and a short failing one, with why. */
+  examples?: { good: string; bad: string; why: string }[];
 }
 
 // ---------- runtime state ----------
@@ -130,10 +156,11 @@ export interface Candidate { slot: string; value: SlotValueRaw; evidence: string
 export interface QuestionView {
   slot: string;
   kind: SlotKind;
+  layer: LayerId;
   message: string;
   why: string;
   example: string;
-  options?: { value: string; label: string }[];
+  options?: { value: string; label: string; description?: string; media?: OptionVisual['media']; asset?: string }[];
   canSkip: boolean;
   skipLabel?: string;
   suggestions: string[];

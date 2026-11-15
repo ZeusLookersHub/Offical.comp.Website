@@ -31,7 +31,7 @@ export function effectiveValues(session: Session, blueprint: Blueprint): Record<
     for (const slot of blueprint.slots) {
       if (filled(values[slot.id]) || !allMatch(slot.when, values)) continue;
       const d = resolveDefault(slot, values);
-      if (d) values[slot.id] = { value: structuredClone(d.value), source: 'default', reason: d.reason };
+      if (d) values[slot.id] = { value: d.value === '@lang' ? session.lang : structuredClone(d.value), source: 'default', reason: d.reason };
     }
   }
   return values;
@@ -115,7 +115,7 @@ export function skip(session: Session, blueprint: Blueprint, slotId: string): En
   if (slot.importance === 'critical') return { ok: false, error: 'required' };
   const values = effectiveValues(session, blueprint);
   const d = resolveDefault(slot, values);
-  const assumed: SlotValue = d ? { value: d.value, source: 'default', reason: d.reason }
+  const assumed: SlotValue = d ? { value: d.value === '@lang' ? session.lang : d.value, source: 'default', reason: d.reason }
     : { value: NONE, source: 'default', reason: { en: 'You skipped this.', ar: 'اتخطيت السؤال ده.' } };
   return { ok: true, value: settle({ ...session, values: { ...session.values, [slotId]: assumed }, asked: [...session.asked, slotId], revision: session.revision + 1 }, blueprint) };
 }
@@ -135,10 +135,11 @@ export function nextStep(session: Session, blueprint: Blueprint): Step {
     question: {
       slot: slot.id,
       kind: slot.kind,
+      layer: slot.layer,
       message: t(slot.question, lang),
       why: t(slot.why, lang),
       example: t(slot.example, lang),
-      options: slot.options?.map(o => ({ value: o.value, label: t(o.label, lang) })),
+      options: slot.options?.map(o => ({ value: o.value, label: t(o.label, lang), description: o.visual ? t(o.visual.description, lang) : undefined, media: o.visual?.media, asset: o.visual?.asset })),
       canSkip: slot.importance !== 'critical',
       skipLabel: slot.importance !== 'critical' ? t({ en: 'Skip · use the best default', ar: 'تخطّى · اختارلي الأنسب' }, lang) : undefined,
       suggestions: suggest(blueprint, slot.id, '', session),

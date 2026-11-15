@@ -18,7 +18,7 @@ export function readPath(output: Output, path: string): unknown[] {
   return current;
 }
 
-const strings = (output: Output, paths: string[]) => paths.flatMap(p => readPath(output, p)).filter((v): v is string => typeof v === 'string');
+const strings = (output: Output, paths: string[]) => paths.flatMap(p => readPath(output, p)).flatMap(v => Array.isArray(v) ? v : [v]).filter((v): v is string => typeof v === 'string');
 
 /** Shape check against the output contract. */
 export function validateContract(blueprint: Blueprint, output: unknown): string[] {
@@ -89,6 +89,28 @@ export function runGates(blueprint: Blueprint, session: Session, output: unknown
       const quoted = /["“«][^"”»]{2,}["”»]/.test(prompt);
       const ok = !quoted && /\b(text|letters|typography|words|watermark|logo)\b/.test(negative);
       results.push({ id: gate.id, ok, message, detail: ok ? undefined : quoted ? 'prompt asks for quoted text' : 'negative prompt does not exclude text' });
+    } else if (gate.kind === 'no-invented-numbers') {
+      const known = new Set<string>();
+      const sources = [session.idea ?? '', ...Object.values(session.values).flatMap(v => Array.isArray(v.value) ? v.value : [v.value])];
+      for (const src of sources) for (const n of numbersIn(src)) known.add(n.value);
+      const invented = strings(out, gate.fields).flatMap(numbersIn).filter(n => n.significant && !known.has(n.value)).map(n => n.raw);
+      results.push({ id: gate.id, ok: invented.length === 0, message, detail: invented.length ? `numbers not from the user: ${[...new Set(invented)].join(', ')}` : undefined });
+    } else if (gate.kind === 'array-length') {
+      const want = Number(slotValue(gate.slot));
+      if (!Number.isFinite(want)) continue;
+      const found = readPath(out, gate.field)[0];
+      const n = Array.isArray(found) ? found.length : -1;
+      results.push({ id: gate.id, ok: n === want, message, detail: n === want ? undefined : `expected ${want}, got ${n}` });
+    } else if (gate.kind === 'includes-when') {
+      const applies = gate.when.every(c => {
+        const v = slotValue(c.slot);
+        const wanted = c.equals === undefined ? [] : Array.isArray(c.equals) ? c.equals : [c.equals];
+        return Array.isArray(v) ? v.some(x => wanted.includes(x)) : typeof v === 'string' && wanted.includes(v);
+      });
+      if (!applies) continue;
+      const text = strings(out, [gate.field]).join(' ').toLowerCase();
+      const hit = gate.anyOf.some(term => text.includes(term.toLowerCase()));
+      results.push({ id: gate.id, ok: hit, message, detail: hit ? undefined : `missing any of: ${gate.anyOf.join(' / ')}` });
     } else if (gate.kind === 'latin-ratio') {
       let text = strings(out, [gate.field]).join(' ');
       for (const id of gate.exceptSlots) { const v = slotValue(id); if (typeof v === 'string' && v !== NONE) text = text.split(v).join(' '); }
@@ -99,6 +121,20 @@ export function runGates(blueprint: Blueprint, session: Session, output: unknown
     }
   }
   return report(results);
+}
+
+/** Numbers in text. Ratios (16:9), placeholders and plain years are ignored; small counts are not significant. */
+export function numbersIn(text: string): { raw: string; value: string; significant: boolean }[] {
+  const clean = text.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\d+\s*:\s*\d+/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  const out: { raw: string; value: string; significant: boolean }[] = [];
+  for (const m of clean.matchAll(/([$€£]\s?)?(\d[\d,]*(?:\.\d+)?)\s*(%|٪|[kKmMbB](?![a-zA-Z])|ألف|مليون|مليار)?/g)) {
+    const value = m[2].replace(/,/g, '');
+    const num = Number(value);
+    const unit = !!(m[1] || m[3]);
+    const year = !unit && /^(19|20)\d\d$/.test(value);
+    out.push({ raw: m[0].trim(), value, significant: !year && (unit || num >= 21) });
+  }
+  return out;
 }
 
 function report(results: GateResult[]): GateReport {

@@ -1,0 +1,172 @@
+import type { Blueprint } from '../types.ts';
+import { avoid, brandName, c, facts, language, targetTool } from '../modules.ts';
+
+const layout = (value: string, en: string, ar: string, gen: string) => ({
+  media: 'layout' as const, asset: `/assets/lookers-ai/examples/pitch-deck/${value}.webp`, description: c(en, ar), generate: gen,
+});
+
+/** Investor pitch deck — the deliverable is a layered prompt for a text/presentation AI. */
+export const pitchDeck: Blueprint = {
+  id: 'pitch-deck',
+  version: 1,
+  title: c('Investor pitch deck', 'عرض استثماري'),
+  topics: ['investor-pitch', 'pitch-deck'],
+  intake: {
+    question: c('Tell me about your company and what you are raising for.', 'احكيلي عن شركتك، وبتجمع استثمار ليه؟'),
+    why: c('One message is enough. Real numbers make the deck — we never invent them.', 'رسالة واحدة كفاية. الأرقام الحقيقية هي اللي بتعمل العرض، وإحنا عمرنا ما هنألّفها.'),
+    starters: [
+      c('A food-delivery app in Cairo raising a seed round', 'تطبيق توصيل أكل في القاهرة بيجمع جولة Seed'),
+      c('A B2B SaaS for clinics, pre-seed, 40 paying clinics', 'نظام SaaS للعيادات، Pre-seed، و٤٠ عيادة بتدفع'),
+      c('An e-commerce brand for handmade bags looking for angels', 'براند أونلاين لشنط هاند ميد بيدور على مستثمرين أفراد'),
+      c('A demo-day pitch for our accelerator', 'عرض لديمو داي في الحاضنة بتاعتنا'),
+    ],
+  },
+  questionBudget: 3,
+  slots: [
+    {
+      id: 'company', kind: 'longtext', layer: 'understanding', importance: 'critical', maxLength: 1200,
+      label: c('Company and product', 'الشركة والمنتج'),
+      question: c('What does your company do, for whom, and how does it make money?', 'شركتك بتعمل إيه، ولمين، وبتكسب فلوس إزاي؟'),
+      why: c('This is the story every slide builds on.', 'دي الحكاية اللي كل الشرائح هتتبني عليها.'),
+      example: c('An app that connects home cooks with office workers; we take 15% per order.', 'تطبيق بيوصّل أكل البيت للموظفين، وبناخد ١٥٪ من كل أوردر.'),
+      vocabulary: { en: ['for small businesses', 'subscription', 'commission per order', 'marketplace', 'B2B', 'in Egypt', 'in the Gulf'], ar: ['للشركات الصغيرة', 'اشتراك شهري', 'عمولة على الأوردر', 'ماركت بليس', 'B2B', 'في مصر', 'في الخليج'] },
+    },
+    brandName({ label: c('Company name', 'اسم الشركة'), question: c('What is the company name, exactly as written?', 'اسم الشركة إيه؟ اكتبه بالحرف.') }),
+    {
+      id: 'stage', kind: 'single', layer: 'understanding', importance: 'important',
+      label: c('Stage', 'المرحلة'),
+      question: c('What stage are you at?', 'إنتوا في أنهي مرحلة؟'),
+      why: c('Investors expect different proof at each stage.', 'المستثمر بيستنى أدلة مختلفة في كل مرحلة.'),
+      example: c('Seed.', 'Seed.'),
+      options: [
+        { value: 'idea', label: c('Idea / prototype', 'فكرة / نموذج أولي'), keywords: ['idea', 'prototype', 'فكرة', 'نموذج'] },
+        { value: 'pre-seed', label: c('Pre-seed', 'Pre-seed'), keywords: ['pre-seed', 'preseed', 'بري سيد'] },
+        { value: 'seed', label: c('Seed', 'Seed'), keywords: ['seed round', 'seed', 'سيد'] },
+        { value: 'series-a', label: c('Series A+', 'Series A وأكتر'), keywords: ['series a', 'series b', 'سيريز'] },
+      ],
+    },
+    facts('traction', c('Traction and key numbers', 'الأرقام والإنجازات'),
+      c('What real numbers can you show? (users, revenue, growth, partners)', 'إيه الأرقام الحقيقية اللي عندك؟ (مستخدمين، إيرادات، نمو، شركاء)'),
+      c('1,200 monthly users, 40 paying clinics, 18% monthly growth.', '١٢٠٠ مستخدم شهرياً، و٤٠ عيادة بتدفع، ونمو ١٨٪ في الشهر.')),
+    {
+      id: 'ask', kind: 'text', layer: 'understanding', importance: 'nice', maxLength: 300,
+      label: c('The ask', 'المبلغ المطلوب'),
+      question: c('How much are you raising, and what for?', 'بتجمع كام، وهتصرفهم على إيه؟'),
+      why: c('A clear ask closes the deck.', 'الطلب الواضح هو اللي بيقفل العرض صح.'),
+      example: c('$500K for 18 months: hiring and marketing.', '٥٠٠ ألف دولار لـ١٨ شهر: توظيف وتسويق.'),
+      patterns: [{ regex: '(?:rais(?:e|ing)|نجمع|بنجمع|محتاجين)\\s+([$€£]?\\s?\\d[\\d,.]*\\s*(?:k|m|K|M|ألف|مليون)?\\s*(?:\\$|dollars|دولار|جنيه)?)', group: 1 }],
+      noneLabel: c('Placeholder to fill', 'مكان فاضي تكمّله'),
+      defaults: [{ value: 'none', reason: c('We leave [amount] and [use of funds] for you to fill.', 'هنسيب [المبلغ] و[استخدام الفلوس] تكمّلهم انت.') }],
+    },
+    {
+      id: 'audience', kind: 'single', layer: 'understanding', importance: 'nice',
+      label: c('Who will watch', 'مين هيتفرج'),
+      question: c('Who will see the deck?', 'مين اللي هيشوف العرض؟'),
+      why: c('A VC, an angel and a demo-day jury look for different things.', 'صندوق الاستثمار والمستثمر الفرد ولجنة الديمو داي كل واحد بيدور على حاجة مختلفة.'),
+      example: c('Venture capital funds.', 'صناديق استثمار.'),
+      options: [
+        { value: 'vc', label: c('VC funds', 'صناديق استثمار'), keywords: ['vc', 'venture', 'fund', 'صندوق', 'صناديق'] },
+        { value: 'angels', label: c('Angel investors', 'مستثمرين أفراد'), keywords: ['angel', 'angels', 'انجل', 'مستثمر فرد'] },
+        { value: 'demo-day', label: c('Demo day / accelerator', 'ديمو داي / حاضنة'), keywords: ['demo day', 'accelerator', 'ديمو داي', 'حاضنة', 'مسرعة'] },
+        { value: 'partner', label: c('Strategic partner / bank', 'شريك استراتيجي / بنك'), keywords: ['partner', 'bank', 'شريك', 'بنك'] },
+      ],
+      defaults: [{ value: 'vc', reason: c('VC structure works for most audiences.', 'هيكل صناديق الاستثمار بيمشي مع أغلب الجمهور.') }],
+    },
+    {
+      id: 'deckStyle', kind: 'single', layer: 'intelligence', importance: 'nice',
+      label: c('Visual style', 'الشكل'),
+      question: c('How should the slides look?', 'تحب شكل الشرائح يبقى إزاي؟'),
+      why: c('Style sets fonts, colour and how much text per slide.', 'الشكل بيحدد الخطوط والألوان وكمية الكلام في كل شريحة.'),
+      example: c('Bold startup.', 'ستارت أب جريء.'),
+      options: [
+        { value: 'bold-startup', label: c('Bold startup', 'ستارت أب جريء'), visual: layout('bold-startup', 'One big idea per slide, large numbers, strong accent colour, few words.', 'فكرة كبيرة في كل شريحة، وأرقام كبيرة، ولون مميز قوي، وكلام قليل.', 'pitch deck slide, one huge metric in a bold accent colour, minimal words, modern startup style') },
+        { value: 'clean-corporate', label: c('Clean corporate', 'رسمي نضيف'), visual: layout('clean-corporate', 'White space, navy and grey, clear charts, structured grid.', 'مساحات بيضا، وكحلي ورمادي، ورسومات بيانية واضحة، وتقسيم منظم.', 'clean corporate pitch deck slide, navy and grey, structured grid with a clear bar chart') },
+        { value: 'dark-premium', label: c('Dark premium', 'غامق فخم'), visual: layout('dark-premium', 'Dark background, gold or neon accents, product imagery, cinematic feel.', 'خلفية غامقة، ولمسات دهبي أو نيون، وصور للمنتج، وإحساس سينمائي.', 'dark premium pitch deck slide, black background, gold accents, product screenshot, cinematic') },
+        { value: 'minimal', label: c('Minimal', 'بسيط جداً'), visual: layout('minimal', 'Mostly typography, one colour, lots of air.', 'معظمها كلام بخط جميل، ولون واحد، ومساحات كتير.', 'minimal typographic pitch deck slide, single colour, generous whitespace') },
+      ],
+      defaults: [{ value: 'bold-startup', reason: c('Investors scan fast; bold slides read quickly.', 'المستثمر بيقرا بسرعة، والشرائح الجريئة بتتفهم بسرعة.') }],
+    },
+    {
+      id: 'slideCount', kind: 'single', layer: 'delivery', importance: 'nice',
+      label: c('Number of slides', 'عدد الشرائح'),
+      question: c('How many slides?', 'كام شريحة؟'),
+      why: c('10–12 slides is the classic investor length.', '١٠–١٢ شريحة هو الطول المعروف للمستثمرين.'),
+      example: c('12 slides.', '١٢ شريحة.'),
+      options: [{ value: '10', label: c('10', '١٠') }, { value: '12', label: c('12', '١٢') }, { value: '15', label: c('15', '١٥') }, { value: '20', label: c('20', '٢٠') }],
+      patterns: [{ regex: '(?<![\\d])(10|12|15|20)\\s*(?:slides?|شريحة|شرايح|شرائح|سلايد)', group: 1 }],
+      defaults: [
+        { when: [{ slot: 'audience', equals: 'demo-day' }], value: '10', reason: c('Demo days are short.', 'الديمو داي وقته قصير.') },
+        { value: '12', reason: c('12 slides cover the full investor story.', '١٢ شريحة بتغطي حكاية المستثمر كاملة.') },
+      ],
+    },
+    language(),
+    avoid({ en: ['buzzwords', 'long paragraphs', 'stock photos', 'competitor names'], ar: ['كلام إنشائي', 'فقرات طويلة', 'صور جاهزة', 'أسماء منافسين'] }),
+    targetTool([
+      { value: 'gamma', label: c('Gamma', 'Gamma'), keywords: ['gamma', 'جاما'] },
+      { value: 'chatgpt', label: c('ChatGPT', 'ChatGPT'), keywords: ['chatgpt', 'chat gpt', 'شات جي بي تي'] },
+      { value: 'claude', label: c('Claude', 'Claude'), keywords: ['claude', 'كلود'] },
+      { value: 'canva', label: c('Canva', 'Canva'), keywords: ['canva', 'كانفا'] },
+      { value: 'copilot', label: c('PowerPoint Copilot', 'PowerPoint Copilot'), keywords: ['powerpoint', 'copilot', 'باوربوينت'] },
+      { value: 'gemini', label: c('Google Slides / Gemini', 'Google Slides / Gemini'), keywords: ['google slides', 'gemini', 'جيميناي'] },
+    ]),
+  ],
+  output: {
+    id: 'text-ai-prompt',
+    description: c('A layered prompt for a presentation AI, the slide outline, what data you still need, and a checklist.', 'برومبت متقسم لأداة العروض، وترتيب الشرائح، والمعلومات اللي لسه ناقصاك، وقائمة فحص.'),
+    fields: [
+      { path: 'title', type: 'string', required: true, maxLength: 120, description: 'Short title in the user language.' },
+      { path: 'sections', type: 'object', required: true, description: 'The four layers of the deliverable prompt.' },
+      { path: 'sections.goal', type: 'string', required: true, description: 'Goal, audience and context (Understanding).' },
+      { path: 'sections.approach', type: 'string', required: true, description: 'Story structure and expert approach (Intelligence).' },
+      { path: 'sections.rules', type: 'string', required: true, description: 'Verbatim names, no invented numbers, placeholders, exclusions (Control).' },
+      { path: 'sections.output', type: 'string', required: true, description: 'Slide count, per-slide format, style, language and self-check (Delivery).' },
+      { path: 'prompt', type: 'string', required: true, maxLength: 6000, description: 'The four sections assembled with headings, ready to paste, in the chosen language.' },
+      { path: 'slideOutline', type: 'string[]', required: true, description: 'One title per slide, exactly slideCount items.' },
+      { path: 'missingData', type: 'string[]', required: true, description: 'Placeholders the user still has to fill (may be empty).' },
+      { path: 'variants', type: 'record', required: true, description: 'Tool id → ready prompt.' },
+      { path: 'checklist', type: 'string[]', required: true, description: '4–6 checks for the finished deck, user language.' },
+      { path: 'summary', type: 'string', required: true, maxLength: 600, description: 'One or two sentences, user language.' },
+    ],
+  },
+  gates: [
+    { id: 'name-verbatim', kind: 'verbatim', slot: 'brandName', fields: ['prompt', 'variants.*'], nearMiss: true, message: c('Company name kept exactly as written', 'اسم الشركة مكتوب بالحرف') },
+    { id: 'no-invented-numbers', kind: 'no-invented-numbers', fields: ['prompt', 'slideOutline', 'variants.*'], message: c('Every number comes from you — the rest are placeholders', 'كل رقم جاي منك، والباقي أماكن فاضية') },
+    { id: 'slide-count', kind: 'array-length', slot: 'slideCount', field: 'slideOutline', message: c('Slide count is what you chose', 'عدد الشرائح زي ما اخترت') },
+    { id: 'rtl', kind: 'includes-when', when: [{ slot: 'language', equals: ['ar', 'both'] }], field: 'prompt', anyOf: ['right-to-left', 'RTL', 'من اليمين'], message: c('Arabic layout set right-to-left', 'العربي متظبط من اليمين للشمال') },
+  ],
+  tools: [
+    { id: 'universal', label: 'Universal', notes: 'Plain layered prompt with headings; works in any chat AI.' },
+    { id: 'gamma', label: 'Gamma', notes: 'Paste as the generation prompt; one line per slide in the outline; keep instructions short.' },
+    { id: 'chatgpt', label: 'ChatGPT', notes: 'Ask it to produce slide-by-slide content then an editable .pptx; keep the four headings.' },
+    { id: 'claude', label: 'Claude', notes: 'Keep the four headings; ask for slide-by-slide content with speaker notes.' },
+    { id: 'canva', label: 'Canva', notes: 'Short brief: topic, audience, slide titles, style; Canva limits prompt length.' },
+    { id: 'copilot', label: 'PowerPoint Copilot', notes: 'Start with "Create a presentation about…", then the outline and style.' },
+    { id: 'gemini', label: 'Google Slides / Gemini', notes: 'Slide-by-slide request; Gemini works best one slide at a time — include the outline.' },
+  ],
+  role: 'Senior pitch-deck strategist who has prepared decks for VC rounds in MENA, and a prompt engineer for presentation AIs.',
+  strategy: {
+    understanding: [
+      'company describes the business; traction and ask are the only numbers allowed. stage and audience decide which proof matters most.',
+      'sections.goal states who the deck is for, the decision we want from them, and the company in two sentences.',
+    ],
+    intelligence: [
+      'Use the investor storyline adapted to stage: problem, solution, why now, market, product, business model, traction, competition, go-to-market, team, financials, ask. Idea/pre-seed lean on problem, insight and team; seed+ on traction and unit economics.',
+      'sections.approach tells the target AI how to think: one message per slide, headline as a claim, evidence under it, visuals over text.',
+    ],
+    control: [
+      'sections.rules must say: copy the company name exactly; never invent numbers, names, logos, testimonials or market sizes; use [placeholders] for anything missing; respect avoid.',
+      'missingData lists each placeholder in plain words so the user knows what to prepare.',
+    ],
+    delivery: [
+      'prompt = the four sections assembled under clear headings (Goal & context / Approach / Rules / Output) in the chosen language; if language is ar or both, require right-to-left layout explicitly.',
+      'sections.output fixes slide count, the per-slide format (headline, 3 bullets max, suggested visual, speaker note) and the visual style from deckStyle.',
+      'slideOutline has exactly slideCount titles. variants: universal plus the chosen tool (all tools if universal), following tool notes.',
+      'checklist and summary in the user language (Egyptian Arabic for ar).',
+    ],
+  },
+  examples: [{
+    good: 'Rules: copy the name "Shefaa" exactly. Use only these numbers: 40 paying clinics, 18% monthly growth. For market size write [market size + source]. No logos or testimonials that were not provided.',
+    bad: 'Make an amazing professional pitch deck for Shefa with a $2B market and 300% growth.',
+    why: 'The bad one misspells the name, invents a market size and growth, and gives no structure or output format.',
+  }],
+};

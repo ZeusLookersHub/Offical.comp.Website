@@ -15,13 +15,15 @@ export function validateBlueprint(bp: Blueprint): string[] {
     ids.add(s.id);
   }
   for (const s of bp.slots) {
+    if (!['understanding', 'intelligence', 'control', 'delivery'].includes(s.layer)) err(`${s.id}: layer missing`);
+    s.options?.forEach(o => { if (o.visual && !copyOk(o.visual.description)) err(`${s.id}.${o.value}: visual description missing`); });
     if (!copyOk(s.label) || !copyOk(s.question) || !copyOk(s.why) || !copyOk(s.example)) err(`${s.id}: copy missing`);
     const hasOptions = !!s.options?.length;
     if ((s.kind === 'single' || s.kind === 'multi') !== hasOptions) err(`${s.id}: options do not match kind`);
     s.options?.forEach(o => { if (!copyOk(o.label)) err(`${s.id}.${o.value}: label missing`); });
     for (const d of s.defaults ?? []) {
       const vals = Array.isArray(d.value) ? d.value : [d.value];
-      if (hasOptions && !vals.every(v => v === 'none' || s.options!.some(o => o.value === v))) err(`${s.id}: default not an option`);
+      if (hasOptions && !vals.every(v => v === 'none' || (v === '@lang' && ['ar', 'en'].every(l => s.options!.some(o => o.value === l))) || s.options!.some(o => o.value === v))) err(`${s.id}: default not an option`);
       if (!copyOk(d.reason)) err(`${s.id}: default reason missing`);
       d.when?.forEach(c => { if (!ids.has(c.slot)) err(`${s.id}: default condition on unknown ${c.slot}`); });
     }
@@ -32,10 +34,21 @@ export function validateBlueprint(bp: Blueprint): string[] {
   }
   if (!bp.slots.some(s => s.importance === 'critical')) err('needs at least one critical slot');
   for (const g of bp.gates) {
-    const refs = 'slot' in g ? [g.slot] : g.kind === 'no-invented-text' ? g.whenEmpty : g.kind === 'no-leak' ? g.slotTerms ?? [] : g.exceptSlots;
+    const refs = 'slot' in g ? [g.slot] : g.kind === 'no-invented-text' ? g.whenEmpty : g.kind === 'no-leak' ? g.slotTerms ?? []
+      : g.kind === 'latin-ratio' ? g.exceptSlots : g.kind === 'includes-when' ? g.when.map(c => c.slot) : [];
     refs.forEach(r => { if (!ids.has(r)) err(`gate ${g.id}: unknown slot ${r}`); });
     if (!copyOk(g.message)) err(`gate ${g.id}: message missing`);
   }
   if (!bp.output.fields.some(f => f.required)) err('contract needs required fields');
+  if (!bp.role?.trim()) err('role missing');
+  for (const layer of ['understanding', 'intelligence', 'control', 'delivery'] as const) {
+    if (!bp.strategy?.[layer]?.length) err(`strategy.${layer} missing`);
+    if (!bp.slots.some(s => s.layer === layer) && layer !== 'intelligence') err(`no slot in layer ${layer}`);
+  }
+  // Visual missions must explain their style choices with an example.
+  const visualTool = bp.output.id.startsWith('image') || bp.output.id.startsWith('video');
+  if (visualTool) for (const s of bp.slots.filter(x => x.layer === 'intelligence' && x.options)) {
+    s.options!.forEach(o => { if (!o.visual) err(`${s.id}.${o.value}: visual example required for visual missions`); });
+  }
   return errors;
 }

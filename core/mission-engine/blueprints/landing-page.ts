@@ -1,0 +1,163 @@
+import type { Blueprint } from '../types.ts';
+import { avoid, brandName, c, facts, language, targetTool } from '../modules.ts';
+
+const layout = (value: string, en: string, ar: string, gen: string) => ({
+  media: 'layout' as const, asset: `/assets/lookers-ai/examples/landing-page/${value}.webp`, description: c(en, ar), generate: gen,
+});
+
+/** Landing page — the deliverable is a layered build prompt for an AI website builder. */
+export const landingPage: Blueprint = {
+  id: 'landing-page',
+  version: 1,
+  title: c('Landing page', 'صفحة هبوط'),
+  topics: ['landing-page', 'website'],
+  intake: {
+    question: c('What is the page for — what are you offering, and what should visitors do?', 'الصفحة دي لإيه: بتقدّم إيه، وعايز الزائر يعمل إيه؟'),
+    why: c('One offer and one action make a page that converts.', 'عرض واحد وخطوة واحدة هما اللي بيخلّوا الصفحة تجيب نتيجة.'),
+    starters: [
+      c('A page for our dental clinic so people book on WhatsApp', 'صفحة لعيادة الأسنان بتاعتنا والناس تحجز على واتساب'),
+      c('A waitlist page for our new app', 'صفحة تسجيل انتظار للتطبيق الجديد بتاعنا'),
+      c('A course landing page that sells a 6-week program', 'صفحة لكورس بتبيع برنامج ٦ أسابيع'),
+      c('A one-page site for a real-estate project in New Cairo', 'صفحة واحدة لمشروع عقاري في التجمع'),
+    ],
+  },
+  questionBudget: 3,
+  slots: [
+    {
+      id: 'offer', kind: 'longtext', layer: 'understanding', importance: 'critical', maxLength: 1200,
+      label: c('Offer', 'العرض'),
+      question: c('What exactly are you offering, and why is it better?', 'بتقدّم إيه بالظبط، وإيه اللي يميّزه؟'),
+      why: c('The headline and every section come from this.', 'العنوان وكل أجزاء الصفحة هيطلعوا من هنا.'),
+      example: c('Teeth whitening in one session, with a free check-up this month.', 'تبييض أسنان في جلسة واحدة، ومعاه كشف مجاني الشهر ده.'),
+      vocabulary: { en: ['free trial', 'limited offer', 'for beginners', 'in Cairo', 'online', 'money-back guarantee'], ar: ['تجربة مجانية', 'عرض لفترة محدودة', 'للمبتدئين', 'في القاهرة', 'أونلاين', 'ضمان استرجاع الفلوس'] },
+    },
+    {
+      id: 'cta', kind: 'single', layer: 'understanding', importance: 'important',
+      label: c('Main action', 'الخطوة المطلوبة'),
+      question: c('What is the one thing visitors should do?', 'إيه الحاجة الوحيدة اللي عايز الزائر يعملها؟'),
+      why: c('Every section pushes toward this button.', 'كل جزء في الصفحة هيوصّل للزرار ده.'),
+      example: c('Book on WhatsApp.', 'يحجز على واتساب.'),
+      options: [
+        { value: 'whatsapp', label: c('Message on WhatsApp', 'يكلمنا واتساب'), keywords: ['whatsapp', 'واتساب', 'واتس'] },
+        { value: 'book', label: c('Book a call / appointment', 'يحجز مكالمة / ميعاد'), keywords: ['book', 'booking', 'appointment', 'يحجز', 'حجز', 'ميعاد'] },
+        { value: 'buy', label: c('Buy now', 'يشتري'), keywords: ['buy', 'purchase', 'sell', 'يشتري', 'شراء', 'تبيع', 'بتبيع'] },
+        { value: 'signup', label: c('Sign up / join waitlist', 'يسجل / ينضم لقائمة الانتظار'), keywords: ['sign up', 'signup', 'waitlist', 'register', 'تسجيل', 'يسجل', 'انتظار'] },
+        { value: 'download', label: c('Download the app', 'ينزّل التطبيق'), keywords: ['download', 'install', 'ينزل', 'تحميل'] },
+        { value: 'lead-form', label: c('Fill a contact form', 'يملا فورم تواصل'), keywords: ['form', 'contact form', 'فورم', 'استمارة'] },
+      ],
+    },
+    {
+      id: 'audience', kind: 'text', layer: 'understanding', importance: 'important', maxLength: 300,
+      label: c('Visitors', 'الزوار'),
+      question: c('Who are the visitors, in one line?', 'مين الزوار، في سطر واحد؟'),
+      why: c('Wording, tone and proof depend on who reads.', 'الكلام والأسلوب والأدلة بتختلف حسب مين بيقرا.'),
+      example: c('Women 25–40 in Cairo who care about their smile.', 'ستات من ٢٥ لـ٤٠ سنة في القاهرة مهتمين بابتسامتهم.'),
+      vocabulary: { en: ['young professionals', 'parents', 'business owners', 'students', 'in Egypt', 'in the Gulf'], ar: ['شباب بيشتغلوا', 'أهالي', 'أصحاب بيزنس', 'طلبة', 'في مصر', 'في الخليج'] },
+    },
+    brandName({ label: c('Brand name', 'اسم البراند') }),
+    {
+      id: 'pageStyle', kind: 'single', layer: 'intelligence', importance: 'important',
+      label: c('Look', 'الشكل'),
+      question: c('What look fits your brand?', 'أنهي شكل يناسب البراند بتاعك؟'),
+      why: c('The look sets colours, fonts, spacing and imagery.', 'الشكل بيحدد الألوان والخطوط والمسافات والصور.'),
+      example: c('Clean and trustworthy.', 'نضيف ومريح وبيدّي ثقة.'),
+      options: [
+        { value: 'clean-trust', label: c('Clean & trustworthy', 'نضيف وبيدّي ثقة'), keywords: ['clean', 'trust', 'medical', 'clinic', 'نضيف', 'ثقة', 'عيادة'], visual: layout('clean-trust', 'White and one calm colour, real photos, clear sections, reviews and badges near the button.', 'أبيض ولون هادي واحد، وصور حقيقية، وأقسام واضحة، والتقييمات والشهادات جنب الزرار.', 'clean trustworthy landing page hero, white background, calm teal accent, real photo, clear call to action, trust badges') },
+        { value: 'dark-premium', label: c('Dark premium', 'غامق فخم'), keywords: ['luxury', 'premium', 'dark', 'فخم', 'فاخر', 'غامق'], visual: layout('dark-premium', 'Dark background, gold or soft glow accents, large type, cinematic imagery.', 'خلفية غامقة، ولمسات دهبي أو إضاءة ناعمة، وخط كبير، وصور سينمائية.', 'dark premium landing page hero, black background, gold accents, large serif headline, cinematic product image') },
+        { value: 'bold-colorful', label: c('Bold & colourful', 'جريء وملوّن'), keywords: ['bold', 'colorful', 'fun', 'young', 'جريء', 'ملون', 'شبابي'], visual: layout('bold-colorful', 'Bright colour blocks, playful shapes, big buttons, energetic.', 'بلوكات ألوان مبهجة، وأشكال مرحة، وزراير كبيرة، وطاقة عالية.', 'bold colourful landing page hero, bright colour blocks, playful shapes, big rounded button, energetic startup') },
+        { value: 'minimal', label: c('Minimal', 'بسيط جداً'), keywords: ['minimal', 'simple', 'بسيط', 'مينيمال'], visual: layout('minimal', 'Mostly typography, generous white space, one accent colour.', 'معظمها كلام بخط جميل، ومساحات بيضا كتير، ولون مميز واحد.', 'minimal landing page hero, large typography, generous whitespace, single accent colour') },
+      ],
+      defaults: [{ value: 'clean-trust', reason: c('A clean, trustworthy look converts best for most offers.', 'الشكل النضيف اللي بيدّي ثقة بيجيب أحسن نتيجة مع أغلب العروض.') }],
+    },
+    {
+      id: 'sections', kind: 'multi', layer: 'intelligence', importance: 'nice',
+      label: c('Sections', 'أقسام الصفحة'),
+      question: c('Which sections should the page have?', 'الصفحة يبقى فيها أنهي أقسام؟'),
+      why: c('Fewer, stronger sections keep visitors moving to the button.', 'أقسام أقل وأقوى بتخلّي الزائر يكمل لحد الزرار.'),
+      example: c('Hero, benefits, how it works, FAQ.', 'البداية، والمميزات، وإزاي بيشتغل، والأسئلة.'),
+      options: [
+        { value: 'hero', label: c('Hero (headline + button)', 'البداية (عنوان + زرار)') },
+        { value: 'benefits', label: c('Benefits', 'المميزات') },
+        { value: 'how', label: c('How it works', 'إزاي بيشتغل') },
+        { value: 'proof', label: c('Reviews / proof', 'آراء العملاء / أدلة') },
+        { value: 'pricing', label: c('Pricing', 'الأسعار') },
+        { value: 'faq', label: c('FAQ', 'أسئلة شائعة') },
+        { value: 'contact', label: c('Contact / map', 'التواصل / الخريطة') },
+      ],
+      defaults: [{ value: ['hero', 'benefits', 'how', 'faq', 'contact'], reason: c('The proven order for a single-offer page.', 'الترتيب المجرّب لصفحة عرض واحد.') }],
+    },
+    facts('proof', c('Real proof', 'أدلة حقيقية'),
+      c('Any real reviews, numbers, prices or partners to show?', 'في آراء عملاء حقيقية، أو أرقام، أو أسعار، أو شركاء نعرضهم؟'),
+      c('4.9 on Google from 320 reviews; whitening 2,500 EGP.', 'تقييم ٤٫٩ على جوجل من ٣٢٠ رأي، والتبييض بـ٢٥٠٠ جنيه.'), 'nice'),
+    language(),
+    avoid({ en: ['stock photos', 'fake reviews', 'pop-ups', 'long paragraphs'], ar: ['صور جاهزة', 'آراء متألفة', 'نوافذ منبثقة', 'فقرات طويلة'] }),
+    targetTool([
+      { value: 'lovable', label: c('Lovable', 'Lovable'), keywords: ['lovable', 'لوفابل'] },
+      { value: 'v0', label: c('v0', 'v0'), keywords: ['v0'] },
+      { value: 'bolt', label: c('Bolt', 'Bolt'), keywords: ['bolt', 'بولت'] },
+      { value: 'claude', label: c('Claude', 'Claude'), keywords: ['claude', 'كلود'] },
+      { value: 'chatgpt', label: c('ChatGPT', 'ChatGPT'), keywords: ['chatgpt', 'chat gpt', 'شات جي بي تي'] },
+      { value: 'framer', label: c('Framer AI', 'Framer AI'), keywords: ['framer', 'فريمر'] },
+    ]),
+  ],
+  output: {
+    id: 'text-ai-prompt',
+    description: c('A layered build prompt for an AI website builder, the page outline, what content you still need, and a checklist.', 'برومبت متقسم لأداة بناء المواقع، وترتيب أقسام الصفحة، والمحتوى اللي لسه ناقصك، وقائمة فحص.'),
+    fields: [
+      { path: 'title', type: 'string', required: true, maxLength: 120, description: 'Short title in the user language.' },
+      { path: 'sections', type: 'object', required: true, description: 'The four layers of the deliverable prompt.' },
+      { path: 'sections.goal', type: 'string', required: true, description: 'Offer, visitors, the one action, brand (Understanding).' },
+      { path: 'sections.approach', type: 'string', required: true, description: 'Conversion structure, headline angle, section order, visual direction (Intelligence).' },
+      { path: 'sections.rules', type: 'string', required: true, description: 'Verbatim name, no invented reviews/prices/numbers, placeholders, exclusions (Control).' },
+      { path: 'sections.output', type: 'string', required: true, description: 'Stack-agnostic build spec: responsive, language/RTL, accessibility, the CTA wiring, self-check (Delivery).' },
+      { path: 'prompt', type: 'string', required: true, maxLength: 6000, description: 'The four sections assembled with headings, ready to paste.' },
+      { path: 'pageOutline', type: 'string[]', required: true, description: 'One line per section in order: section — its headline idea.' },
+      { path: 'missingData', type: 'string[]', required: true, description: 'Content the user still has to provide (may be empty).' },
+      { path: 'variants', type: 'record', required: true, description: 'Tool id → ready prompt.' },
+      { path: 'checklist', type: 'string[]', required: true, description: '4–6 checks for the built page, user language.' },
+      { path: 'summary', type: 'string', required: true, maxLength: 600, description: 'One or two sentences, user language.' },
+    ],
+  },
+  gates: [
+    { id: 'name-verbatim', kind: 'verbatim', slot: 'brandName', fields: ['prompt', 'variants.*'], nearMiss: true, message: c('Brand name kept exactly as written', 'اسم البراند مكتوب بالحرف') },
+    { id: 'no-invented-numbers', kind: 'no-invented-numbers', fields: ['prompt', 'pageOutline', 'variants.*'], message: c('No made-up prices, ratings or numbers', 'مفيش أسعار أو تقييمات أو أرقام متألفة') },
+    { id: 'rtl', kind: 'includes-when', when: [{ slot: 'language', equals: ['ar', 'both'] }], field: 'prompt', anyOf: ['right-to-left', 'RTL', 'dir="rtl"', 'من اليمين'], message: c('Arabic layout set right-to-left', 'العربي متظبط من اليمين للشمال') },
+    { id: 'whatsapp-link', kind: 'includes-when', when: [{ slot: 'cta', equals: 'whatsapp' }], field: 'prompt', anyOf: ['wa.me', 'WhatsApp link', 'whatsapp://'], message: c('WhatsApp button wired to a chat link', 'زرار الواتساب متوصّل بلينك محادثة') },
+    { id: 'mobile', kind: 'includes-when', when: [{ slot: 'cta', equals: ['whatsapp', 'book', 'buy', 'signup', 'download', 'lead-form'] }], field: 'prompt', anyOf: ['mobile', 'responsive'], message: c('Built mobile-first', 'معمولة للموبايل الأول') },
+  ],
+  tools: [
+    { id: 'universal', label: 'Universal', notes: 'Layered prompt with headings; stack-agnostic.' },
+    { id: 'lovable', label: 'Lovable', notes: 'Start with the page goal and sections; Lovable builds React + Tailwind; ask for one page only.' },
+    { id: 'v0', label: 'v0', notes: 'Describe layout per section and components; ask for a single responsive page.' },
+    { id: 'bolt', label: 'Bolt', notes: 'Full build prompt; specify a single-page app and no backend unless the form needs one.' },
+    { id: 'claude', label: 'Claude', notes: 'Ask for one self-contained HTML file with inline CSS and the exact copy placeholders.' },
+    { id: 'chatgpt', label: 'ChatGPT', notes: 'Ask for one self-contained HTML file; keep the four headings.' },
+    { id: 'framer', label: 'Framer AI', notes: 'Short visual brief: style, sections, headline; Framer handles layout.' },
+  ],
+  role: 'Senior conversion copywriter and web designer who writes build prompts for AI website builders.',
+  strategy: {
+    understanding: [
+      'offer, audience and cta define the page. One offer, one primary action repeated in the hero and at the end.',
+      'sections.goal states the offer, who visits, what they should do, and the brand name.',
+    ],
+    intelligence: [
+      'Headline = the outcome the visitor wants, not the product name. Sub-headline = how/why it is believable. Each section answers one objection on the way to the CTA.',
+      'Follow the chosen sections in a persuasive order; turn pageStyle into concrete colours, type scale, spacing and imagery direction.',
+    ],
+    control: [
+      'sections.rules: copy the brand name exactly; never invent reviews, ratings, prices, client logos or numbers; use [placeholders] for missing content; respect avoid.',
+      'If cta = whatsapp, the button opens https://wa.me/[phone] with a prefilled message. Never invent a phone number, email or address.',
+    ],
+    delivery: [
+      'sections.output: mobile-first responsive, fast, accessible (contrast, alt text), language from the language slot with right-to-left layout for Arabic, sticky CTA on mobile, and a final self-check list.',
+      'prompt = the four sections under clear headings (Goal / Approach / Rules / Build spec). pageOutline lists each section with its headline idea.',
+      'variants: universal plus the chosen tool (all tools if universal), following tool notes. missingData lists every placeholder in plain words.',
+      'checklist and summary in the user language (Egyptian Arabic for ar).',
+    ],
+  },
+  examples: [{
+    good: 'Headline: "A whiter smile in one visit." Button: "Book on WhatsApp" → https://wa.me/[clinic phone]. Reviews section uses [3 real reviews with first names] — do not write any.',
+    bad: 'Create a beautiful modern website for a dentist with 5-star reviews from 1000+ happy customers and prices starting at 999.',
+    why: 'The bad one invents reviews and prices, has no single action, and gives the builder no structure.',
+  }],
+};

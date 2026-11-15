@@ -7,3 +7,6 @@ export { runGates, validateContract } from './gates.ts';
 export { buildComposeRequest, repairInstruction, type ComposeRequest } from './compose.ts';
 export { validateBlueprint } from './validate-blueprint.ts';
 export { blueprints, blueprintForTopic, blueprintById } from './registry.ts';
+export { LAYERS, LAYER_ORDER, compileSystemPrompt } from './layers.ts';
+export { listResources, type ResourceNeed } from './resources.ts';
+export * as modules from './modules.ts';
