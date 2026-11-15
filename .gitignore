@@ -28,3 +28,4 @@ visual-qa-artifacts/
 .stage01-core-tests.mjs
 .lookers-mission-engine.test.mjs
 .lookers-mission-pilots.test.mjs
+.lookers-mission-server.test.mjs
