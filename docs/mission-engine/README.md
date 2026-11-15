@@ -82,9 +82,23 @@ nextStep → intake (الفكرة) → submitIntake → question … answer/skip
 
 الموارد المطلوبة مشروحة في `RESOURCES.md`.
 
+## النشر
+
+- **`lookers-ai-engine` منشورة على Supabase (version 2)، و`verify_jwt` شغال.** الـ function القديمة `lookers-ai-generate` ما اتلمستش.
+- **الـ Blueprints مش جوه كود الـ function.** الـ function بتجيبها من `server/engine/blueprints.json` على commit ثابت، وبتتأكد من الـ SHA-256 بتاعها قبل ما تستخدمها. الرابط والـ hash موجودين في `supabase/functions/lookers-ai-engine/blueprints-pin.ts`.
+- **لو غيّرت أي Blueprint:**
+  1. شغّل `npm run build:engine-blueprints`.
+  2. اعمل commit.
+  3. حدّث الرابط والـ hash.
+  4. انشر تاني.
+- **شرط مهم:** الطريقة دي محتاجة الريبو يفضل public. الأحسن على المدى الطويل يبقى في GitHub Action ينشر الـ bundle كامل، باستخدام `SUPABASE_ACCESS_TOKEN`.
+- **اختبار حي (١٥ نوفمبر):**
+  - `intake`: طلّع المنتج والبراند والاستخدام والإحساس من رسالة عربي واحدة، وكل معلومة معاها دليلها.
+  - `compose`: لبرفان DAVIDOFF عدّى ٥ من ٥ فحوصات من أول محاولة، والنتيجة اتحفظت.
+  - اتمسح المستخدم التجريبي والنتيجة بتاعته بعد الاختبار.
+
 ## اللي لسه
 
-- نشر `lookers-ai-engine` على Supabase (محتاج موافقة).
 - توصيل الشات الحالي بالمحرك ده للمهمات اللي ليها Blueprint.
 - توليد الأمثلة البصرية.
 - موديل vision.
