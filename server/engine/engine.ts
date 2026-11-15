@@ -1,8 +1,12 @@
-import {
-  applyCandidates, blueprintById, buildComposeRequest, runGates, repairInstruction, LAYERS, NONE,
-  type Blueprint, type Candidate, type GateReport, type Lang, type Session, type SlotValue,
-} from '../../core/mission-engine/index.ts';
-import { validValue } from '../../core/mission-engine/intake.ts';
+// Server imports core modules directly (not index.ts) so the UI copy of the blueprints is not bundled.
+import type { Blueprint, Candidate, GateReport, Lang, Session, SlotValue } from '../../core/mission-engine/types.ts';
+import { applyCandidates, validValue } from '../../core/mission-engine/intake.ts';
+import { buildComposeRequest, repairInstruction } from '../../core/mission-engine/compose.ts';
+import { runGates } from '../../core/mission-engine/gates.ts';
+import { LAYERS } from '../../core/mission-engine/layers.ts';
+import { NONE } from '../../core/mission-engine/planner.ts';
+
+export type BlueprintLookup = (id: string) => Blueprint | undefined | Promise<Blueprint | undefined>;
 import type { JsonModel } from './model.ts';
 
 export type EngineError = 'unknown_blueprint' | 'version_mismatch' | 'invalid_session' | 'not_confirmed' | 'invalid_request';
@@ -52,10 +56,10 @@ export async function ideas(model: JsonModel, bp: Blueprint, slotId: string, typ
 // ---------- 3. Compose → gates → one repair ----------
 
 /** Never trust the client session blindly: rebuild it from valid values only. */
-export function sanitizeSession(raw: unknown): { session: Session; bp: Blueprint } | { error: EngineError } {
+export async function sanitizeSession(raw: unknown, lookup: BlueprintLookup): Promise<{ session: Session; bp: Blueprint } | { error: EngineError }> {
   if (!raw || typeof raw !== 'object') return { error: 'invalid_session' };
   const s = raw as Session;
-  const bp = typeof s.blueprintId === 'string' ? blueprintById(s.blueprintId) : undefined;
+  const bp = typeof s.blueprintId === 'string' ? await lookup(s.blueprintId) : undefined;
   if (!bp) return { error: 'unknown_blueprint' };
   if (s.blueprintVersion !== bp.version) return { error: 'version_mismatch' };
   if (s.phase !== 'confirmed') return { error: 'not_confirmed' };

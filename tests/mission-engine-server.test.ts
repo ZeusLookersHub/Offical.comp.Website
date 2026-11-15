@@ -3,6 +3,9 @@ import { test } from 'node:test';
 import { answer, blueprintById, confirmBrief, createSession, submitIntake, nextStep, type Session } from '../core/mission-engine/index.ts';
 import { compose, extract, sanitizeSession } from '../server/engine/engine.ts';
 import { createEngineHandler } from '../server/engine/handler.ts';
+import { serverBlueprints } from '../server/engine/blueprints.generated.ts';
+import { remoteBlueprints } from '../server/engine/remote-blueprints.ts';
+const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
 import { createChatJsonModel, type JsonModel } from '../server/engine/model.ts';
 
 const photo = blueprintById('product-photo')!;
@@ -55,18 +58,22 @@ test('intake extraction keeps only candidates with real evidence', async () => {
   assert.deepEqual(out.map(c => c.slot), ['product']);
 });
 
-test('server rebuilds the session and refuses unconfirmed or tampered ones', () => {
+test('server rebuilds the session and refuses unconfirmed or tampered ones', async () => {
   const s = confirmedPerfume();
-  assert.ok('session' in sanitizeSession(s));
-  assert.deepEqual(sanitizeSession({ ...s, phase: 'brief' }), { error: 'not_confirmed' });
-  assert.deepEqual(sanitizeSession({ ...s, blueprintVersion: 99 }), { error: 'version_mismatch' });
-  assert.deepEqual(sanitizeSession({ ...s, values: { ...s.values, style: { value: 'hacked', source: 'user' } } }), { error: 'invalid_session' });
+  assert.ok('session' in await sanitizeSession(s, lookup));
+  assert.deepEqual(await sanitizeSession({ ...s, phase: 'brief' }, lookup), { error: 'not_confirmed' });
+  assert.deepEqual(await sanitizeSession({ ...s, blueprintVersion: 99 }, lookup), { error: 'version_mismatch' });
+  assert.deepEqual(await sanitizeSession({ ...s, values: { ...s.values, style: { value: 'hacked', source: 'user' } } }, lookup), { error: 'invalid_session' });
 });
 
 test('handler: anonymous auth, origin and op routing', async () => {
   const env = (k: string) => ({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_ANON_KEY: 'anon' } as Record<string, string>)[k];
-  const authOk: typeof fetch = async () => new Response(JSON.stringify({ id: 'u1', is_anonymous: true }), { status: 200 });
-  const handler = createEngineHandler({ env, model: scripted([good]), transport: authOk });
+  const saved: unknown[] = [];
+  const authOk: typeof fetch = async (u, init) => {
+    if (String(u).includes('/rest/v1/lookers_engine_results')) { saved.push(JSON.parse(String(init!.body))); return new Response(JSON.stringify([{ id: '00000000-0000-4000-8000-000000000001' }]), { status: 201 }); }
+    return new Response(JSON.stringify({ id: 'u1', is_anonymous: true }), { status: 200 });
+  };
+  const handler = createEngineHandler({ env, model: scripted([good]), transport: authOk, blueprints: lookup });
   const post = (body: unknown, headers: Record<string, string> = { Authorization: 'Bearer t', Origin: 'https://lookershub.com' }) =>
     handler(new Request('https://fn/lookers-ai-engine', { method: 'POST', headers, body: JSON.stringify(body) }));
   assert.equal((await post({ op: 'compose' }, { Origin: 'https://lookershub.com' })).status, 401);
@@ -76,7 +83,27 @@ test('handler: anonymous auth, origin and op routing', async () => {
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.report.ok, true);
+  assert.equal(data.resultId, '00000000-0000-4000-8000-000000000001');
+  assert.equal((saved[0] as { gates_passed: number }).gates_passed, data.report.passed);
   assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://lookershub.com');
+});
+
+test('server blueprints are in sync with the full blueprints', async () => {
+  const { serverBlueprints } = await import('../server/engine/blueprints.generated.ts');
+  const { serverShape } = await import('../scripts/build-engine-blueprints.ts');
+  assert.deepEqual(JSON.parse(JSON.stringify(serverBlueprints)), JSON.parse(JSON.stringify(serverShape())), 'run npm run build:engine-blueprints');
+});
+
+test('remote blueprints: hash checked, cached, retried after failure', async () => {
+  const body = JSON.stringify(serverBlueprints);
+  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  let calls = 0;
+  const ok = remoteBlueprints('https://raw/x.json', hash, async () => { calls++; return new Response(body); });
+  assert.equal((await ok('product-photo'))?.id, 'product-photo');
+  await ok('pitch-deck');
+  assert.equal(calls, 1, 'cached');
+  const tampered = remoteBlueprints('https://raw/x.json', hash, async () => new Response(body.replace('DAVIDOFF', 'DAVIE DOVE')));
+  await assert.rejects(tampered('product-photo'), /blueprints_integrity/);
 });
 
 test('model adapter: JSON mode, key never echoed, timeouts mapped', async () => {

@@ -1,11 +1,27 @@
 import { bounded } from '../../core/agent/bounded.ts';
 import { dataOnly, record } from '../../core/agent/validation.ts';
-import { blueprintById } from '../../core/mission-engine/index.ts';
-import { compose, extract, ideas, sanitizeSession } from './engine.ts';
+import { compose, extract, ideas, sanitizeSession, type BlueprintLookup } from './engine.ts';
 import { ModelError, type JsonModel } from './model.ts';
 
 const DEFAULT_ORIGINS = ['https://lookershub.com', 'https://www.lookershub.com', 'http://localhost:3000', 'http://localhost:5173'];
 const MAX_BODY = 60000;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Best effort: the result is stored under the user's own token (RLS owner check). Never blocks the answer. */
+async function saveResult(transport: typeof fetch, url: string, key: string, token: string, row: Record<string, unknown>): Promise<string | null> {
+  try {
+    return await bounded(async signal => {
+      const res = await transport(url + '/rest/v1/lookers_engine_results', {
+        method: 'POST', signal, redirect: 'error',
+        headers: { apikey: key, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify(row),
+      });
+      if (!res.ok) return null;
+      const rows: unknown = await res.json();
+      return Array.isArray(rows) && rows[0] && typeof rows[0].id === 'string' ? rows[0].id : null;
+    }, 4000);
+  } catch { return null; }
+}
 
 /**
  * POST { op: 'intake', blueprintId, text }            → { candidates }
@@ -13,8 +29,9 @@ const MAX_BODY = 60000;
  * POST { op: 'compose', session }                      → { output, report, attempts, model }
  * Same boundary as lookers-ai-generate: anonymous Supabase user, allowed origins, size caps.
  */
-export function createEngineHandler(options: { env: (name: string) => string | undefined; model: JsonModel | null; transport?: typeof fetch }) {
+export function createEngineHandler(options: { env: (name: string) => string | undefined; model: JsonModel | null; blueprints: BlueprintLookup; transport?: typeof fetch }) {
   const transport = options.transport ?? fetch;
+  const blueprintById = options.blueprints;
   const allowed = new Set([...DEFAULT_ORIGINS, ...(options.env('ENGINE_ALLOWED_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)]);
   const cors = (origin: string | null) => ({
     ...(origin && allowed.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
@@ -55,25 +72,32 @@ export function createEngineHandler(options: { env: (name: string) => string | u
 
     try {
       if (body.op === 'intake') {
-        const bp = typeof body.blueprintId === 'string' ? blueprintById(body.blueprintId) : undefined;
+        const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
         if (!bp || typeof body.text !== 'string' || body.text.trim().length < 2 || body.text.length > 4000) return json({ error: 'invalid_request' }, 400, origin);
         return json({ candidates: await extract(options.model, bp, body.text, req.signal) }, 200, origin);
       }
       if (body.op === 'ideas') {
-        const bp = typeof body.blueprintId === 'string' ? blueprintById(body.blueprintId) : undefined;
+        const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
         if (!bp || typeof body.slot !== 'string' || typeof body.typed !== 'string' || body.typed.length > 400) return json({ error: 'invalid_request' }, 400, origin);
         const lang = body.lang === 'ar' ? 'ar' : 'en';
         return json({ ideas: await ideas(options.model, bp, body.slot, body.typed, typeof body.context === 'string' ? body.context : '', lang, req.signal) }, 200, origin);
       }
       if (body.op === 'compose') {
-        const clean = sanitizeSession(body.session);
+        const clean = await sanitizeSession(body.session, blueprintById);
         if ('error' in clean) return json({ error: clean.error }, 400, origin);
-        return json(await compose(options.model, clean.bp, clean.session, req.signal), 200, origin);
+        const result = await compose(options.model, clean.bp, clean.session, req.signal);
+        const sessionId = typeof body.sessionId === 'string' && UUID.test(body.sessionId) ? body.sessionId : null;
+        const resultId = await saveResult(transport, url, key, token, {
+          session_id: sessionId, blueprint_id: clean.bp.id, blueprint_version: clean.bp.version,
+          output: result.output, report: result.report, gates_passed: result.report.passed, gates_total: result.report.total,
+          attempts: result.attempts, model: result.model,
+        });
+        return json({ ...result, resultId }, 200, origin);
       }
       return json({ error: 'unknown_op' }, 400, origin);
     } catch (error) {
-      const code = error instanceof ModelError ? error.code : 'engine_failed';
-      const status = code === 'model_timeout' ? 504 : code === 'model_rate_limited' ? 429 : code === 'model_unavailable' || code === 'model_auth_failed' ? 503 : 502;
+      const code = error instanceof ModelError ? error.code : error instanceof Error && error.message.startsWith('blueprints_') ? 'blueprints_unavailable' : 'engine_failed';
+      const status = code === 'model_timeout' ? 504 : code === 'model_rate_limited' ? 429 : code === 'model_unavailable' || code === 'model_auth_failed' || code === 'blueprints_unavailable' ? 503 : 502;
       return json({ error: code }, status, origin);
     }
   };
