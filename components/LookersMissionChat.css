@@ -1,0 +1,58 @@
+/* Mission engine chat — builds on the approved adaptive chat look (dark, gold accents). */
+.lmc .lmc-topbar-actions{display:flex;gap:6px}
+.lmc-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.lmc-progress{font-size:11px;color:#a9b0b8;margin-inline-start:auto}
+.lmc-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;width:min(640px,100%)}
+.lmc-option{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:start;border:1px solid #a9b1b542;border-radius:12px;padding:12px 14px;background:#18222c7a;color:#e0ded8;min-height:48px;overflow:hidden}
+.lmc-option strong{font-weight:500;font-size:13px;line-height:1.5}
+.lmc-option small{font-size:11px;line-height:1.75;color:#b2bdc8}
+.lmc-option img,.lmc-option video{width:calc(100% + 28px);margin:-12px -14px 4px;aspect-ratio:4/3;object-fit:cover;background:#0d1720}
+.lmc-option:hover{border-color:#dfb96780}
+.lmc-option.is-selected{background:#0b192b;border-color:#dfb967;color:#f2dcaf}
+.lmc-chips{display:flex;gap:7px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none}
+.lmc-chips::-webkit-scrollbar{display:none}
+.lmc-chips button{flex:none;border:1px solid #d5a65a45;background:#15202b90;color:#e2cb9b;border-radius:999px;padding:6px 12px;font-size:12px;min-height:32px;white-space:nowrap}
+.lmc-chips button:hover{border-color:#e3b967;color:#f5e2b8}
+.lmc-input{flex:1;min-width:0;min-height:48px;max-height:140px;resize:none;border:1px solid #b5c0cb32;border-radius:24px;background:#18212b6b;color:#f4eee4;padding:13px 18px;font:inherit;font-size:14px;line-height:1.6;box-sizing:border-box;field-sizing:content}
+.lmc-input::placeholder{color:#939da9}
+.lmc-thinking{animation:lmc-pulse 1.4s ease-in-out infinite}
+@keyframes lmc-pulse{50%{opacity:.55}}
+.lmc-brief,.lmc-result{align-self:stretch;border:1px solid #d5a65a55;border-radius:16px;background:linear-gradient(140deg,#0c1a28e6,#08121ce6);padding:18px 20px;display:flex;flex-direction:column;gap:14px;flex:none}
+.lmc-brief header,.lmc-result header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#e3b967}
+.lmc-brief h2,.lmc-result h2{margin:0;font-size:16px;font-weight:500;color:#f1e9de}
+.lmc-brief h3,.lmc-result h3{margin:0 0 8px;font-size:12px;font-weight:500;color:#d8bd86;letter-spacing:.02em}
+.lmc-idea{margin:0;color:#c9ccd1;font-size:13px;line-height:1.8}
+.lmc-brief ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.lmc-brief li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:10px;background:#ffffff07;border:1px solid #ffffff10}
+.lmc-brief li.is-assumed{border-style:dashed;border-color:#d5a65a35}
+.lmc-brief li>span{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:13px;color:#ece7df;line-height:1.6}
+.lmc-brief li b{font-weight:500;font-size:11px;color:#a9b3bd}
+.lmc-brief li small{font-size:11px;color:#9fa9b3}
+.lmc-brief li>button{flex:none;border:1px solid #d5a65a40;background:transparent;color:#ddc494;border-radius:8px;padding:5px 10px;font-size:11px;min-height:30px}
+.lmc-edit{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:#ffffff06}
+.lmc-edit>p{margin:0;color:#f1e9de;font-size:14px}
+.lmc-note{margin:0;font-size:11px;color:#9ea7b0;line-height:1.7}
+.lmc-checks{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid #e0a35a66;color:#f0c890;background:#e0a35a14}
+.lmc-checks.is-ok{border-color:#7fcaa266;color:#bfe8d0;background:#7fcaa214}
+.lmc-summary{margin:0;color:#d8dbe0;font-size:13px;line-height:1.85}
+.lmc-check-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px}
+.lmc-check-list .is-ok{color:#a9dcc0}.lmc-check-list .is-fail{color:#f0b38a}
+.lmc-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.lmc-tabs button{border:1px solid #ffffff1c;background:transparent;color:#c9cdd3;border-radius:999px;padding:6px 12px;font-size:12px;min-height:32px}
+.lmc-tabs button[aria-selected=true]{border-color:#e3b967;color:#f5e2b8;background:#e3b96714}
+.lmc-prompt{position:relative;border:1px solid #d5a65a40;border-radius:12px;background:#07111bcc;padding:14px 14px 58px}
+.lmc-prompt pre{margin:0;white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13px;line-height:1.8;color:#ece7df;text-align:left}
+.lmc-prompt>button{position:absolute;inset-inline-end:12px;bottom:12px;display:inline-flex;align-items:center;gap:6px;padding:9px 14px!important}
+.lmc-prompt--small{padding-bottom:50px}.lmc-prompt--small pre{font-size:12px;color:#c9ccd1}
+.lmc-params{margin:0;font-size:12px;color:#c7b083}
+.lmc-result ol,.lmc-result section>ul{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;line-height:1.7;color:#dfe2e6}
+.lmc-missing{padding:12px 14px;border-radius:10px;border:1px dashed #e0a35a66;background:#e0a35a0d}
+.lmc-error{margin:0 18px 12px!important;font-size:12px;color:#f0c890;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:659px){
+.lmc-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.lmc-option{padding:10px}.lmc-option img,.lmc-option video{width:calc(100% + 20px);margin:-10px -10px 4px}
+.lmc-brief,.lmc-result{padding:14px 13px}
+.lmc-input{font-size:16px;min-height:44px;padding:11px 14px}
+.lmc-checks{margin-inline-start:0}
+}
+@media(prefers-reduced-motion:reduce){.lmc-thinking{animation:none}}

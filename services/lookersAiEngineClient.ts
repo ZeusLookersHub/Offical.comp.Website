@@ -32,3 +32,7 @@ export function createEngineClient(getClient: () => Promise<Client>) {
   };
 }
 export type { ComposeRequest };
+
+import { getAnonymousSupabase } from './lookersAiTransport';
+/** Default browser engine client on the Lookers Supabase project. */
+export const lookersEngine = createEngineClient(getAnonymousSupabase);

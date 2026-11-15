@@ -10,7 +10,7 @@ export const landingPage: Blueprint = {
   id: 'landing-page',
   version: 1,
   title: c('Landing page', 'صفحة هبوط'),
-  topics: ['landing-page', 'website'],
+  topics: ['landing-page'],
   intake: {
     question: c('What is the page for — what are you offering, and what should visitors do?', 'الصفحة دي لإيه: بتقدّم إيه، وعايز الزائر يعمل إيه؟'),
     why: c('One offer and one action make a page that converts.', 'عرض واحد وخطوة واحدة هما اللي بيخلّوا الصفحة تجيب نتيجة.'),

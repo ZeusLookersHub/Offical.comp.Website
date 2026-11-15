@@ -19,6 +19,8 @@ import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProje
 import { planDraftQuestions } from '../services/lookersAiQuestions';
 import { createApplicationGenerator } from '../services/lookersAiApplicationGeneration';
 import { lookersAiTransport } from '../services/lookersAiTransport';
+import { blueprintForTopic } from '../core/mission-engine';
+import LookersMissionChat from '../components/LookersMissionChat';
 import {
   compileLookersPrompt, createProjectDraft, detectTaskType,
   questions, taskTypes, type ProjectAttachment, type Lang, type UserProjectState,
@@ -397,6 +399,9 @@ const LookersAIPage: React.FC = () => {
     setGenerationNotice('');setStage('review');
   };
 
+  // Missions with a mission-engine blueprint use the new chat; the rest keep the adaptive chat.
+  const missionBlueprint = blueprintForTopic(typeof current.answers.topicId === 'string' ? current.answers.topicId : undefined);
+
   return (
     <div className="lookers-ai" data-stage={stage} data-orbital={showOrbital && !showTools && !showLibrary ? "true" : "false"} data-chat={chatMode && !showOrbital && !showTools && !showLibrary ? "true" : "false"} dir={ar ? 'rtl' : 'ltr'} lang={lang}>
       <div className="lookers-ai__wrap">
@@ -404,7 +409,8 @@ const LookersAIPage: React.FC = () => {
 
         {showOrbital && !showTools && !showLibrary && <WormholeHero lang={lang} onSelect={(world,task) => { const selection = missionSelection(world, task); patchCurrent({taskType:selection.taskType,answers:{...projectStateRef.current.current.answers,...selection.answers}},'task_type_'+selection.taskType); setChatMode(true);setShowOrbital(false);window.scrollTo({top:0,behavior:'smooth'}); }} />}
         {!chatMode && stage === 'home' && !showOrbital && <button type="button" className="lai-secondary-button" onClick={() => setShowOrbital(true)}>{copy(lang,'← Explore universes','استكشف المجالات')}</button>}
-        {chatMode && !showOrbital && !showTools && !showLibrary && <LookersAdaptiveChat
+        {chatMode && !showOrbital && !showTools && !showLibrary && missionBlueprint && <LookersMissionChat key={`${missionBlueprint.id}-${lang}`} blueprint={missionBlueprint} lang={lang} onUniverses={() => {setShowOrbital(true);setChatMode(false);}} />}
+        {chatMode && !showOrbital && !showTools && !showLibrary && !missionBlueprint && <LookersAdaptiveChat
           key={current.id} draft={current} lang={lang} busy={busy} generating={generating} notice={generationNotice} prompt={prompt}
           onCommit={draft => {setGenerationNotice('');patchCurrent({ answers: draft.answers, taskType: draft.taskType, title: String(draft.answers.idea || '').slice(0,64), step: 'details' }, 'chat_answer_saved');}}
           onGenerate={() => void createPrompt()} onAttach={openFilePicker}

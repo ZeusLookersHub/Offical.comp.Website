@@ -30,3 +30,17 @@ export const lookersAiTransport = createAnonymousAITransport(async () => {
   }
   return client;
 });
+
+/** Shared client with an anonymous session, for the mission engine and its learning events. */
+export async function getAnonymousSupabase(): Promise<SupabaseClient> {
+  if (!client) {
+    const { createClient } = await import('@supabase/supabase-js');
+    client = createClient(url, publishableKey);
+  }
+  const { data } = await client.auth.getSession();
+  if (!data.session) {
+    const signed = await client.auth.signInAnonymously();
+    if (signed.error) throw new Error('ai_unavailable');
+  }
+  return client;
+}
