@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Copy, Send, Sparkles } from 'lucide-react';
+import { Check, Copy, ImagePlus, Send, Sparkles } from 'lucide-react';
 import {
-  answer, buildBrief, confirmBrief, createSession, nextStep, skip, submitIntake, suggest,
+  answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, skip, submitIntake, suggest,
   type Blueprint, type GateReport, type Lang, type Session, type SlotValueRaw,
 } from '../core/mission-engine';
 import { lookersEngine } from '../services/lookersAiEngineClient';
@@ -32,6 +32,17 @@ const load = (bp: Blueprint, lang: Lang): Saved => {
   } catch { /* storage may be unavailable */ }
   return { session: createSession(bp, lang), thread: [] };
 };
+
+/** Downscale to ≤1280px JPEG in the browser so uploads stay small. */
+async function toJpeg(file: File): Promise<{ mimeType: string; data: string }> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const url = canvas.toDataURL('image/jpeg', 0.85);
+  return { mimeType: 'image/jpeg', data: url.slice(url.indexOf(',') + 1) };
+}
 
 const valueText = (bp: Blueprint, slotId: string, value: SlotValueRaw, lang: Lang) => {
   const slot = bp.slots.find(s => s.id === slotId);
@@ -89,6 +100,31 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   };
 
   const say = (...lines: Line[]) => setThread(prev => [...prev, ...lines]);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const canAttach = bp.slots.some(s => s.id === 'reference') && session.phase !== 'confirmed';
+
+  const attach = async (file: File | undefined) => {
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)) { setError(t('Please choose a photo (JPG, PNG or WebP).', 'اختار صورة (JPG أو PNG أو WebP).')); return; }
+    setBusy('reading'); setError('');
+    say({ role: 'user', text: t(`Attached a photo: ${file.name}`, `أرفقت صورة: ${file.name}`) });
+    try {
+      const { description, candidates } = await engine.describe(bp.id, await toJpeg(file), lang);
+      if (!description) throw new Error('empty');
+      say({ role: 'assistant', text: t('Here is what I see in your photo:\n', 'شفت في الصورة:\n') + description });
+      let next: Session;
+      if (session.phase === 'intake') {
+        const r = submitIntake(session, bp, description, candidates);
+        if (!r.ok) throw new Error('intake');
+        next = r.value;
+      } else next = applyCandidates(session, bp, description, candidates);
+      const withRef = answer(next, bp, 'reference', 'yes');
+      setSession(withRef.ok ? withRef.value : next);
+      void engine.track('intake', bp.id, { sessionId: sessionId.current, meta: { photo: true, extracted: candidates.length } });
+    } catch {
+      setError(t('I could not read the photo right now — describe it in words instead.', 'مقدرتش أقرا الصورة دلوقتي، اوصفها بالكلام وهكمل معاك.'));
+    } finally { setBusy(''); if (fileInput.current) fileInput.current.value = ''; }
+  };
 
   const sendIntake = async (text: string) => {
     setBusy('reading'); setError('');
@@ -220,7 +256,7 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
           </div>
         )}
 
-        {busy && <p className="lai-message lai-message--assistant lmc-thinking" role="status">{busy === 'reading' ? t('Reading your idea…', 'بقرا فكرتك…') : t('Writing and checking your prompt…', 'بكتب البرومبت وبراجعه…')}</p>}
+        {busy && <p className="lai-message lai-message--assistant lmc-thinking" role="status">{busy === 'reading' ? t('Reading…', 'بقرا…') : t('Writing and checking your prompt…', 'بكتب البرومبت وبراجعه…')}</p>}
 
         {brief && !busy && !result && (
           <article className="lmc-brief" data-testid="brief">
@@ -290,6 +326,10 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             </div>
           )}
           <form className="lai-composer" onSubmit={e => { e.preventDefault(); submit(); }}>
+            {canAttach && !editing && <>
+              <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden onChange={e => void attach(e.target.files?.[0])} data-testid="photo-input" />
+              <button type="button" className="lai-attach" aria-label={t('Attach a product photo', 'ارفع صورة المنتج')} title={t('Attach a product photo', 'ارفع صورة المنتج')} onClick={() => fileInput.current?.click()}><ImagePlus size={19} /></button>
+            </>}
             {freeText ? (
               <textarea className="lmc-input" rows={1} value={typed} maxLength={slotDef?.maxLength ?? 4000}
                 placeholder={activeSlot === 'intake' ? t('I want…', 'أنا عايز…') : slotDef?.example[lang]}

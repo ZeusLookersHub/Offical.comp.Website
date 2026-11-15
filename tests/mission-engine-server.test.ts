@@ -7,6 +7,7 @@ import { serverBlueprints } from '../server/engine/blueprints.generated.ts';
 import { remoteBlueprints } from '../server/engine/remote-blueprints.ts';
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
 import { createChatJsonModel, type JsonModel } from '../server/engine/model.ts';
+import { describeReference, createGeminiVision } from '../server/engine/vision.ts';
 
 const photo = blueprintById('product-photo')!;
 
@@ -96,16 +97,25 @@ test('server blueprints are in sync with the full blueprints', async () => {
   assert.deepEqual(JSON.parse(JSON.stringify(serverBlueprints)), JSON.parse(JSON.stringify(serverShape())), 'run npm run build:engine-blueprints');
 });
 
-test('remote blueprints: hash checked, cached, retried after failure', async () => {
-  const body = JSON.stringify(serverBlueprints);
-  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)))].map(b => b.toString(16).padStart(2, '0')).join('');
-  let calls = 0;
-  const ok = remoteBlueprints('https://raw/x.json', hash, async () => { calls++; return new Response(body); });
-  assert.equal((await ok('product-photo'))?.id, 'product-photo');
-  await ok('pitch-deck');
-  assert.equal(calls, 1, 'cached');
-  const tampered = remoteBlueprints('https://raw/x.json', hash, async () => new Response(body.replace('DAVIDOFF', 'DAVIE DOVE')));
-  await assert.rejects(tampered('product-photo'), /blueprints_integrity/);
+test('remote blueprints: pin from config, hash checked, cached, hot-swapped, fallback kept', async () => {
+  const hash = async (text: string) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  const v1 = JSON.stringify(serverBlueprints), v2 = JSON.stringify(serverBlueprints.slice(0, 1));
+  const files: Record<string, string> = { 'https://raw/v1.json': v1, 'https://raw/v2.json': v2 };
+  let fetches = 0, clock = 0;
+  const transport: typeof fetch = async u => { fetches++; return files[String(u)] ? new Response(files[String(u)]) : new Response('', { status: 404 }); };
+  let pin = { url: 'https://raw/v1.json', sha256: await hash(v1) };
+  const get = remoteBlueprints(async () => pin, { url: 'https://raw/v1.json', sha256: await hash(v1) }, transport, 1000, () => clock);
+  assert.equal((await get('pitch-deck'))?.id, 'pitch-deck');
+  await get('product-photo');
+  assert.equal(fetches, 1, 'cached');
+  pin = { url: 'https://raw/v2.json', sha256: await hash(v2) };
+  clock = 2000;
+  assert.equal(await get('pitch-deck'), undefined, 'new pin goes live without redeploy');
+  pin = { url: 'https://raw/v1.json', sha256: 'f'.repeat(64) };
+  clock = 4000;
+  await assert.rejects(get('product-photo'), /blueprints_integrity/);
+  const brokenConfig = remoteBlueprints(async () => { throw new Error('down'); }, { url: 'https://raw/v1.json', sha256: await hash(v1) }, transport);
+  assert.equal((await brokenConfig('landing-page'))?.id, 'landing-page', 'embedded pin is the fallback');
 });
 
 test('model adapter: JSON mode, key never echoed, timeouts mapped', async () => {
@@ -120,4 +130,32 @@ test('model adapter: JSON mode, key never echoed, timeouts mapped', async () => 
   await assert.rejects(leaky.complete({ system: 's', user: 'u', maxTokens: 10 }), /model_bad_output/);
   const slow = createChatJsonModel({ url: 'u', key: 'k', model: 'm', timeoutMs: 20, transport: () => new Promise<Response>(() => {}) });
   await assert.rejects(slow.complete({ system: 's', user: 'u', maxTokens: 10 }), /model_timeout/);
+});
+
+test('vision: description + evidence-checked candidates; label text must be read verbatim', async () => {
+  const vision = { id: 'v', describe: async () => ({
+    description: 'زجاجة برفان زرقا غامقة بغطا فضي، والليبل مكتوب عليه "DAVIDOFF" على خلفية رخام إسود.',
+    candidates: [
+      { slot: 'product', value: 'زجاجة برفان زرقا غامقة بغطا فضي', evidence: 'زجاجة برفان زرقا غامقة بغطا فضي' },
+      { slot: 'brandName', value: 'DAVIDOFF', evidence: 'DAVIDOFF' },
+      { slot: 'scene', value: 'gold sand', evidence: 'gold sand' },
+    ] }) };
+  const out = await describeReference(vision, photo, { mimeType: 'image/jpeg', data: 'A'.repeat(200) }, 'ar');
+  assert.match(out.description, /DAVIDOFF/);
+  assert.deepEqual(out.candidates.map(c => c.slot), ['product', 'brandName']);
+});
+
+test('gemini adapter: inline image, JSON mode, key in header only', async () => {
+  let seen: { url: string; headers: Record<string, string>; body: any } | undefined;
+  const transport: typeof fetch = async (u, init) => {
+    seen = { url: String(u), headers: init!.headers as Record<string, string>, body: JSON.parse(String(init!.body)) };
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"description":"ok","candidates":[]}' }] } }] }));
+  };
+  const g = createGeminiVision({ key: 'g-key', transport });
+  assert.deepEqual(await g.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'B'.repeat(200) } }), { description: 'ok', candidates: [] });
+  assert.match(seen!.url, /gemini-3\.8-flash:generateContent$/);
+  assert.ok(!seen!.url.includes('g-key'));
+  assert.equal(seen!.headers['x-goog-api-key'], 'g-key');
+  assert.equal(seen!.body.generationConfig.responseMimeType, 'application/json');
+  assert.equal(seen!.body.contents[0].parts[1].inline_data.mime_type, 'image/png');
 });

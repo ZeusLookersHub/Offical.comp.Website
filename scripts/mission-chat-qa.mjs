@@ -33,6 +33,12 @@ async function mockEngine(context) {
   await context.route('**/functions/v1/lookers-ai-engine', async route => {
     const body = JSON.parse(route.request().postData() || '{}');
     engineCalls.push(body.op);
+    if (body.op === 'describe') {
+      assert.equal(body.image.mimeType, 'image/jpeg', 'photo is converted to JPEG in the browser');
+      const description = 'زجاجة برفان كحلي بغطا فضي، والليبل مكتوب عليه "DAVIDOFF".';
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ description, candidates: [
+        { slot: 'product', value: 'زجاجة برفان كحلي بغطا فضي', evidence: 'زجاجة برفان كحلي بغطا فضي' }, { slot: 'brandName', value: 'DAVIDOFF', evidence: 'DAVIDOFF' }] }) });
+    }
     const reply = body.op === 'intake'
       ? { candidates: [{ slot: 'brandName', value: 'DAVIDOFF', evidence: 'DAVIDOFF' }, { slot: 'style', value: 'luxury-dark', evidence: 'فخمة' }] }
       : body.op === 'ideas' ? { ideas: ['زجاج مطفي', 'غطا معدن لامع'] } : composed;
@@ -121,6 +127,32 @@ try {
     await context.close();
   }
 
+  // Photo first: the image is described and its facts fill the brief.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+    await mockEngine(context);
+    page = await context.newPage();
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto('http://127.0.0.1:5290/#/lookers-ai');
+    await page.getByRole('button', { name: 'DESIGN', exact: true }).waitFor();
+    await page.waitForTimeout(900);
+    await page.getByRole('button', { name: 'DESIGN', exact: true }).click();
+    await page.locator('.mission-rings button').nth(1).click();
+    await page.getByRole('button', { name: /Product Photo/ }).click();
+    await page.getByTestId('mission-chat').waitFor();
+    const dataUrl = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d'); x.fillStyle = '#1b2a4a'; x.fillRect(0, 0, 64, 64); return c.toDataURL('image/png'); });
+    const png = Buffer.from(dataUrl.split(',')[1], 'base64');
+    await page.getByTestId('photo-input').setInputFiles({ name: 'bottle.png', mimeType: 'image/png', buffer: png });
+    await page.getByText('Here is what I see in your photo:', { exact: false }).waitFor();
+    const q = page.getByTestId('question-content');
+    await q.waitFor();
+    assert.notEqual(await q.getAttribute('data-slot'), 'product', 'product came from the photo');
+    assert.match(await page.getByTestId('mission-chat').innerText(), /DAVIDOFF/);
+    checks.push('photo first: the photo is described and fills product and brand');
+    await page.screenshot({ path: `${output}/photo-intake.png` });
+    await context.close();
+  }
+
   // Other missions keep the existing chat; pilot missions route to the engine.
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   await mockEngine(context);
@@ -143,7 +175,7 @@ try {
   await context.close();
 
   assert.deepEqual(errors, []);
-  assert.ok(engineCalls.includes('intake') && engineCalls.includes('compose'));
+  assert.ok(engineCalls.includes('intake') && engineCalls.includes('compose') && engineCalls.includes('describe'));
   const report = { status: 'passed', checks, errors, engineCalls: [...new Set(engineCalls)] };
   console.log(JSON.stringify(report, null, 2));
   await writeFile(`${output}/report.json`, JSON.stringify(report, null, 2));

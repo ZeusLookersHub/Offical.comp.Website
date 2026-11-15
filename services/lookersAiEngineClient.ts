@@ -22,6 +22,9 @@ export function createEngineClient(getClient: () => Promise<Client>) {
       call<{ ideas: string[] }>({ op: 'ideas', blueprintId, slot, typed, context, lang }).then(r => r.ideas ?? []),
     compose: (session: Session, sessionId?: string) =>
       call<{ output: Record<string, unknown>; report: GateReport; attempts: number; model: string; resultId: string | null }>({ op: 'compose', session, sessionId }),
+    /** "Explain this image": description + evidence-checked candidates (needs GEMINI_API_KEY on the server). */
+    describe: (blueprintId: string, image: { mimeType: string; data: string }, lang: Session['lang']) =>
+      call<{ description: string; candidates: Candidate[] }>({ op: 'describe', blueprintId, image, lang }),
     /** Fire-and-forget; never carries user text, only ids and counts. */
     track: async (event: EngineEvent, blueprintId: string, extra: { sessionId?: string; slot?: string; meta?: Record<string, string | number | boolean> } = {}) => {
       try {

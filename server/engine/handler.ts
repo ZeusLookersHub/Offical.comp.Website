@@ -2,11 +2,13 @@ import { bounded } from '../../core/agent/bounded.ts';
 import { dataOnly, record } from '../../core/agent/validation.ts';
 import { compose, extract, ideas, sanitizeSession, type BlueprintLookup } from './engine.ts';
 import { ModelError, type JsonModel } from './model.ts';
+import { describeReference, validImage, type VisionModel } from './vision.ts';
 
 const DEFAULT_ORIGINS = ['https://lookershub.com', 'https://www.lookershub.com', 'http://localhost:3000', 'http://localhost:5173'];
 /** Vercel previews of this team only (the scope suffix cannot be claimed by anyone else). */
 const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/;
 const MAX_BODY = 60000;
+const MAX_IMAGE_BODY = 4_200_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Best effort: the result is stored under the user's own token (RLS owner check). Never blocks the answer. */
@@ -31,7 +33,7 @@ async function saveResult(transport: typeof fetch, url: string, key: string, tok
  * POST { op: 'compose', session }                      → { output, report, attempts, model }
  * Same boundary as lookers-ai-generate: anonymous Supabase user, allowed origins, size caps.
  */
-export function createEngineHandler(options: { env: (name: string) => string | undefined; model: JsonModel | null; blueprints: BlueprintLookup; transport?: typeof fetch }) {
+export function createEngineHandler(options: { env: (name: string) => string | undefined; model: JsonModel | null; vision?: VisionModel | null; blueprints: BlueprintLookup; transport?: typeof fetch }) {
   const transport = options.transport ?? fetch;
   const blueprintById = options.blueprints;
   const allowed = new Set([...DEFAULT_ORIGINS, ...(options.env('ENGINE_ALLOWED_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)]);
@@ -50,7 +52,7 @@ export function createEngineHandler(options: { env: (name: string) => string | u
     if (origin && !isAllowed(origin)) return json({ error: 'origin_not_allowed' }, 403, null);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
     if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, origin);
-    if (Number(req.headers.get('content-length') || 0) > MAX_BODY) return json({ error: 'request_too_large' }, 413, origin);
+    if (Number(req.headers.get('content-length') || 0) > MAX_IMAGE_BODY) return json({ error: 'request_too_large' }, 413, origin);
     const token = req.headers.get('Authorization')?.match(/^Bearer\s+(.+)$/i)?.[1];
     const url = options.env('SUPABASE_URL'), key = options.env('SUPABASE_ANON_KEY');
     if (!token) return json({ error: 'unauthorized' }, 401, origin);
@@ -67,13 +69,20 @@ export function createEngineHandler(options: { env: (name: string) => string | u
     let body: unknown;
     try {
       const raw = await req.text();
-      if (raw.length > MAX_BODY) return json({ error: 'request_too_large' }, 413, origin);
+      if (raw.length > MAX_IMAGE_BODY) return json({ error: 'request_too_large' }, 413, origin);
       body = JSON.parse(raw);
+      // Only the image operation may carry a large body.
+      if (raw.length > MAX_BODY && !(record(body) && body.op === 'describe')) return json({ error: 'request_too_large' }, 413, origin);
     } catch { return json({ error: 'invalid_json' }, 400, origin); }
     if (!dataOnly(body) || !record(body)) return json({ error: 'invalid_request' }, 400, origin);
-    if (!options.model) return json({ error: 'model_unavailable' }, 503, origin);
-
     try {
+      if (body.op === 'describe') {
+        if (!options.vision) return json({ error: 'vision_unavailable' }, 503, origin);
+        const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
+        if (!bp || !validImage(body.image)) return json({ error: 'invalid_request' }, 400, origin);
+        return json(await describeReference(options.vision, bp, body.image, body.lang === 'ar' ? 'ar' : 'en', req.signal), 200, origin);
+      }
+      if (!options.model) return json({ error: 'model_unavailable' }, 503, origin);
       if (body.op === 'intake') {
         const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
         if (!bp || typeof body.text !== 'string' || body.text.trim().length < 2 || body.text.length > 4000) return json({ error: 'invalid_request' }, 400, origin);
