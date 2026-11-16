@@ -7,7 +7,7 @@ import { serverBlueprints } from '../server/engine/blueprints.generated.ts';
 import { remoteBlueprints } from '../server/engine/remote-blueprints.ts';
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
 import { createChatJsonModel, type JsonModel } from '../server/engine/model.ts';
-import { describeReference, createGeminiVision } from '../server/engine/vision.ts';
+import { describeReference, createGeminiVision, createDeepSeekVision, visionFromEnv } from '../server/engine/vision.ts';
 
 const photo = blueprintById('product-photo')!;
 
@@ -158,4 +158,17 @@ test('gemini adapter: inline image, JSON mode, key in header only', async () => 
   assert.equal(seen!.headers['x-goog-api-key'], 'g-key');
   assert.equal(seen!.body.generationConfig.responseMimeType, 'application/json');
   assert.equal(seen!.body.contents[0].parts[1].inline_data.mime_type, 'image/png');
+});
+
+test('deepseek vision: image_url data URL in a user message, JSON mode; used when no Gemini key', async () => {
+  let body: any;
+  const transport: typeof fetch = async (_u, init) => { body = JSON.parse(String(init!.body)); return new Response(JSON.stringify({ choices: [{ message: { content: '{"description":"d","candidates":[]}' } }] })); };
+  const v = createDeepSeekVision({ key: 'ds', transport });
+  assert.deepEqual(await v.describe({ prompt: 'p', image: { mimeType: 'image/jpeg', data: 'C'.repeat(200) } }), { description: 'd', candidates: [] });
+  assert.equal(body.model, 'deepseek-flash');
+  assert.equal(body.response_format.type, 'json_object');
+  assert.match(body.messages[0].content[1].image_url.url, /^data:image\/jpeg;base64,C+$/);
+  assert.equal(visionFromEnv(k => ({ DEEPSEEK_API_KEY: 'x' } as Record<string, string>)[k])?.id, 'deepseek-flash');
+  assert.match(visionFromEnv(k => ({ DEEPSEEK_API_KEY: 'x', GEMINI_API_KEY: 'g' } as Record<string, string>)[k])!.id, /gemini/);
+  assert.equal(visionFromEnv(() => undefined), null);
 });

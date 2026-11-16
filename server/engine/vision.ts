@@ -48,8 +48,48 @@ export function createGeminiVision(cfg: { key: string; model?: string; timeoutMs
   };
 }
 
+/** DeepSeek chat completions with an image_url data URL (deepseek-flash accepts images since Sept 2026). */
+export function createDeepSeekVision(cfg: { key: string; model?: string; timeoutMs?: number; transport?: typeof fetch }): VisionModel {
+  const transport = cfg.transport ?? fetch, model = cfg.model || 'deepseek-flash';
+  return {
+    id: model,
+    async describe({ prompt, image, signal }) {
+      try {
+        return await bounded(async abort => {
+          let res: Response;
+          try {
+            res = await transport('https://api.deepseek.com/chat/completions', {
+              method: 'POST', redirect: 'error', signal: abort,
+              headers: { Authorization: 'Bearer ' + cfg.key, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model, stream: false, temperature: 0.2, max_tokens: 1500, response_format: { type: 'json_object' },
+                messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:${image.mimeType};base64,${image.data}` } }] }],
+              }),
+            });
+          } catch { throw new ModelError('model_unavailable'); }
+          if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
+          if (res.status === 429 || res.status === 402) throw new ModelError('model_rate_limited');
+          if (!res.ok) throw new ModelError('model_unavailable');
+          const raw = await res.text();
+          if (raw.includes(cfg.key)) throw new ModelError('model_bad_output');
+          try {
+            const content = JSON.parse(raw)?.choices?.[0]?.message?.content;
+            return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, ''));
+          } catch { throw new ModelError('model_bad_output'); }
+        }, cfg.timeoutMs ?? 40000, signal);
+      } catch (error) {
+        if (error instanceof ModelError) throw error;
+        throw new ModelError(error instanceof BoundedError ? 'model_timeout' : 'model_unavailable');
+      }
+    },
+  };
+}
+
+/** Gemini if its key is set, otherwise DeepSeek (same key as the text engine). */
 export const visionFromEnv = (env: (name: string) => string | undefined, transport?: typeof fetch): VisionModel | null =>
-  env('GEMINI_API_KEY') ? createGeminiVision({ key: env('GEMINI_API_KEY')!, model: env('GEMINI_MODEL'), transport }) : null;
+  env('GEMINI_API_KEY') ? createGeminiVision({ key: env('GEMINI_API_KEY')!, model: env('GEMINI_MODEL'), transport })
+    : env('DEEPSEEK_API_KEY') ? createDeepSeekVision({ key: env('DEEPSEEK_API_KEY')!, model: env('ENGINE_VISION_MODEL'), transport })
+    : null;
 
 /**
  * "Explain this image": a factual description plus candidates whose evidence is a span of that

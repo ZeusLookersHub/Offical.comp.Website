@@ -84,7 +84,7 @@ nextStep → intake (الفكرة) → submitIntake → question … answer/skip
 
 ## النشر
 
-- **`lookers-ai-engine` منشورة على Supabase (version 4)، و`verify_jwt` شغال.** الـ function القديمة `lookers-ai-generate` ما اتلمستش.
+- **`lookers-ai-engine` منشورة على Supabase (version 5)، و`verify_jwt` شغال.** الـ function القديمة `lookers-ai-generate` ما اتلمستش.
 - **الـ Blueprints مش جوه كود الـ function.** الـ function بتقرا رابط `server/engine/blueprints.json` على commit ثابت، والـ SHA-256 بتاعه، من جدول `lookers_engine_config`. بتراجعه كل ٥ دقايق، وبتتأكد من الـ hash قبل ما تستخدم الملف.
 - **إضافة أو تعديل مهمة:**
   1. `npm run build:engine-blueprints`
@@ -92,10 +92,10 @@ nextStep → intake (الفكرة) → submitIntake → question … answer/skip
   3. تحديث صف واحد في الجدول (الرابط والـ hash).
   - **من غير ما تنشر الـ function تاني.**
 - **احتياطي:** لو الجدول مش متاح، بيتستخدم الرابط المكتوب في `blueprints-pin.ts`.
-- **قراية الصور (Gemini):**
-  - بتشتغل أول ما المفتاح `GEMINI_API_KEY` يتضاف في Supabase secrets.
-  - الموديل الافتراضي `gemini-3.8-flash`، وممكن تغيّره من `GEMINI_MODEL`.
-  - من غير المفتاح، العملية بترجع `vision_unavailable`، والشات بيطلب من المستخدم يوصف الصورة بالكلام.
+- **قراية الصور:**
+  - بتشتغل بـ DeepSeek على نفس المفتاح. الموديل `deepseek-flash` بيقبل صور من سبتمبر ٢٠٢٦، وتقدر تغيّره من `ENGINE_VISION_MODEL`.
+  - لو اتضاف `GEMINI_API_KEY`، المحرك هيستخدم Gemini بداله.
+  - اختبار حي (١٦ نوفمبر): وصف صورة زجاجة بالمصري، وقرا "DAVIDOFF" بالحرف من الليبل.
 - **شرط مهم:** الطريقة دي محتاجة الريبو يفضل public. الأحسن على المدى الطويل يبقى في GitHub Action ينشر الـ bundle كامل، باستخدام `SUPABASE_ACCESS_TOKEN`.
 - **اختبار حي (١٥ نوفمبر):**
   - `intake`: طلّع المنتج والبراند والاستخدام والإحساس من رسالة عربي واحدة، وكل معلومة معاها دليلها.
