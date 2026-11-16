@@ -6,7 +6,7 @@ import { createEngineHandler } from '../server/engine/handler.ts';
 import { serverBlueprints } from '../server/engine/blueprints.generated.ts';
 import { remoteBlueprints } from '../server/engine/remote-blueprints.ts';
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
-import { createChatJsonModel, type JsonModel } from '../server/engine/model.ts';
+import { createChatJsonModel, createGeminiJsonModel, modelFromEnv, type JsonModel } from '../server/engine/model.ts';
 import { describeReference, createGeminiVision, createDeepSeekVision, visionFromEnv } from '../server/engine/vision.ts';
 
 const photo = blueprintById('product-photo')!;
@@ -171,4 +171,32 @@ test('deepseek vision: image_url data URL in a user message, JSON mode; used whe
   assert.equal(visionFromEnv(k => ({ DEEPSEEK_API_KEY: 'x' } as Record<string, string>)[k])?.id, 'deepseek-flash');
   assert.match(visionFromEnv(k => ({ DEEPSEEK_API_KEY: 'x', GEMINI_API_KEY: 'g' } as Record<string, string>)[k])!.id, /gemini/);
   assert.equal(visionFromEnv(() => undefined), null);
+});
+
+test('gemini text model: systemInstruction + JSON mode; key stays in the header', async () => {
+  let seen: any;
+  const transport: typeof fetch = async (u, init) => {
+    seen = { url: String(u), headers: init!.headers as Record<string, string>, body: JSON.parse(String(init!.body)) };
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"title":"ok"}' }] } }], usageMetadata: { promptTokenCount: 7, candidatesTokenCount: 3 } }));
+  };
+  const m = createGeminiJsonModel({ key: 'g-key', transport });
+  const out = await m.complete({ system: 'rules', user: 'brief', maxTokens: 500 });
+  assert.deepEqual(out.json, { title: 'ok' });
+  assert.deepEqual(out.usage, { inputTokens: 7, outputTokens: 3 });
+  assert.match(seen.url, /gemini-3\.8-flash:generateContent$/);
+  assert.ok(!seen.url.includes('g-key'));
+  assert.equal(seen.headers['x-goog-api-key'], 'g-key');
+  assert.equal(seen.body.systemInstruction.parts[0].text, 'rules');
+  assert.equal(seen.body.generationConfig.responseMimeType, 'application/json');
+  const leak = createGeminiJsonModel({ key: 'g-key', transport: async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"k":"g-key"}' }] } }] })) });
+  await assert.rejects(leak.complete({ system: 's', user: 'u', maxTokens: 10 }), /model_bad_output/);
+});
+
+test('modelFromEnv: Gemini wins when its key is present; ENGINE_PROVIDER forces a choice', () => {
+  const env = (o: Record<string, string>) => (k: string) => o[k];
+  assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' }))!.id, 'gemini-3.8-flash');
+  assert.equal(modelFromEnv(env({ DEEPSEEK_API_KEY: 'd' }))!.id, 'deepseek-flash');
+  assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd', ENGINE_PROVIDER: 'deepseek' }))!.id, 'deepseek-flash');
+  assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', ENGINE_MODEL: 'gemini-4-argon' }))!.id, 'gemini-4-argon');
+  assert.equal(modelFromEnv(env({})), null);
 });
