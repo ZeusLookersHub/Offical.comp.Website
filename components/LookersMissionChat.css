@@ -74,3 +74,11 @@
 .lmc-tool__name { font-weight: 600; }
 .lmc-tool__state { font-size: .76rem; opacity: .8; }
 @media (max-width: 520px) { .lmc-tool { flex: 1 1 calc(50% - 8px); justify-content: center; } }
+
+/* The tool's own logo when we have it; a monogram until then — never an imitation of one. */
+.lmc-tool__mark { position: relative; display: inline-grid; place-items: center; width: 22px; height: 22px; flex: none; }
+.lmc-tool__letter {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px;
+  background: rgba(255, 255, 255, .13); font-size: .72rem; font-weight: 700; line-height: 1;
+}
+.lmc-tool__mark img { position: absolute; inset: 0; width: 22px; height: 22px; border-radius: 6px; background: inherit; }

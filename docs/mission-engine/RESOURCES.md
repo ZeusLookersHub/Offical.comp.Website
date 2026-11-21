@@ -18,6 +18,8 @@
 
 > الجدول ده متولد من الكود (`listResources`). لو اختيار اتضاف أو اتغير، نعيد توليده.
 
+**الحالة:** كل الأمثلة دي لها دلوقتي **رسمة تخطيطية** مولّدة (`npm run build:example-assets`) محطوطة في نفس المسار بامتداد `.svg`، فالمستخدم بيشوف شكل الاختيار مش وصف مكتوب بس. الشات بيجرب الملف النهائي (`.webp`) الأول، ولو مش موجود بيستخدم الرسمة. **فأي رندر حقيقي بتحطه جنبها بياخد الأولوية فوراً من غير أي تعديل في الكود.**
+
 | # | المهمة | الخانة · الاختيار | النوع | المسار | يوضّح إيه | برومبت التوليد |
 |---|---|---|---|---|---|---|
 | 1 | product-photo | style · luxury-dark | صورة | `/assets/lookers-ai/examples/product-photo/style-luxury-dark.webp` | Deep shadows, a single rim light tracing the product edges, glossy black or marble surface, rich reflections. | luxury perfume bottle on black marble, single rim light, deep shadows, glossy reflections, product photography |
@@ -148,3 +150,5 @@
 المطلوب: `chatgpt` · `claude` · `gemini` · `copilot` · `gamma` · `canva` · `midjourney` · `ideogram` · `flux` · `firefly` · `runway` · `kling` · `hailuo` · `sora` · `veo` · `bolt` · `v0` · `lovable` · `framer` · `elevenlabs` · `suno`
 
 المواصفات: SVG مربّع، ٢٤×٢٤ على الأقل، خلفية شفافة، واللوجو الرسمي للأداة من غير تعديل — بيستخدم للتعريف بالأداة بس.
+
+**مش بنرسمها إحنا.** تقليد لوجو شركة حاجة ما نعملهاش، فلحد ما تتجمع من صفحة الـ brand الرسمية لكل أداة، الزرار بيعرض **الحرف الأول في مربّع** — شكل مقصود، مش صورة مكسورة. يعني دي مش حاجة بتوقف الشغل.

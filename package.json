@@ -40,7 +40,9 @@
     "build:public-blueprints": "esbuild scripts/build-public-blueprints.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/public-blueprints.mjs --log-level=warning && node node_modules/.cache/public-blueprints.mjs build-public-blueprints",
     "build:blueprints": "npm run build:engine-blueprints && npm run build:public-blueprints",
     "check:bundle": "node scripts/check-bundle-privacy.mjs docs",
-    "upload:blueprints": "node scripts/upload-blueprints.mjs"
+    "upload:blueprints": "node scripts/upload-blueprints.mjs",
+    "build:example-assets": "esbuild scripts/build-example-assets.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/example-assets.mjs --log-level=warning && node node_modules/.cache/example-assets.mjs",
+    "benchmark": "esbuild scripts/benchmark-missions.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/benchmark.mjs --log-level=warning && node node_modules/.cache/benchmark.mjs"
   },
   "dependencies": {
     "@fontsource/almarai": "5.3.0",

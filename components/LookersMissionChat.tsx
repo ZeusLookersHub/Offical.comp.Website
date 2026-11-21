@@ -236,7 +236,15 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
         return (
           <button type="button" key={o.value} className={`lmc-option${on ? ' is-selected' : ''}`} aria-pressed={on}
             onClick={() => setPicked(prev => slotDef?.kind === 'multi' ? (on ? prev.filter(v => v !== o.value) : [...prev, o.value]) : [o.value])}>
-            {o.asset && o.media !== 'video' && <img src={o.asset} alt="" loading="lazy" onError={e => { e.currentTarget.style.display = 'none'; }} />}
+            {o.asset && o.media !== 'video' && (
+              <img src={o.asset} alt="" loading="lazy" onError={e => {
+                // A real render takes precedence; the drawn preview stands in until one exists.
+                const img = e.currentTarget;
+                const preview = o.asset!.replace(/\.(webp|png|jpg|jpeg)$/i, '.svg');
+                if (preview !== img.getAttribute('src')) { img.src = preview; return; }
+                img.style.display = 'none';
+              }} />
+            )}
             {o.asset && o.media === 'video' && <video src={o.asset} muted loop autoPlay playsInline onError={e => { e.currentTarget.style.display = 'none'; }} />}
             <strong>{o.label}</strong>
             {o.description && <small>{o.description}</small>}
@@ -335,8 +343,11 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
                   {launchTools.map(({ id, label, plan }) => (
                     <button type="button" key={id} className="lmc-tool" onClick={() => void openIn(id, variants[id] ?? shownPrompt)}
                       aria-label={t(`Open ${label}`, `افتح ${label}`)}>
-                      <img src={plan.logo} alt="" aria-hidden="true" width={22} height={22} loading="lazy"
-                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <span className="lmc-tool__mark" aria-hidden="true">
+                        <span className="lmc-tool__letter">{label.trim().charAt(0).toUpperCase()}</span>
+                        <img src={plan.logo} alt="" width={22} height={22} loading="lazy"
+                          onError={e => { (e.currentTarget as HTMLImageElement).remove(); }} />
+                      </span>
                       <span className="lmc-tool__name">{label}</span>
                       {copied === 'launch:' + id
                         ? <span className="lmc-tool__state">{t('Copied — paste it', 'اتنسخ — الزقه')}</span>

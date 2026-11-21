@@ -1,0 +1,14 @@
+// A few requests written in-house, only so the harness runs today. Replace them with ten real
+// ones per mission from the team — the whole point is to measure what people actually type.
+{"blueprint":"product-photo","lang":"ar","text":"عايز صورة لبرفان DAVIDOFF على خلفية بيضا لمتجر أمازون","expect":{"slots":{"brandName":"DAVIDOFF"}}}
+{"blueprint":"product-photo","lang":"ar","text":"صورة كوتشي رياضي لبوست إنستجرام، شكل لايف ستايل في الشارع"}
+{"blueprint":"cv-resume","lang":"ar","text":"محتاج CV لوظيفة مدير تسويق في شركة تجارة إلكترونية في دبي، عندي ٣ سنين في وكالة"}
+{"blueprint":"cv-improve","lang":"ar","text":"الـ CV بتاعي صفحتين وما بيجيش عليه رد، عايزه صفحة واحدة وموجّه لوظيفة محاسب"}
+{"blueprint":"marketing-strategy","lang":"ar","text":"عندي متجر شنط جلد أونلاين في القاهرة، بيبيع لنساء ٢٥-٤٠، عايز أضاعف المبيعات في تلات شهور"}
+{"blueprint":"social-post-design","lang":"ar","text":"بوست إنستجرام يعلن خصم على جواكت الشتا، شكل جريء ومعتمد على الكلام"}
+{"blueprint":"company-profile","lang":"ar","text":"بروفايل لشركة مقاولات تشطيبات مكاتب من ٢٠١٥، للعملاء الجداد، عندنا ٣٨ مشروع خلصوا"}
+{"blueprint":"ai-operator","lang":"ar","text":"عايز مساعد يرد على عملاء الصيدلية بتاعتي على واتساب طول اليوم، التوصيل ساعتين في مدينة نصر بـ٤٠ جنيه"}
+{"blueprint":"website","lang":"ar","text":"موقع لشركتي يعرض الخدمات ويخلي الناس تطلب عرض سعر، العملاء بيجوا من الموبايل"}
+{"blueprint":"market-research","lang":"ar","text":"هل في طلب على خدمة تحضير وجبات لموظفين في القاهرة؟ جربنا مع ٢٠ عميل و١٤ أعادوا الطلب"}
+{"blueprint":"voiceover","lang":"ar","text":"تعليق صوتي مصري لريل كوتشي جديد، ٣٠ ثانية، صوت شبابي حماسي"}
+{"blueprint":"debugging","lang":"en","text":"Saving a form returns 500 and I expected the record to save. React 18 with Vite in the browser, started after I updated a package."}
