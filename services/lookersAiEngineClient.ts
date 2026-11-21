@@ -13,7 +13,20 @@ export function createEngineClient(getClient: () => Promise<Client>) {
   const call = async <T>(body: Record<string, unknown>): Promise<T> => {
     const client = await getClient();
     const { data, error } = await client.functions.invoke('lookers-ai-engine', { body });
-    if (error) throw new Error('engine_unavailable');
+    if (error) {
+      // Keep the server's own code: the chat tells a missing mission apart from a busy model.
+      let code = 'engine_unavailable';
+      try {
+        const context: unknown = (error as { context?: unknown }).context;
+        if (context instanceof Response) {
+          const body: unknown = await context.clone().json();
+          if (body && typeof body === 'object' && typeof (body as { error?: unknown }).error === 'string') {
+            code = (body as { error: string }).error;
+          }
+        }
+      } catch { /* the body may not be JSON; the generic code stands */ }
+      throw new Error(code);
+    }
     return data as T;
   };
   return {

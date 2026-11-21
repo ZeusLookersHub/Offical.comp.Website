@@ -157,3 +157,31 @@ test('the standing assistant asks few questions and keeps its stop line', () => 
   const control = bp.strategy.control.join(' ');
   assert.ok(/human/i.test(control), 'it must hand over to a human');
 });
+
+test('every door on the planets page opens a built mission', async () => {
+  const { worlds, missionSelection } = await import('../components/wormhole/worlds.ts');
+  const broken: string[] = [];
+  let doors = 0;
+  for (const world of worlds) {
+    for (const task of world.tasks) {
+      doors++;
+      const topicId = String(missionSelection(world.id, task[0]).answers.topicId);
+      if (!blueprintForTopic(topicId)) broken.push(`${world.id}/${task[0]} → ${topicId}`);
+    }
+  }
+  assert.deepEqual(broken, [], 'doors that still fall back to the old chat');
+  assert.ok(doors >= blueprints.length, `${doors} doors for ${blueprints.length} missions`);
+
+  // Four missions orbit at a time, so no world may have an orbit that cannot be reached.
+  for (const world of worlds) {
+    assert.ok(world.tasks.length > 0 && world.tasks.length <= 40, `${world.id} has ${world.tasks.length} doors`);
+  }
+});
+
+test('every built mission is reachable from the planets page', async () => {
+  const { worlds, missionSelection } = await import('../components/wormhole/worlds.ts');
+  const reachable = new Set<string>();
+  for (const world of worlds) for (const task of world.tasks) reachable.add(String(missionSelection(world.id, task[0]).answers.topicId));
+  const orphans = blueprints.filter(bp => !bp.topics.some(topic => reachable.has(topic))).map(bp => bp.id);
+  assert.deepEqual(orphans, [], 'missions with no door on the planets page');
+});

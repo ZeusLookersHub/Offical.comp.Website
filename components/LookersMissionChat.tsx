@@ -179,8 +179,17 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
       const chosen = String(confirmed.value.values.tool?.value ?? 'universal');
       setTool(variants[chosen] ? chosen : Object.keys(variants)[0] ?? 'universal');
       void engine.track('composed', bp.id, { sessionId: sessionId.current, meta: { passed: res.report.passed, total: res.report.total, attempts: res.attempts } });
-    } catch {
-      setError(t('The writer is busy right now. Your brief is saved — try again.', 'الكاتب مشغول دلوقتي. البريف بتاعك محفوظ، جرّب تاني.'));
+    } catch (thrown) {
+      const code = thrown instanceof Error ? thrown.message : '';
+      setError(
+        code === 'unknown_blueprint' || code === 'version_mismatch'
+          ? t('This mission is not published on the server yet. Your brief is saved — try again once it is.',
+              'المهمة دي لسه مش منشورة على السيرفر. البريف بتاعك محفوظ، جرّب تاني بعد نشرها.')
+        : code === 'rate_limited'
+          ? t('That is a lot of prompts in one minute. Wait a moment and try again.',
+              'ده كتير في دقيقة واحدة. استنى شوية وجرّب تاني.')
+        : t('The writer is busy right now. Your brief is saved — try again.',
+            'الكاتب مشغول دلوقتي. البريف بتاعك محفوظ، جرّب تاني.'));
     } finally { setBusy(''); }
   };
 

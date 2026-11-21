@@ -168,10 +168,12 @@ try {
   checks.push('Pitch Deck opens the engine chat in English');
   await page.getByRole('button', { name: '← Universes' }).click();
   await page.getByRole('button', { name: 'DESIGN', exact: true }).click();
-  await page.getByRole('button', { name: /Motion Design/ }).click();
-  await page.waitForTimeout(400);
-  assert.equal(await page.getByTestId('mission-chat').count(), 0);
-  checks.push('a mission with no blueprint yet (Motion Design) keeps the existing chat');
+  // Later orbits hold the missions added after the first four; they must be reachable.
+  await page.getByRole('button', { name: /^(Orbit|مدار) 3/ }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: /Logo Concept/ }).click();
+  await page.getByTestId('mission-chat').waitFor();
+  checks.push('a mission in a later orbit (Logo Concept) opens the engine chat');
   await context.close();
 
   assert.deepEqual(errors, []);

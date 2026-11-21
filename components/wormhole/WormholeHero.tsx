@@ -13,6 +13,10 @@ const rockGlows = [
   "rgba(255,143,184,.7)",
   "rgba(159,179,255,.7)",
 ];
+/** Four missions orbit at a time, so a world has as many orbits as its missions need. */
+const ringsFor = (world: World | null): number[] =>
+  Array.from({ length: Math.max(1, Math.ceil((world?.tasks.length ?? 4) / 4)) }, (_, i) => i);
+
 function Globe({
   world,
   size,
@@ -257,6 +261,7 @@ export default function WormholeHero({
               onClick={(e) => {
                 motion.current?.burst(e.currentTarget);
                 motion.current?.warp(1);
+                setMissionRing(0);
                 setActive(w);
               }}
             >
@@ -323,9 +328,18 @@ export default function WormholeHero({
           </h2>
         </div>
         <div className="mission-rings" role="group" aria-label={t('Mission orbits', 'مدارات المهمات')}>
-          {[0, 1].map(ring => <button key={ring} type="button" aria-pressed={missionRing === ring} disabled={leaving} onClick={() => setMissionRing(ring)}>
-            {t('Orbit', 'مدار')} {ring + 1} · {t('4 missions', '٤ مهمات')}
-          </button>)}
+          {ringsFor(active).map((ring, _i, all) => {
+            const count = active ? active.tasks.slice(ring * 4, ring * 4 + 4).length : 4;
+            // With many orbits the counts become noise, so past three we label the orbit only.
+            const label = all.length > 3
+              ? `${t('Orbit', 'مدار')} ${ring + 1}`
+              : `${t('Orbit', 'مدار')} ${ring + 1} · ${count} ${t(count === 1 ? 'mission' : 'missions', count === 1 ? 'مهمة' : 'مهمات')}`;
+            return (
+              <button key={ring} type="button" aria-pressed={missionRing === ring} disabled={leaving}
+                aria-label={`${t('Orbit', 'مدار')} ${ring + 1}, ${count} ${t('missions', 'مهمات')}`}
+                onClick={() => setMissionRing(ring)}>{label}</button>
+            );
+          })}
           <span>{t('Hover or focus to pause', 'قف على الاختيار عشان توقف حركته')}</span>
         </div>
         <div className="stage" ref={stepStage}>
