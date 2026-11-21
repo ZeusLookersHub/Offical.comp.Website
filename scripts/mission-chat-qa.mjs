@@ -167,11 +167,11 @@ try {
   assert.match(await page.getByTestId('mission-chat').innerText(), /company/i);
   checks.push('Pitch Deck opens the engine chat in English');
   await page.getByRole('button', { name: '← Universes' }).click();
-  await page.getByRole('button', { name: 'BUSINESS', exact: true }).click();
-  await page.getByRole('button', { name: /Business Plan/ }).click();
+  await page.getByRole('button', { name: 'DESIGN', exact: true }).click();
+  await page.getByRole('button', { name: /Motion Design/ }).click();
   await page.waitForTimeout(400);
   assert.equal(await page.getByTestId('mission-chat').count(), 0);
-  checks.push('Business Plan (no blueprint yet) keeps the existing chat');
+  checks.push('a mission with no blueprint yet (Motion Design) keeps the existing chat');
   await context.close();
 
   assert.deepEqual(errors, []);
