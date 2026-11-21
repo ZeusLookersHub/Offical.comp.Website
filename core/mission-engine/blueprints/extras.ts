@@ -108,7 +108,6 @@ export const motionGraphics: Blueprint = {
       ar: ['براندات تانية', 'تمطيط اللوجو', 'عناصر كتير في نفس الوقت', 'كلام بيتحرك بسرعة مش بتتقري', 'فلاش مزعج'],
     }),
     targetTool([
-      { value: 'universal', label: c('Any tool', 'أي أداة'), keywords: ['any', 'أي'] },
       { value: 'veo', label: c('Google Veo', 'Google Veo'), keywords: ['veo', 'فيو'] },
       { value: 'sora', label: c('Sora', 'Sora'), keywords: ['sora', 'سورا'] },
       { value: 'runway', label: c('Runway', 'Runway'), keywords: ['runway', 'رن وي'] },

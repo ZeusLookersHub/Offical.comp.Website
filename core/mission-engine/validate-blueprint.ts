@@ -21,6 +21,10 @@ export function validateBlueprint(bp: Blueprint): string[] {
     const hasOptions = !!s.options?.length;
     if ((s.kind === 'single' || s.kind === 'multi') !== hasOptions) err(`${s.id}: options do not match kind`);
     s.options?.forEach(o => { if (!copyOk(o.label)) err(`${s.id}.${o.value}: label missing`); });
+    // Two options with the same value put the same choice on screen twice and confuse extraction.
+    const optionValues = (s.options ?? []).map(o => o.value);
+    const duplicate = optionValues.find((v, i) => optionValues.indexOf(v) !== i);
+    if (duplicate) err(`${s.id}: option "${duplicate}" appears twice`);
     for (const d of s.defaults ?? []) {
       const vals = Array.isArray(d.value) ? d.value : [d.value];
       if (hasOptions && !vals.every(v => v === 'none' || (v === '@lang' && ['ar', 'en'].every(l => s.options!.some(o => o.value === l))) || s.options!.some(o => o.value === v))) err(`${s.id}: default not an option`);
