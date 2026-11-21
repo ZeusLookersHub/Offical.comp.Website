@@ -215,3 +215,27 @@ test('modelFromEnv: Gemini wins when its key is present; ENGINE_PROVIDER forces 
   assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', ENGINE_MODEL: 'gemini-4-argon' }))!.id, 'gemini-4-argon');
   assert.equal(modelFromEnv(env({})), null);
 });
+
+test('origins: the site, localhost and our previews pass; others only with the test flag', async () => {
+  const make = (env: Record<string, string>) => createEngineHandler({
+    env: name => env[name], model: null, vision: null, blueprints: async () => undefined,
+    transport: async () => new Response('{}', { status: 500 }),
+  });
+  const ask = async (handler: ReturnType<typeof createEngineHandler>, origin: string) =>
+    (await handler(new Request('https://fn/', { method: 'OPTIONS', headers: { Origin: origin } }))).status;
+
+  const base = { SUPABASE_URL: 'https://db', SUPABASE_ANON_KEY: 'k' };
+  const closed = make(base);
+  assert.equal(await ask(closed, 'https://lookershub.com'), 204);
+  assert.equal(await ask(closed, 'http://localhost:3000'), 204);
+  assert.equal(await ask(closed, 'https://site-git-branch-zeuslookershubs-projects.vercel.app'), 204);
+  assert.equal(await ask(closed, 'https://someone-else.vercel.app'), 403, 'a stranger\'s preview is refused by default');
+  assert.equal(await ask(closed, 'https://evil.example'), 403);
+
+  const open = make({ ...base, ENGINE_ALLOW_VERCEL_PREVIEWS: '1' });
+  assert.equal(await ask(open, 'https://someone-else.vercel.app'), 204, 'the flag opens previews while testing');
+  assert.equal(await ask(open, 'https://evil.example'), 403, 'and nothing else');
+
+  const listed = make({ ...base, ENGINE_ALLOWED_ORIGINS: 'https://staging.lookershub.com' });
+  assert.equal(await ask(listed, 'https://staging.lookershub.com'), 204);
+});

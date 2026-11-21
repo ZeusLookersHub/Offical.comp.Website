@@ -7,6 +7,9 @@ import { describeReference, validImage, type VisionModel } from './vision.ts';
 const DEFAULT_ORIGINS = ['https://lookershub.com', 'https://www.lookershub.com', 'http://localhost:3000', 'http://localhost:5173'];
 /** Vercel previews of this team only (the scope suffix cannot be claimed by anyone else). */
 const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/;
+/** While testing a branch, preview hostnames are unpredictable. Set ENGINE_ALLOW_VERCEL_PREVIEWS=1
+ *  to accept any vercel.app preview; the token check and the rate limits still apply to every call. */
+const ANY_VERCEL_PREVIEW = /^https:\/\/[a-z0-9-]+\.vercel\.app$/;
 const MAX_BODY = 60000;
 /** Calls one anonymous user may make per minute, per operation. Compose costs money; typing does not. */
 const RATE_LIMITS: Record<string, number> = { compose: 10, describe: 10, intake: 30, ideas: 60 };
@@ -59,7 +62,9 @@ export function createEngineHandler(options: { env: (name: string) => string | u
   const transport = options.transport ?? fetch;
   const blueprintById = options.blueprints;
   const allowed = new Set([...DEFAULT_ORIGINS, ...(options.env('ENGINE_ALLOWED_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)]);
-  const isAllowed = (origin: string) => allowed.has(origin) || PREVIEW_ORIGIN.test(origin);
+  const previewsOpen = options.env('ENGINE_ALLOW_VERCEL_PREVIEWS') === '1';
+  const isAllowed = (origin: string) => allowed.has(origin) || PREVIEW_ORIGIN.test(origin)
+    || (previewsOpen && ANY_VERCEL_PREVIEW.test(origin));
   const cors = (origin: string | null) => ({
     ...(origin && isAllowed(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
