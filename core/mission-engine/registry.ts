@@ -3,9 +3,10 @@ import { productPhoto } from './blueprints/product-photo.ts';
 import { productVideo } from './blueprints/product-video.ts';
 import { pitchDeck } from './blueprints/pitch-deck.ts';
 import { landingPage } from './blueprints/landing-page.ts';
+import { businessBlueprints } from './blueprints/business.ts';
 
 /** Pilot blueprints. Missions without one keep using the current chat workflow. */
-export const blueprints: readonly Blueprint[] = [productPhoto, productVideo, pitchDeck, landingPage];
+export const blueprints: readonly Blueprint[] = [productPhoto, productVideo, pitchDeck, landingPage, ...businessBlueprints];
 
 const byTopic = new Map(blueprints.flatMap(bp => bp.topics.map(topic => [topic, bp] as const)));
 const byId = new Map(blueprints.map(bp => [bp.id, bp] as const));

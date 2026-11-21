@@ -24,11 +24,35 @@ function walk(blueprint: Blueprint, session: Session, answers: Record<string, st
   return { session, asked };
 }
 
-test('the four pilot missions open from their planet topics', () => {
+test('the pilot missions open from their planet topics', () => {
   assert.equal(bp('product-photography').id, 'product-photo');
   assert.equal(bp('product-commercial').id, 'product-video');
   assert.equal(bp('investor-pitch').id, 'pitch-deck');
   assert.equal(bp('landing-page').id, 'landing-page');
+  assert.equal(bp('growth-strategy').id, 'growth-strategy');
+  assert.equal(bp('business-plan').id, 'business-plan');
+  assert.equal(bp('feasibility-study').id, 'feasibility-study');
+  assert.equal(bp('competitor-analysis').id, 'competitor-analysis');
+});
+
+test('business strategy: few questions, phased plan, invented numbers caught', () => {
+  const g = bp('growth-strategy');
+  let s = ok(submitIntake(createSession(g, 'ar', 'g1'), g, 'عايز نضاعف حجوزات العيادة في ٦ شهور، المشكلة إن الزوار مش بيحجزوا'));
+  const walked = walk(g, s, { company: 'عيادة أسنان في القاهرة بتكسب من الكشف والعلاج', goal: 'نضاعف الحجوزات في ٦ شهور', horizon: '90-day', brandName: 'Smile' });
+  s = ok(confirmBrief(walked.session, g));
+  assert.equal(walked.asked.length <= 4, true, 'stays within a few questions');
+  assert.equal(s.values.horizon?.value, '90-day');
+  const base = {
+    title: 'استراتيجية نمو Smile', sections: { goal: 'g', approach: 'a', rules: 'r', output: 'o' },
+    prompt: 'Objective for "Smile": lift bookings in 90 days. Right-to-left layout. Fix booking funnel first.',
+    planOutline: ['المرحلة 1: تحسين صفحة الحجز — معدل التحويل'], missingData: ['عدد الحجوزات الحالي'],
+    variants: { universal: 'Growth plan for "Smile"' }, checklist: ['a', 'b', 'c', 'd'], summary: 's',
+  };
+  assert.equal(runGates(g, s, base).ok, true, JSON.stringify(runGates(g, s, base).results.filter(r => !r.ok)));
+  const invented = runGates(g, s, { ...base, planOutline: ['المرحلة 1: نوصل 5000 عميل و300% نمو'] });
+  assert.equal(invented.results.find(r => r.id === 'no-invented-numbers')!.ok, false);
+  const noRtl = runGates(g, s, { ...base, prompt: 'Objective for "Smile": lift bookings in 90 days.' });
+  assert.equal(noRtl.results.find(r => r.id === 'rtl')!.ok, false);
 });
 
 test('internal system prompt is built from the four layers, in order, with examples', () => {
