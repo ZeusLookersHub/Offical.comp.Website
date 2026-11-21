@@ -8,8 +8,30 @@ const DEFAULT_ORIGINS = ['https://lookershub.com', 'https://www.lookershub.com',
 /** Vercel previews of this team only (the scope suffix cannot be claimed by anyone else). */
 const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/;
 const MAX_BODY = 60000;
+/** Calls one anonymous user may make per minute, per operation. Compose costs money; typing does not. */
+const RATE_LIMITS: Record<string, number> = { compose: 10, describe: 10, intake: 30, ideas: 60 };
+const RATE_WINDOW_SECONDS = 60;
 const MAX_IMAGE_BODY = 4_200_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Counts the call and says whether this user is still inside the limit. Needs the service key,
+ * because the counter is in a locked table — without it we do not throttle rather than refuse.
+ */
+async function withinRate(transport: typeof fetch, url: string, serviceKey: string | undefined, owner: string, op: string): Promise<boolean> {
+  if (!serviceKey) return true;
+  try {
+    return await bounded(async signal => {
+      const res = await transport(url + '/rest/v1/rpc/engine_rate_check', {
+        method: 'POST', signal, redirect: 'error',
+        headers: { apikey: serviceKey, Authorization: 'Bearer ' + serviceKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_owner: owner, p_op: op, p_limit: RATE_LIMITS[op] ?? 30, p_window_seconds: RATE_WINDOW_SECONDS }),
+      });
+      if (!res.ok) return true;
+      return await res.json() !== false;
+    }, 3000);
+  } catch { return true; }
+}
 
 /** Best effort: the result is stored under the user's own token (RLS owner check). Never blocks the answer. */
 async function saveResult(transport: typeof fetch, url: string, key: string, token: string, row: Record<string, unknown>): Promise<string | null> {
@@ -57,12 +79,14 @@ export function createEngineHandler(options: { env: (name: string) => string | u
     const url = options.env('SUPABASE_URL'), key = options.env('SUPABASE_ANON_KEY');
     if (!token) return json({ error: 'unauthorized' }, 401, origin);
     if (!url || !key) return json({ error: 'server_configuration_error' }, 503, origin);
+    let owner = '';
     try {
       await bounded(async signal => {
         const auth = await transport(url + '/auth/v1/user', { headers: { apikey: key, Authorization: 'Bearer ' + token }, signal, redirect: 'error' });
         if (!auth.ok) throw new Error('unauthorized');
         const user: unknown = await auth.json();
         if (!record(user) || typeof user.id !== 'string' || user.is_anonymous !== true) throw new Error('unauthorized');
+        owner = user.id;
       }, 8000, req.signal);
     } catch { return json({ error: 'identity_verification_failed' }, 401, origin); }
 
@@ -75,6 +99,13 @@ export function createEngineHandler(options: { env: (name: string) => string | u
       if (raw.length > MAX_BODY && !(record(body) && body.op === 'describe')) return json({ error: 'request_too_large' }, 413, origin);
     } catch { return json({ error: 'invalid_json' }, 400, origin); }
     if (!dataOnly(body) || !record(body)) return json({ error: 'invalid_request' }, 400, origin);
+    const op = typeof body.op === 'string' ? body.op : '';
+    if (!(op in RATE_LIMITS)) return json({ error: 'unknown_op' }, 400, origin);
+    if (!await withinRate(transport, url, options.env('SUPABASE_SERVICE_ROLE_KEY'), owner, op)) {
+      return new Response(JSON.stringify({ error: 'rate_limited' }), {
+        status: 429, headers: { ...cors(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Retry-After': String(RATE_WINDOW_SECONDS) },
+      });
+    }
     try {
       if (body.op === 'describe') {
         if (!options.vision) return json({ error: 'vision_unavailable' }, 503, origin);

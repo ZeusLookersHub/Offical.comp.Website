@@ -182,40 +182,43 @@ ed from your description>"}]}.',`description: 2–4 factual sentences in ${lang=
 let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},asked:[],revision:0},candidates=list.
 filter(c=>c&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,12).filter(c=>applyCandidates(empty,bp,description,[c]).
 values[c.slot]);return{description,candidates}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
-MAX_BODY=6e4,MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;async function saveResult(transport,url,key,token,row){try{return await bounded(
-async signal=>{let res=await transport(url+"/rest/v1/lookers_engine_results",{method:"POST",signal,redirect:"error",headers:{apikey:key,Authorization:"Bearer "+token,"Content-Type":"\
-application/json",Prefer:"return=representation"},body:JSON.stringify(row)});if(!res.ok)return null;let rows=await res.json();return Array.isArray(rows)&&rows[0]&&typeof rows[0].id==
-"string"?rows[0].id:null},4e3)}catch{return null}}function createEngineHandler(options){let transport=options.transport??fetch,blueprintById=options.blueprints,allowed=new Set([...DEFAULT_ORIGINS,
-...(options.env("ENGINE_ALLOWED_ORIGINS")??"").split(",").map(s=>s.trim()).filter(Boolean)]),isAllowed=origin=>allowed.has(origin)||PREVIEW_ORIGIN.test(origin),cors=origin=>({...origin&&
-isAllowed(origin)?{"Access-Control-Allow-Origin":origin}:{},"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST\
-, OPTIONS",Vary:"Origin"}),json=(body,status,origin)=>new Response(JSON.stringify(body),{status,headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store"}});
-return async req=>{let origin=req.headers.get("Origin");if(origin&&!isAllowed(origin))return json({error:"origin_not_allowed"},403,null);if(req.method==="OPTIONS")return new Response(
-null,{status:204,headers:cors(origin)});if(req.method!=="POST")return json({error:"method_not_allowed"},405,origin);if(Number(req.headers.get("content-length")||0)>MAX_IMAGE_BODY)return json(
-{error:"request_too_large"},413,origin);let token=req.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1],url=options.env("SUPABASE_URL"),key=options.env("SUPABASE_ANON_KE\
-Y");if(!token)return json({error:"unauthorized"},401,origin);if(!url||!key)return json({error:"server_configuration_error"},503,origin);try{await bounded(async signal=>{let auth=await transport(
-url+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token},signal,redirect:"error"});if(!auth.ok)throw new Error("unauthorized");let user=await auth.json();if(!record(
-user)||typeof user.id!="string"||user.is_anonymous!==!0)throw new Error("unauthorized")},8e3,req.signal)}catch{return json({error:"identity_verification_failed"},401,origin)}let body;
-try{let raw=await req.text();if(raw.length>MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);if(body=JSON.parse(raw),raw.length>MAX_BODY&&!(record(body)&&body.op===
-"describe"))return json({error:"request_too_large"},413,origin)}catch{return json({error:"invalid_json"},400,origin)}if(!dataOnly(body)||!record(body))return json({error:"invalid_r\
-equest"},400,origin);try{if(body.op==="describe"){if(!options.vision)return json({error:"vision_unavailable"},503,origin);let bp=typeof body.blueprintId=="string"?await blueprintById(
-body.blueprintId):void 0;return!bp||!validImage(body.image)?json({error:"invalid_request"},400,origin):json(await describeReference(options.vision,bp,body.image,body.lang==="ar"?"a\
-r":"en",req.signal),200,origin)}if(!options.model)return json({error:"model_unavailable"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId=="string"?await blueprintById(
-body.blueprintId):void 0;return!bp||typeof body.text!="string"||body.text.trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):json({candidates:await extract(
-options.model,bp,body.text,req.signal)},200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;if(!bp||typeof body.
-slot!="string"||typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json({ideas:await ideas(
-options.model,bp,body.slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(body.session,
-blueprintById);if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(options.model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId==
-"string"&&UUID.test(body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.
-version,output:result.output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,
-resultId},200,origin)}return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("bl\
-ueprints_")?"blueprints_unavailable":"engine_failed";return json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_a\
-uth_failed"||code==="blueprints_unavailable"?503:502,origin)}}}var hex=buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");function remoteBlueprints(resolvePin,fallback,transport=fetch,ttlMs=5*6e4,now=()=>Date.now()){
-let pin=fallback,pinCheckedAt=-1/0,loaded,load=p=>(async()=>{let res=await transport(p.url,{redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let bytes=await res.
-arrayBuffer();if(hex(await crypto.subtle.digest("SHA-256",bytes))!==p.sha256)throw new Error("blueprints_integrity");let list=JSON.parse(new TextDecoder().decode(bytes));return new Map(
-list.map(bp=>[bp.id,bp]))})();return async id=>{if(now()-pinCheckedAt>ttlMs){pinCheckedAt=now();try{let next=await resolvePin();typeof next?.url=="string"&&/^[0-9a-f]{64}$/.test(next.
-sha256??"")&&(pin=next)}catch{}}if(!loaded||loaded.sha!==pin.sha256){let previous=loaded,current={sha:pin.sha256,map:load(pin)};loaded=current,current.map.catch(()=>{loaded===current&&
-(loaded=previous)})}return(await loaded.map).get(id)}}var pinFromConfig=(url,anonKey,transport=fetch)=>async()=>{let res=await transport(`${url}/rest/v1/lookers_engine_config?key=e\
-q.blueprints&select=value`,{headers:{apikey:anonKey,Authorization:"Bearer "+anonKey},redirect:"error"});if(!res.ok)throw new Error("config_unavailable");let rows=await res.json();if(!rows[0]?.
-value)throw new Error("config_missing");return rows[0].value};var BLUEPRINTS_URL="https://raw.githubusercontent.com/ZeusLookersHub/Offical.comp.Website/21e7b640a7b8ad670f4644ecb4b6d88b10bf1c4f/server/engine/blueprints.json",BLUEPRINTS_SHA256="\
-c1066a40becbcb09f90dabcb9a8882e68e84bc23e977f171b8c43520ccd10b67";var env=name=>Deno.env.get(name),blueprints=remoteBlueprints(pinFromConfig(env("SUPABASE_URL")??"",env("SUPABASE_ANON_KEY")??""),{url:BLUEPRINTS_URL,sha256:BLUEPRINTS_SHA256});Deno.
-serve(createEngineHandler({env,model:modelFromEnv(env),vision:visionFromEnv(env),blueprints}));
+MAX_BODY=6e4,RATE_LIMITS={compose:10,describe:10,intake:30,ideas:60},RATE_WINDOW_SECONDS=60,MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function withinRate(transport,url,serviceKey,owner,op){if(!serviceKey)return!0;try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/rpc/engine_rate_c\
+heck",{method:"POST",signal,redirect:"error",headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_owner:owner,p_op:op,
+p_limit:RATE_LIMITS[op]??30,p_window_seconds:RATE_WINDOW_SECONDS})});return res.ok?await res.json()!==!1:!0},3e3)}catch{return!0}}async function saveResult(transport,url,key,token,row){
+try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/lookers_engine_results",{method:"POST",signal,redirect:"error",headers:{apikey:key,Authorization:"Bear\
+er "+token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(row)});if(!res.ok)return null;let rows=await res.json();return Array.isArray(rows)&&
+rows[0]&&typeof rows[0].id=="string"?rows[0].id:null},4e3)}catch{return null}}function createEngineHandler(options){let transport=options.transport??fetch,blueprintById=options.blueprints,
+allowed=new Set([...DEFAULT_ORIGINS,...(options.env("ENGINE_ALLOWED_ORIGINS")??"").split(",").map(s=>s.trim()).filter(Boolean)]),isAllowed=origin=>allowed.has(origin)||PREVIEW_ORIGIN.
+test(origin),cors=origin=>({...origin&&isAllowed(origin)?{"Access-Control-Allow-Origin":origin}:{},"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-typ\
+e","Access-Control-Allow-Methods":"POST, OPTIONS",Vary:"Origin"}),json=(body,status,origin)=>new Response(JSON.stringify(body),{status,headers:{...cors(origin),"Content-Type":"appl\
+ication/json","Cache-Control":"no-store"}});return async req=>{let origin=req.headers.get("Origin");if(origin&&!isAllowed(origin))return json({error:"origin_not_allowed"},403,null);
+if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(origin)});if(req.method!=="POST")return json({error:"method_not_allowed"},405,origin);if(Number(req.headers.
+get("content-length")||0)>MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);let token=req.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1],url=options.
+env("SUPABASE_URL"),key=options.env("SUPABASE_ANON_KEY");if(!token)return json({error:"unauthorized"},401,origin);if(!url||!key)return json({error:"server_configuration_error"},503,
+origin);let owner="";try{await bounded(async signal=>{let auth=await transport(url+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token},signal,redirect:"error"});if(!auth.
+ok)throw new Error("unauthorized");let user=await auth.json();if(!record(user)||typeof user.id!="string"||user.is_anonymous!==!0)throw new Error("unauthorized");owner=user.id},8e3,
+req.signal)}catch{return json({error:"identity_verification_failed"},401,origin)}let body;try{let raw=await req.text();if(raw.length>MAX_IMAGE_BODY)return json({error:"request_too_\
+large"},413,origin);if(body=JSON.parse(raw),raw.length>MAX_BODY&&!(record(body)&&body.op==="describe"))return json({error:"request_too_large"},413,origin)}catch{return json({error:"\
+invalid_json"},400,origin)}if(!dataOnly(body)||!record(body))return json({error:"invalid_request"},400,origin);let op=typeof body.op=="string"?body.op:"";if(!(op in RATE_LIMITS))return json(
+{error:"unknown_op"},400,origin);if(!await withinRate(transport,url,options.env("SUPABASE_SERVICE_ROLE_KEY"),owner,op))return new Response(JSON.stringify({error:"rate_limited"}),{status:429,
+headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store","Retry-After":String(RATE_WINDOW_SECONDS)}});try{if(body.op==="describe"){if(!options.vision)return json(
+{error:"vision_unavailable"},503,origin);let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;return!bp||!validImage(body.image)?json({error:"inval\
+id_request"},400,origin):json(await describeReference(options.vision,bp,body.image,body.lang==="ar"?"ar":"en",req.signal),200,origin)}if(!options.model)return json({error:"model_un\
+available"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;return!bp||typeof body.text!="string"||body.text.
+trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):json({candidates:await extract(options.model,bp,body.text,req.signal)},200,origin)}if(body.op==="id\
+eas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;if(!bp||typeof body.slot!="string"||typeof body.typed!="string"||body.typed.length>400)return json(
+{error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json({ideas:await ideas(options.model,bp,body.slot,body.typed,typeof body.context=="string"?body.context:
+"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(body.session,blueprintById);if("error"in clean)return json({error:clean.error},400,origin);
+let result=await compose(options.model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId=="string"&&UUID.test(body.sessionId)?body.sessionId:null,resultId=await saveResult(
+transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.version,output:result.output,report:result.report,gates_passed:result.report.passed,
+gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,resultId},200,origin)}return json({error:"unknown_op"},400,origin)}catch(error){
+let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("blueprints_")?"blueprints_unavailable":"engine_failed";return json({error:code},code===
+"model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_auth_failed"||code==="blueprints_unavailable"?503:502,origin)}}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
+6e4,now=()=>Date.now()){let cache=null,inflight=null,load=async()=>{if(!supabaseUrl||!serviceKey)throw new Error("blueprints_unconfigured");return await bounded(async signal=>{let res=await transport(
+`${supabaseUrl}/rest/v1/lookers_engine_blueprints?id=eq.current&select=payload,count`,{headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,Accept:"application/json"},signal,
+redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let rows=await res.json(),row=Array.isArray(rows)?rows[0]:void 0;if(!row||!Array.isArray(row.payload)||row.payload.
+length===0)throw new Error("blueprints_missing");if(!row.payload.every(usable))throw new Error("blueprints_malformed");let list=row.payload;return new Map(list.map(bp=>[bp.id,bp]))},
+8e3)};return async id=>{if(cache&&now()-cache.at<ttlMs)return cache.byId.get(id);inflight||(inflight=load().then(byId=>(cache={at:now(),byId},byId)).finally(()=>{inflight=null}));try{
+return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??"");Deno.serve(createEngineHandler({env,model:modelFromEnv(env),
+vision:visionFromEnv(env),blueprints}));

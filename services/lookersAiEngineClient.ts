@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Candidate, ComposeRequest, GateReport, Session } from '../core/mission-engine';
+import type { Candidate, ComposeRequest, GateReport, Session } from '../core/mission-engine/client';
 
 /**
  * Browser client for the lookers-ai-engine function and the learning events table.

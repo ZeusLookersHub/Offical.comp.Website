@@ -4,6 +4,8 @@ import {
   answer, blueprintForTopic, blueprints, buildBrief, buildComposeRequest, confirmBrief, createSession,
   nextStep, planLaunch, repairInstruction, runGates, skip, submitIntake, suggest, validateBlueprint, type Session,
 } from '../core/mission-engine/index.ts';
+import { leaksPrivateData } from '../core/mission-engine/public.ts';
+import { publicBlueprints } from '../core/mission-engine/public-blueprints.generated.ts';
 import { productPhoto as bp } from '../core/mission-engine/blueprints/product-photo.ts';
 
 const ok = <T>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
@@ -218,4 +220,21 @@ test('launch: every tool a blueprint offers has a destination or is universal', 
     }
   }
   assert.deepEqual(missing, [], 'tool targets without a launch destination');
+});
+
+test('privacy: the browser copy carries no prompt engineering', () => {
+  assert.equal(publicBlueprints.length, blueprints.length, 'every blueprint has a public copy');
+  const leaks = publicBlueprints.flatMap(bp => leaksPrivateData(bp).map(f => `${bp.id}.${f}`));
+  assert.deepEqual(leaks, [], 'private fields left in the public copy');
+  // The full blueprints must still carry it — the split is a projection, not a deletion.
+  for (const bp of blueprints) {
+    assert.ok(bp.role.length > 0, `${bp.id} keeps its role on the server`);
+    assert.ok(bp.strategy.control.length > 0, `${bp.id} keeps its control rules on the server`);
+    assert.ok(bp.gates.length > 0, `${bp.id} keeps its gates on the server`);
+  }
+  // And the public copy must still be usable: labels, questions and options survive.
+  for (const bp of publicBlueprints) {
+    assert.ok(bp.slots.length > 0 && bp.slots.every(s => s.label.ar && s.question.ar), `${bp.id} keeps its questions`);
+    assert.ok(bp.intake.starters.length > 0, `${bp.id} keeps its starters`);
+  }
 });

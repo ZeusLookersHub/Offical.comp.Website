@@ -34,9 +34,13 @@
     "test:expanded": "esbuild tests/lookers-expanded-orbits.test.ts --bundle --platform=node --format=esm --outfile=.lookers-expanded.test.mjs && node --test .lookers-expanded.test.mjs",
     "test:expanded-journeys": "node scripts/expanded-orbits-qa.mjs",
     "test:mission-engine": "esbuild tests/mission-engine.test.ts --bundle --platform=node --format=esm --outfile=.lookers-mission-engine.test.mjs --log-level=warning && esbuild tests/mission-engine-pilots.test.ts --bundle --platform=node --format=esm --outfile=.lookers-mission-pilots.test.mjs --log-level=warning && esbuild tests/mission-engine-server.test.ts --bundle --platform=node --format=esm --outfile=.lookers-mission-server.test.mjs --log-level=warning && node --test .lookers-mission-engine.test.mjs .lookers-mission-pilots.test.mjs .lookers-mission-server.test.mjs",
-    "build:engine-function": "npm run -s build:engine-blueprints && esbuild supabase/functions/lookers-ai-engine/index.ts --bundle --platform=neutral --format=esm --external:jsr:* --minify-whitespace --minify-syntax --charset=utf8 --legal-comments=none --line-limit=180 --outfile=node_modules/.cache/lookers-ai-engine/index.ts --log-level=warning && node -e \"const fs=require('fs');let s=fs.readFileSync('node_modules/.cache/lookers-ai-engine/index.ts','utf8').replace('import\\\"jsr:@supabase/functions-js/edge-runtime.d.ts\\\";','');fs.writeFileSync('supabase/functions/lookers-ai-engine/_bundle.mjs',s)\"",
+    "build:engine-function": "npm run -s build:engine-blueprints && esbuild supabase/functions/lookers-ai-engine/entry.ts --bundle --platform=neutral --format=esm --external:jsr:* --minify-whitespace --minify-syntax --charset=utf8 --legal-comments=none --line-limit=180 --outfile=node_modules/.cache/lookers-ai-engine/index.ts --log-level=warning && node -e \"const fs=require('fs');let s=fs.readFileSync('node_modules/.cache/lookers-ai-engine/index.ts','utf8').replace('import\\\"jsr:@supabase/functions-js/edge-runtime.d.ts\\\";','');fs.writeFileSync('supabase/functions/lookers-ai-engine/_bundle.mjs',s)\"",
     "build:engine-blueprints": "esbuild scripts/build-engine-blueprints.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/engine-blueprints.mjs --log-level=warning && node node_modules/.cache/engine-blueprints.mjs build-engine-blueprints",
-    "test:mission-chat": "node scripts/mission-chat-qa.mjs"
+    "test:mission-chat": "node scripts/mission-chat-qa.mjs",
+    "build:public-blueprints": "esbuild scripts/build-public-blueprints.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/public-blueprints.mjs --log-level=warning && node node_modules/.cache/public-blueprints.mjs build-public-blueprints",
+    "build:blueprints": "npm run build:engine-blueprints && npm run build:public-blueprints",
+    "check:bundle": "node scripts/check-bundle-privacy.mjs docs",
+    "upload:blueprints": "node scripts/upload-blueprints.mjs"
   },
   "dependencies": {
     "@fontsource/almarai": "5.3.0",

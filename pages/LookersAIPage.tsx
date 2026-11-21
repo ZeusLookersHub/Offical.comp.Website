@@ -19,7 +19,7 @@ import { isLegacyDraft, lookersAiProjectState } from '../services/lookersAiProje
 import { planDraftQuestions } from '../services/lookersAiQuestions';
 import { createApplicationGenerator } from '../services/lookersAiApplicationGeneration';
 import { lookersAiTransport } from '../services/lookersAiTransport';
-import { blueprintForTopic } from '../core/mission-engine';
+import { blueprintForTopic } from '../core/mission-engine/client';
 import LookersMissionChat from '../components/LookersMissionChat';
 import {
   compileLookersPrompt, createProjectDraft, detectTaskType,

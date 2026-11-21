@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { answer, blueprintById, confirmBrief, createSession, submitIntake, nextStep, type Session } from '../core/mission-engine/index.ts';
+import { answer, blueprintById, confirmBrief, createSession, submitIntake, nextStep, type Blueprint, type Session } from '../core/mission-engine/index.ts';
 import { compose, extract, sanitizeSession } from '../server/engine/engine.ts';
 import { createEngineHandler } from '../server/engine/handler.ts';
-import { serverBlueprints } from '../server/engine/blueprints.generated.ts';
-import { remoteBlueprints } from '../server/engine/remote-blueprints.ts';
+import { serverShape } from '../scripts/build-engine-blueprints.ts';
+import { privateBlueprints } from '../server/engine/private-blueprints.ts';
+const serverBlueprints = serverShape() as unknown as Blueprint[];
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
 import { createChatJsonModel, createGeminiJsonModel, modelFromEnv, type JsonModel } from '../server/engine/model.ts';
 import { describeReference, createGeminiVision, createDeepSeekVision, visionFromEnv } from '../server/engine/vision.ts';
@@ -91,31 +92,45 @@ test('handler: anonymous auth, origin and op routing', async () => {
   assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://lookershub.com');
 });
 
-test('server blueprints are in sync with the full blueprints', async () => {
-  const { serverBlueprints } = await import('../server/engine/blueprints.generated.ts');
-  const { serverShape } = await import('../scripts/build-engine-blueprints.ts');
-  assert.deepEqual(JSON.parse(JSON.stringify(serverBlueprints)), JSON.parse(JSON.stringify(serverShape())), 'run npm run build:engine-blueprints');
+test('the engine payload is never published: no plaintext copy in the repo', async () => {
+  const { existsSync } = await import('node:fs');
+  for (const path of ['server/engine/blueprints.json', 'server/engine/blueprints.generated.ts']) {
+    assert.equal(existsSync(path), false, `${path} must not exist — the payload is uploaded to the locked table, not committed`);
+  }
+  const { readFileSync } = await import('node:fs');
+  const ignored = readFileSync('.gitignore', 'utf8');
+  for (const rule of ['.env', '.engine/']) assert.ok(ignored.includes(rule), `.gitignore must cover ${rule}`);
 });
 
-test('remote blueprints: pin from config, hash checked, cached, hot-swapped, fallback kept', async () => {
-  const hash = async (text: string) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(b => b.toString(16).padStart(2, '0')).join('');
-  const v1 = JSON.stringify(serverBlueprints), v2 = JSON.stringify(serverBlueprints.slice(0, 1));
-  const files: Record<string, string> = { 'https://raw/v1.json': v1, 'https://raw/v2.json': v2 };
-  let fetches = 0, clock = 0;
-  const transport: typeof fetch = async u => { fetches++; return files[String(u)] ? new Response(files[String(u)]) : new Response('', { status: 404 }); };
-  let pin = { url: 'https://raw/v1.json', sha256: await hash(v1) };
-  const get = remoteBlueprints(async () => pin, { url: 'https://raw/v1.json', sha256: await hash(v1) }, transport, 1000, () => clock);
+test('private blueprints: service key only, shape checked, cached, hot-swapped, stale copy kept', async () => {
+  const full = serverBlueprints, one = serverBlueprints.slice(0, 1);
+  let rows: { payload: unknown[] }[] = [{ payload: full }];
+  let fetches = 0, clock = 0, sentKey = '', sentAuth = '';
+  const transport: typeof fetch = async (_u, init) => {
+    fetches++;
+    const headers = new Headers(init?.headers);
+    sentKey = headers.get('apikey') ?? ''; sentAuth = headers.get('Authorization') ?? '';
+    return new Response(JSON.stringify(rows));
+  };
+  const get = privateBlueprints('https://db.example', 'service-key', transport, 1000, () => clock);
   assert.equal((await get('pitch-deck'))?.id, 'pitch-deck');
+  assert.equal(sentKey, 'service-key', 'read with the service key, so RLS with no policy still lets it through');
+  assert.equal(sentAuth, 'Bearer service-key');
   await get('product-photo');
   assert.equal(fetches, 1, 'cached');
-  pin = { url: 'https://raw/v2.json', sha256: await hash(v2) };
+
+  rows = [{ payload: one }];
   clock = 2000;
-  assert.equal(await get('pitch-deck'), undefined, 'new pin goes live without redeploy');
-  pin = { url: 'https://raw/v1.json', sha256: 'f'.repeat(64) };
+  assert.equal(await get('pitch-deck'), undefined, 'updating the row goes live without a redeploy');
+
+  rows = [{ payload: [{ id: 'half-written' }] }];
   clock = 4000;
-  await assert.rejects(get('product-photo'), /blueprints_integrity/);
-  const brokenConfig = remoteBlueprints(async () => { throw new Error('down'); }, { url: 'https://raw/v1.json', sha256: await hash(v1) }, transport);
-  assert.equal((await brokenConfig('landing-page'))?.id, 'landing-page', 'embedded pin is the fallback');
+  assert.equal((await get('product-photo'))?.id, 'product-photo', 'a half-written payload is refused and the cached copy is used');
+
+  const noKey = privateBlueprints('https://db.example', '', transport);
+  await assert.rejects(noKey('pitch-deck'), /blueprints_unconfigured/);
+  const down = privateBlueprints('https://db.example', 'k', async () => new Response('', { status: 500 }));
+  await assert.rejects(down('pitch-deck'), /blueprints_unavailable/);
 });
 
 test('model adapter: JSON mode, key never echoed, timeouts mapped', async () => {

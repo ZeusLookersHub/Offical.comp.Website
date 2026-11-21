@@ -3,7 +3,7 @@ import { Check, Copy, ExternalLink, ImagePlus, Send, Sparkles } from 'lucide-rea
 import {
   answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, planLaunch, skip, submitIntake, suggest,
   type Blueprint, type GateReport, type Lang, type Session, type SlotValueRaw,
-} from '../core/mission-engine';
+} from '../core/mission-engine/client';
 import { lookersEngine } from '../services/lookersAiEngineClient';
 import './LookersAdaptiveChat.css';
 import './LookersMissionChat.css';

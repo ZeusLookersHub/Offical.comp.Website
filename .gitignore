@@ -29,3 +29,10 @@ visual-qa-artifacts/
 .lookers-mission-engine.test.mjs
 .lookers-mission-pilots.test.mjs
 .lookers-mission-server.test.mjs
+
+# Secrets and the engine payload: the prompt engineering is uploaded to a locked
+# table, never committed. See docs/mission-engine/SECURITY.md.
+.env
+.env.*
+!.env.example
+.engine/
