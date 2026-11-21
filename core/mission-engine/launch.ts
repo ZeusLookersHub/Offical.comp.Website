@@ -48,6 +48,9 @@ export const TOOL_LAUNCH: Record<string, ToolLaunch> = {
   ideogram: entry('ideogram', 'https://ideogram.ai/', 'copy'),
   flux: entry('flux', 'https://playground.bfl.ai/', 'copy'),
   firefly: entry('firefly', 'https://firefly.adobe.com/', 'copy'),
+  // Audio tools.
+  elevenlabs: entry('elevenlabs', 'https://elevenlabs.io/app/speech-synthesis', 'copy'),
+  suno: entry('suno', 'https://suno.com/create', 'copy'),
   // Video tools.
   runway: entry('runway', 'https://app.runwayml.com/', 'copy'),
   kling: entry('kling', 'https://app.klingai.com/', 'copy'),

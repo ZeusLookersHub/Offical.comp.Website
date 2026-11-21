@@ -151,7 +151,7 @@ test('edit missions end with a paste block and never rewrite your facts', () => 
 test('the standing assistant asks few questions and keeps its stop line', () => {
   const bp = blueprintById('ai-operator')!;
   const after = ok(submitIntake(createSession(bp, 'ar', 'op1'), bp, 'عايز مساعد يرد على عملاء الصيدلية بتاعتي على واتساب طول اليوم'));
-  const asked = plannedQuestions(after, bp).map(q => q.slot);
+  const asked = plannedQuestions(after, bp).map(q => q.id);
   assert.ok(asked.length <= 5, `asked ${asked.length} questions: ${asked.join(', ')}`);
   assert.ok(bp.slots.some(s => s.id === 'escalation' && s.layer === 'control'), 'escalation is a control slot');
   const control = bp.strategy.control.join(' ');

@@ -141,10 +141,10 @@
 
 أدوات الصور والفيديو والعروض بتتحدث بسرعة. علشان كده ملاحظات كل أداة (`tools[].notes` في كل Blueprint) مكتوبة **من غير أرقام إصدارات**، ومحتاجة مراجعة كل شهر.
 
-## ٥. لوجوهات الأدوات (١٩ ملف) — لزراير «افتحه في الأداة»
+## ٥. لوجوهات الأدوات (٢١ ملف) — لزراير «افتحه في الأداة»
 
 كل زرار في نتيجة الشات بيدوّر على `/assets/lookers-ai/tools/<id>.svg`. لو الملف مش موجود، الزرار بيشتغل عادي بالاسم من غير لوجو (مفيش صورة مكسورة).
 
-المطلوب: `chatgpt` · `claude` · `gemini` · `copilot` · `gamma` · `canva` · `midjourney` · `ideogram` · `flux` · `firefly` · `runway` · `kling` · `hailuo` · `sora` · `veo` · `bolt` · `v0` · `lovable` · `framer`
+المطلوب: `chatgpt` · `claude` · `gemini` · `copilot` · `gamma` · `canva` · `midjourney` · `ideogram` · `flux` · `firefly` · `runway` · `kling` · `hailuo` · `sora` · `veo` · `bolt` · `v0` · `lovable` · `framer` · `elevenlabs` · `suno`
 
 المواصفات: SVG مربّع، ٢٤×٢٤ على الأقل، خلفية شفافة، واللوجو الرسمي للأداة من غير تعديل — بيستخدم للتعريف بالأداة بس.
