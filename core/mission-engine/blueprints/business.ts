@@ -1,6 +1,6 @@
 import type { Blueprint } from '../types.ts';
 import { avoid, brandName, c, facts, language, targetTool } from '../modules.ts';
-import { textControlRules, textDeliveryRules, textGates, textOutput, textToolOptions, textTools } from './_text.ts';
+import { makeTextMission, textControlRules, textDeliveryRules, textGates, textOutput, textToolOptions, textTools } from './_text.ts';
 
 const company = (patch = {}): import('../types.ts').Slot => ({
   id: 'company', kind: 'longtext', layer: 'understanding', importance: 'critical', maxLength: 1200,
@@ -327,4 +327,122 @@ export const competitorAnalysis: Blueprint = {
   }],
 };
 
-export const businessBlueprints = [growthStrategy, businessPlan, feasibilityStudy, competitorAnalysis];
+
+const crit = (id: string, label: import('../types.ts').Copy, question: import('../types.ts').Copy, example: import('../types.ts').Copy, vocab: { en: string[]; ar: string[] }): import('../types.ts').Slot => ({
+  id, kind: 'longtext', layer: 'understanding', importance: 'critical', maxLength: 1000,
+  label, question, why: c('Everything is built on this.', 'كل حاجة هتتبني على ده.'), example, vocabulary: vocab,
+});
+
+export const pricingStrategy = makeTextMission({
+  id: 'pricing-strategy', title: c('Pricing', 'تسعير'), topics: ['pricing-strategy'],
+  intake: { question: c('Tell me what you sell and what it costs you.', 'قولّي بتبيع إيه، وبيكلّفك كام.'), why: c('Real costs make the pricing; we never invent them.', 'التكلفة الحقيقية هي اللي بتعمل التسعير، وما بنألّفش.'),
+    starters: [c('Pricing for my coffee subscription', 'تسعير اشتراك القهوة بتاعي'), c('How to price my design service', 'أسعّر خدمة التصميم إزاي'), c('Tiers for my SaaS tool', 'باقات لنظام الـSaaS بتاعي'), c('Price a new product I import', 'سعر منتج جديد بستورده')] },
+  slots: [
+    crit('product', c('Product & cost', 'المنتج والتكلفة'), c('What do you sell, and what does one unit cost you?', 'بتبيع إيه، والوحدة بتكلّفك كام؟'), c('Handmade candles, 35 EGP cost each.', 'شمع هاند ميد، تكلفة الواحدة ٣٥ جنيه.'), { en: ['per unit cost', 'service by hour', 'subscription', 'includes delivery', 'imported'], ar: ['تكلفة الوحدة', 'خدمة بالساعة', 'اشتراك', 'شامل التوصيل', 'مستورد'] }),
+    { id: 'model', kind: 'single', layer: 'intelligence', importance: 'important', label: c('Pricing model', 'نموذج التسعير'), question: c('Which pricing model fits?', 'أنهي نموذج تسعير يناسب؟'), why: c('The model shapes the whole price structure.', 'النموذج بيحدد شكل التسعير كله.'), example: c('Tiered packages.', 'باقات متدرجة.'),
+      options: [{ value: 'one-time', label: c('One-time price', 'سعر لمرة') }, { value: 'subscription', label: c('Subscription', 'اشتراك') }, { value: 'tiered', label: c('Tiered packages', 'باقات متدرجة') }, { value: 'usage', label: c('Pay per use', 'دفع حسب الاستخدام') }, { value: 'value', label: c('Value / custom quote', 'حسب القيمة / عرض سعر') }],
+      defaults: [{ value: 'tiered', reason: c('Tiers suit most products and lift average price.', 'الباقات بتناسب أغلب المنتجات وبترفع متوسط السعر.') }] },
+    { id: 'market', kind: 'text', layer: 'understanding', importance: 'nice', maxLength: 300, label: c('Buyers & competitor prices', 'العملاء وأسعار المنافسين'), question: c('Who buys, and what do competitors charge?', 'مين بيشتري، والمنافسين بياخدوا كام؟'), why: c('Price sits between your cost and the market.', 'السعر بيقع بين تكلفتك والسوق.'), example: c('Students; competitors 60–90 EGP.', 'طلبة؛ المنافسين ٦٠–٩٠ جنيه.'), noneLabel: c('Placeholder to fill', 'مكان فاضي'), defaults: [{ value: 'none', reason: c('We leave [competitor price range] to fill.', 'هنسيب [نطاق أسعار المنافسين] تكمّله.') }] },
+  ],
+  nameLabel: c('Business name', 'اسم النشاط'), nameWhat: 'the business name',
+  avoidVocab: { en: ['pricing below cost', 'too many tiers', 'hidden fees', 'guessed competitor prices'], ar: ['سعر تحت التكلفة', 'باقات كتير', 'رسوم مخفية', 'أسعار منافسين متخمّنة'] },
+  outlineKey: 'priceOutline', outlineDesc: 'One line per price point or tier: name — price basis and what it includes.', outlineWhat: 'one line per price point or tier',
+  outputDescription: c('A layered prompt for a chat AI, a price/tier outline, what to research, and a checklist.', 'برومبت متقسم لأداة ذكاء اصطناعي، وترتيب الأسعار/الباقات، واللي محتاج تبحث عنه، وقائمة فحص.'),
+  role: 'Senior pricing strategist for SMEs, and a prompt engineer for chat AIs.',
+  understanding: ['product gives the unit cost (the only cost figure allowed); model and market shape the structure. Keep costs exactly as given.', 'sections.goal states what is sold, the cost, and the decision (set or revise prices).'],
+  intelligence: ['Build from cost-plus and value: a floor from cost, a ceiling from the market, then the chosen model’s structure (tiers/anchor/good-better-best). Explain the logic of each price.', 'sections.approach tells the AI to never price below cost, to anchor with a premium option, and to mark any unknown competitor price as [to verify].'],
+  examples: [{ good: 'Floor = cost 35 EGP. Good/Better/Best at [x]/[y]/[z]; anchor Best high. For competitor range write [competitor price].', bad: 'Sell candles at 500 EGP, everyone will buy, 95% margin guaranteed.', why: 'The bad one ignores cost and market and invents margin and demand.' }],
+});
+
+export const swotAnalysis = makeTextMission({
+  id: 'swot-analysis', title: c('SWOT analysis', 'تحليل SWOT'), topics: ['swot-analysis'],
+  intake: { question: c('Tell me about the business you want a SWOT for.', 'احكيلي عن النشاط اللي عايز تعمل له SWOT.'), why: c('One message is enough. I only ask what is missing.', 'رسالة واحدة كفاية، وأسأل بس على الناقص.'),
+    starters: [c('SWOT for my restaurant', 'SWOT للمطعم بتاعي'), c('SWOT before launching an app', 'SWOT قبل إطلاق تطبيق'), c('Where my store is strong and weak', 'مكان قوة وضعف متجري'), c('SWOT vs a bigger competitor', 'SWOT في مواجهة منافس أكبر')] },
+  slots: [
+    company(),
+    { id: 'context', kind: 'text', layer: 'understanding', importance: 'nice', maxLength: 300, label: c('Situation', 'الموقف'), question: c('Any decision or market context behind this?', 'في قرار أو سياق سوق ورا ده؟'), why: c('SWOT is sharper tied to a decision.', 'الـSWOT بيبقى أدق لما يكون مربوط بقرار.'), example: c('Deciding whether to open a second branch.', 'بنقرر نفتح فرع تاني ولا لأ.'), noneLabel: c('General SWOT', 'SWOT عام'), defaults: [{ value: 'none', reason: c('We do a general SWOT for the business.', 'هنعمل SWOT عام للنشاط.') }] },
+  ],
+  nameLabel: c('Business name', 'اسم النشاط'), nameWhat: 'the business name',
+  avoidVocab: { en: ['vague points', 'repeating the same point', 'fake external threats'], ar: ['نقاط عامة', 'تكرار نفس النقطة', 'تهديدات متألفة'] },
+  outlineKey: 'swotOutline', outlineDesc: 'Four blocks in order: Strengths, Weaknesses, Opportunities, Threats — each a short line.', outlineWhat: 'four blocks: strengths, weaknesses, opportunities, threats',
+  outputDescription: c('A layered prompt for a chat AI, a SWOT outline, what to confirm, and a checklist.', 'برومبت متقسم لأداة ذكاء اصطناعي، وترتيب الـSWOT، واللي محتاج تتأكد منه، وقائمة فحص.'),
+  role: 'Senior business analyst, and a prompt engineer for chat AIs.',
+  understanding: ['company frames it; context ties it to a decision. Use only facts given; mark guesses as [to verify].', 'sections.goal states the business and the decision the SWOT informs.'],
+  intelligence: ['Strengths/Weaknesses are internal, Opportunities/Threats external — keep them in the right box, specific and non-overlapping, and end with 2–3 moves the SWOT implies.', 'sections.approach tells the AI to make each point concrete and actionable, not generic.'],
+  examples: [{ good: 'Strengths: loyal regulars, prime corner. Weaknesses: one small kitchen. Opportunities: office lunch demand nearby. Threats: new chain opening [to verify]. Moves: add lunch delivery.', bad: 'Strengths: good. Weaknesses: bad. Opportunities: grow. Threats: competition.', why: 'The bad one is vague and says nothing specific or actionable.' }],
+});
+
+export const goToMarket = makeTextMission({
+  id: 'go-to-market', title: c('Go-to-market', 'خطة دخول السوق'), topics: ['go-to-market'],
+  intake: { question: c('Tell me what you are launching and to whom.', 'قولّي بتطلق إيه، ولمين.'), why: c('One message is enough. I only ask what is missing.', 'رسالة واحدة كفاية، وأسأل بس على الناقص.'),
+    starters: [c('Launch my app in Cairo', 'أطلق تطبيقي في القاهرة'), c('Enter the Gulf market', 'أدخل سوق الخليج'), c('First 100 customers for my service', 'أول ١٠٠ عميل لخدمتي'), c('Launch a new product line', 'أطلق خط منتجات جديد')] },
+  slots: [
+    crit('product', c('What you launch', 'اللي بتطلقه'), c('What are you launching, where, and to whom?', 'بتطلق إيه، فين، ولمين؟'), c('A food-delivery app in Cairo for office workers.', 'تطبيق توصيل أكل في القاهرة للموظفين.'), { en: ['new product', 'new market', 'new feature', 'in Egypt', 'in the Gulf', 'for businesses'], ar: ['منتج جديد', 'سوق جديد', 'ميزة جديدة', 'في مصر', 'في الخليج', 'للشركات'] }),
+    { id: 'channels', kind: 'multi', layer: 'intelligence', importance: 'nice', label: c('Channels', 'القنوات'), question: c('Which channels can you reach customers through?', 'تقدر توصل للعملاء من أنهي قنوات؟'), why: c('Fewer, right channels beat being everywhere.', 'قنوات أقل وصح أحسن من إنك تبقى في كل مكان.'), example: c('Instagram and partnerships.', 'إنستجرام وشراكات.'),
+      options: [{ value: 'social', label: c('Social media', 'سوشيال ميديا') }, { value: 'paid-ads', label: c('Paid ads', 'إعلانات ممولة') }, { value: 'partnerships', label: c('Partnerships', 'شراكات') }, { value: 'influencers', label: c('Influencers', 'مؤثرين') }, { value: 'referrals', label: c('Referrals', 'ترشيحات') }, { value: 'content', label: c('Content & SEO', 'محتوى وSEO') }, { value: 'offline', label: c('Offline / events', 'أرض الواقع / فعاليات') }],
+      defaults: [{ value: ['social', 'partnerships'], reason: c('Social plus partnerships is the cheapest fast start for most.', 'السوشيال مع الشراكات أرخص بداية سريعة لأغلب الحالات.') }] },
+  ],
+  nameLabel: c('Name', 'الاسم'), nameWhat: 'the product or business name',
+  avoidVocab: { en: ['every channel at once', 'vague milestones', 'copying a competitor', 'no success metric'], ar: ['كل القنوات مرة واحدة', 'أهداف غير واضحة', 'تقليد منافس', 'من غير مقياس نجاح'] },
+  outlineKey: 'gtmOutline', outlineDesc: 'One line per phase: phase — the audience, the channel and the metric.', outlineWhat: 'one line per launch phase',
+  outputDescription: c('A layered prompt for a chat AI, a phased launch outline, what to prepare, and a checklist.', 'برومبت متقسم لأداة ذكاء اصطناعي، وخطة إطلاق مقسّمة مراحل، واللي محتاج تجهّزه، وقائمة فحص.'),
+  role: 'Senior go-to-market strategist, and a prompt engineer for chat AIs.',
+  understanding: ['product defines what, where and for whom; channels are the reachable routes. Keep the market and audience exactly as given.', 'sections.goal states the launch and the first success metric (e.g. first 100 customers).'],
+  intelligence: ['Phase it: pre-launch (positioning, waitlist), launch (the 1–2 strongest channels, the offer), post-launch (retention, referrals). Tie each phase to one metric.', 'sections.approach tells the AI to pick the 1–2 highest-leverage channels for this audience, not a long list.'],
+  examples: [{ good: 'Phase 1 pre-launch: waitlist via Instagram → signups. Phase 2 launch: partner with 3 offices + launch offer → first [N] orders. Phase 3: referral reward → repeat rate.', bad: 'Use TikTok, Instagram, Google, billboards, radio, influencers, email and SEO on day one and go viral.', why: 'The bad one spreads across every channel with no phasing or metric and invents virality.' }],
+});
+
+export const financialPlan = makeTextMission({
+  id: 'financial-plan', title: c('Financial plan', 'خطة مالية'), topics: ['financial-plan'],
+  intake: { question: c('Tell me about the business and the numbers you have.', 'احكيلي عن النشاط والأرقام اللي عندك.'), why: c('Real numbers make the plan; we never invent them.', 'الأرقام الحقيقية هي اللي بتعمل الخطة، وما بنألّفش.'),
+    starters: [c('A 12-month forecast for my shop', 'توقّع ١٢ شهر للمحل بتاعي'), c('Costs and break-even for a cafe', 'تكاليف ونقطة تعادل لكافيه'), c('Budget for my startup', 'ميزانية للستارت أب بتاعي'), c('Cash flow for a new project', 'تدفق نقدي لمشروع جديد')] },
+  slots: [
+    company(),
+    facts('numbers', c('Real numbers', 'أرقام حقيقية'), c('Which real numbers do you have? (costs, prices, sales)', 'إيه الأرقام الحقيقية اللي عندك؟ (تكاليف، أسعار، مبيعات)'), c('Rent 20,000/mo, 500 sales/mo at 80 each.', 'إيجار ٢٠٠٠٠ شهري، و٥٠٠ بيعة شهري بـ٨٠ للواحدة.')),
+  ],
+  nameLabel: c('Business name', 'اسم النشاط'), nameWhat: 'the business name',
+  avoidVocab: { en: ['invented revenue', 'optimistic guesses', 'round made-up numbers', 'hidden costs'], ar: ['إيرادات متألفة', 'تخمينات متفائلة', 'أرقام مدوّرة متألفة', 'تكاليف مخفية'] },
+  outlineKey: 'financeOutline', outlineDesc: 'One title per section: revenue, costs, profit, break-even, cash flow, assumptions.', outlineWhat: 'one title per financial section',
+  outputDescription: c('A layered prompt for a chat AI, the plan outline, the numbers you still need, and a checklist.', 'برومبت متقسم لأداة ذكاء اصطناعي، وترتيب أقسام الخطة، والأرقام اللي لسه ناقصاك، وقائمة فحص.'),
+  role: 'Senior financial analyst for SMEs, and a prompt engineer for chat AIs.',
+  understanding: ['company and numbers are the basis; numbers is the only source of figures. Keep every figure exactly as given.', 'sections.goal states the business and the horizon (e.g. 12 months) and purpose (budget, forecast, break-even).'],
+  intelligence: ['Build revenue, fixed/variable costs, profit, break-even and a simple monthly cash view — computed only from the given numbers, with formulas shown. Every missing input is a [placeholder] assumption.', 'sections.approach tells the AI to never invent revenue or growth and to list assumptions explicitly.'],
+  examples: [{ good: 'Revenue = 500 × 80. Costs: rent 20,000 + [variable cost]. Break-even = fixed ÷ (price − variable). Show months to break even from these.', bad: 'Revenue grows 50% monthly to 2M by month 6 with 90% margins.', why: 'The bad one invents growth, revenue and margins instead of computing from real numbers.' }],
+});
+
+export const brandPositioning = makeTextMission({
+  id: 'brand-positioning', title: c('Brand positioning', 'تموضع البراند'), topics: ['brand-positioning'],
+  intake: { question: c('Tell me what you offer and who it is for.', 'قولّي بتقدّم إيه، ولمين.'), why: c('One message is enough. I only ask what is missing.', 'رسالة واحدة كفاية، وأسأل بس على الناقص.'),
+    starters: [c('Position my coffee brand', 'أموضع براند القهوة بتاعي'), c('What makes my app different', 'إيه اللي بيميّز تطبيقي'), c('A clear positioning statement', 'جملة تموضع واضحة'), c('Stand out from bigger competitors', 'أتميّز عن منافسين أكبر')] },
+  slots: [
+    crit('offer', c('Your offer & audience', 'عرضك وجمهورك'), c('What do you offer, and who is it for?', 'بتقدّم إيه، ولمين؟'), c('Specialty coffee for students who study in cafes.', 'قهوة مختصة لطلبة بيذاكروا في الكافيهات.'), { en: ['premium', 'affordable', 'for students', 'for businesses', 'local', 'fast'], ar: ['فاخر', 'في المتناول', 'للطلبة', 'للشركات', 'محلي', 'سريع'] }),
+    { id: 'differentiator', kind: 'text', layer: 'intelligence', importance: 'important', maxLength: 300, label: c('What makes you different', 'اللي بيميّزك'), question: c('What do you do better or differently?', 'بتعمل إيه أحسن أو مختلف؟'), why: c('Positioning lives on a real, ownable difference.', 'التموضع بيعيش على فرق حقيقي تقدر تمتلكه.'), example: c('The only quiet study-friendly cafe in the area.', 'الكافيه الهادي الوحيد المناسب للمذاكرة في المنطقة.'), noneLabel: c('We find it from your offer', 'هنحدده من عرضك'), defaults: [{ value: 'none', reason: c('We draw the difference from your offer and audience.', 'هنطلّع الفرق من عرضك وجمهورك.') }] },
+  ],
+  nameLabel: c('Brand name', 'اسم البراند'), nameWhat: 'the brand name',
+  avoidVocab: { en: ['generic claims', 'best quality clichés', 'copying a competitor', 'being everything to everyone'], ar: ['ادعاءات عامة', 'كليشيه أفضل جودة', 'تقليد منافس', 'تكون كل حاجة للكل'] },
+  outlineKey: 'positioningOutline', outlineDesc: 'Lines in order: target, category, key difference, reason to believe, positioning statement.', outlineWhat: 'the positioning building blocks in order',
+  outputDescription: c('A layered prompt for a chat AI, the positioning building blocks, what to confirm, and a checklist.', 'برومبت متقسم لأداة ذكاء اصطناعي، ومكوّنات التموضع، واللي محتاج تتأكد منه، وقائمة فحص.'),
+  role: 'Senior brand strategist, and a prompt engineer for chat AIs.',
+  understanding: ['offer and differentiator define it. Keep the audience and difference exactly as given; never invent claims.', 'sections.goal states the offer, the audience, and that we want a clear positioning.'],
+  intelligence: ['Build: for [target] who [need], [brand] is the [category] that [key difference], because [reason to believe]. One sharp statement, not a list of adjectives.', 'sections.approach tells the AI to pick one ownable difference and make it concrete and believable.'],
+  examples: [{ good: 'For students who study out of home, "Beans" is the neighbourhood cafe built for focus — quiet zones, power at every seat — because it was designed around studying, not just coffee.', bad: '"Beans" is the best, highest-quality, most affordable, most premium coffee for everyone.', why: 'The bad one is contradictory, generic, and targets everyone.' }],
+});
+
+export const businessModel = makeTextMission({
+  id: 'business-model', title: c('Business model', 'نموذج العمل'), topics: ['business-model'],
+  intake: { question: c('Tell me about your business idea.', 'احكيلي عن فكرة نشاطك.'), why: c('One message is enough. I only ask what is missing.', 'رسالة واحدة كفاية، وأسأل بس على الناقص.'),
+    starters: [c('A model for my delivery app', 'نموذج لتطبيق التوصيل بتاعي'), c('How my marketplace makes money', 'الماركت بليس بتاعي بيكسب إزاي'), c('A business model canvas for my idea', 'بيزنس موديل كانفاس لفكرتي'), c('Turn my idea into a model', 'أحوّل فكرتي لنموذج')] },
+  slots: [
+    crit('idea', c('Your idea', 'فكرتك'), c('What is the idea, and who is it for?', 'الفكرة إيه، ولمين؟'), c('An app connecting home cooks with office workers.', 'تطبيق بيوصّل طبّاخين البيت بالموظفين.'), { en: ['marketplace', 'subscription', 'commission', 'B2B', 'B2C', 'two-sided'], ar: ['ماركت بليس', 'اشتراك', 'عمولة', 'B2B', 'B2C', 'طرفين'] }),
+  ],
+  nameLabel: c('Name', 'الاسم'), nameWhat: 'the business name',
+  avoidVocab: { en: ['vague revenue', 'too many revenue streams', 'copying a known app blindly'], ar: ['إيراد غامض', 'مصادر دخل كتير', 'تقليد تطبيق معروف أعمى'] },
+  outlineKey: 'modelOutline', outlineDesc: 'The business model canvas blocks in order, each a short line.', outlineWhat: 'the business model canvas blocks in order',
+  outputDescription: c('A layered prompt for a chat AI, a business-model canvas outline, open questions, and a checklist.', 'برومبت متقسم لأداة ذكاء اصطناعي، وترتيب كانفاس نموذج العمل، وأسئلة مفتوحة، وقائمة فحص.'),
+  role: 'Senior startup advisor who maps business models, and a prompt engineer for chat AIs.',
+  understanding: ['idea defines the venture. Keep who it is for and how it earns exactly as given; mark unknowns as [to decide].', 'sections.goal states the idea and that we want a clear model (how it creates and captures value).'],
+  intelligence: ['Use the business model canvas: value proposition, customer segments, channels, relationships, revenue streams, key resources, activities, partners, cost structure. Keep revenue to 1–2 clear streams.', 'sections.approach tells the AI to make each block specific to this idea, not generic canvas filler.'],
+  examples: [{ good: 'Value: home-cooked lunch at the office. Segments: office workers; home cooks. Revenue: 15% commission per order (+ [delivery fee?]). Key partners: building managers.', bad: 'Revenue from ads, subscriptions, commissions, data, premium, partnerships, and a marketplace — everything.', why: 'The bad one piles on revenue streams with no focus and generic blocks.' }],
+});
+
+export const businessBlueprints = [growthStrategy, businessPlan, feasibilityStudy, competitorAnalysis, pricingStrategy, swotAnalysis, goToMarket, financialPlan, brandPositioning, businessModel];

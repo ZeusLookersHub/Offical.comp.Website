@@ -61,3 +61,60 @@ export const textControlRules = (nameWhat: string): string[] => [
   `sections.rules must say: copy ${nameWhat} exactly; never invent numbers, names, logos, testimonials, market sizes or quotes; use [placeholders] for anything missing; respect avoid.`,
   'missingData lists each placeholder in plain words so the user knows what to prepare.',
 ];
+
+import type { Blueprint, Slot } from '../types.ts';
+import { avoid, brandName, language, targetTool } from '../modules.ts';
+
+/**
+ * Builds a complete text-deliverable blueprint from a compact config, appending the standard
+ * control/delivery slots (brand name, language, target tool, avoid) and the shared output,
+ * gates, tools and layer rules. Domain slots (understanding/intelligence) come from the caller.
+ */
+export function makeTextMission(cfg: {
+  id: string; title: Copy; topics: string[]; questionBudget?: number;
+  intake: Blueprint['intake'];
+  slots: Slot[];
+  nameLabel: Copy; nameWhat: string;
+  avoidVocab: { en: string[]; ar: string[] };
+  outlineKey: string; outlineDesc: string; outlineWhat: string;
+  outputDescription: Copy;
+  role: string;
+  understanding: string[]; intelligence: string[]; controlExtra?: string[]; deliveryExtra?: string[];
+  examples: { good: string; bad: string; why: string }[];
+}): Blueprint {
+  return {
+    id: cfg.id, version: 1, title: cfg.title, topics: cfg.topics,
+    intake: cfg.intake, questionBudget: cfg.questionBudget ?? 3,
+    slots: [...cfg.slots, brandName({ label: cfg.nameLabel }), language(), avoid(cfg.avoidVocab), targetTool(textToolOptions)],
+    output: textOutput(cfg.id.startsWith('text-') ? cfg.id : `text-${cfg.id}`, cfg.outputDescription, cfg.outlineKey, cfg.outlineDesc),
+    gates: textGates(cfg.outlineKey),
+    tools: textTools(),
+    role: cfg.role,
+    strategy: {
+      understanding: cfg.understanding,
+      intelligence: cfg.intelligence,
+      control: [...textControlRules(cfg.nameWhat), ...(cfg.controlExtra ?? [])],
+      delivery: [...textDeliveryRules(cfg.outlineKey, cfg.outlineWhat), ...(cfg.deliveryExtra ?? [])],
+    },
+    examples: cfg.examples,
+  };
+}
+
+/** A tone single-select, reused across writing missions. */
+export const toneSlot = (patch: Partial<Slot> = {}): Slot => ({
+  id: 'tone', kind: 'single', layer: 'intelligence', importance: 'important',
+  label: c('Tone', 'النبرة'),
+  question: c('What tone fits?', 'أنهي نبرة تناسب؟'),
+  why: c('Tone shapes every sentence.', 'النبرة بتشكّل كل جملة.'),
+  example: c('Friendly and confident.', 'ودود وواثق.'),
+  options: [
+    { value: 'professional', label: c('Professional', 'رسمي محترف'), keywords: ['professional', 'formal', 'رسمي', 'محترف'] },
+    { value: 'friendly', label: c('Friendly', 'ودود'), keywords: ['friendly', 'warm', 'ودود', 'قريب'] },
+    { value: 'bold', label: c('Bold & punchy', 'جريء وقوي'), keywords: ['bold', 'punchy', 'جريء', 'قوي'] },
+    { value: 'luxury', label: c('Elegant & premium', 'أنيق وفخم'), keywords: ['luxury', 'elegant', 'premium', 'فخم', 'أنيق'] },
+    { value: 'playful', label: c('Playful', 'مرح'), keywords: ['playful', 'fun', 'مرح', 'خفيف'] },
+    { value: 'simple', label: c('Simple & clear', 'بسيط وواضح'), keywords: ['simple', 'clear', 'plain', 'بسيط', 'واضح'] },
+  ],
+  defaults: [{ value: 'friendly', reason: c('A friendly, confident tone fits most brands.', 'نبرة ودودة وواثقة بتناسب أغلب البراندات.') }],
+  ...patch,
+});
