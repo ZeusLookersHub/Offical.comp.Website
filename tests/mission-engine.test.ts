@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   answer, blueprintForTopic, blueprints, buildBrief, buildComposeRequest, confirmBrief, createSession,
-  nextStep, repairInstruction, runGates, skip, submitIntake, suggest, validateBlueprint, type Session,
+  nextStep, planLaunch, repairInstruction, runGates, skip, submitIntake, suggest, validateBlueprint, type Session,
 } from '../core/mission-engine/index.ts';
 import { productPhoto as bp } from '../core/mission-engine/blueprints/product-photo.ts';
 
@@ -189,4 +189,33 @@ test('compose request only after confirmation, with verbatim flags and empty slo
   assert.equal(req.brief.values.style.label, 'Luxury · dark & dramatic');
   assert.match(req.system, /deliberately left empty.*exactText/);
   assert.equal(req.brief.values.exactText, undefined);
+});
+
+test('launch: chat AIs carry the prompt in the URL, others copy first', () => {
+  const short = planLaunch('chatgpt', 'A tidy prompt');
+  assert.equal(short?.mode, 'query');
+  assert.ok(short!.url.startsWith('https://chatgpt.com/?q='));
+  assert.ok(decodeURIComponent(short!.url).includes('A tidy prompt'));
+
+  const long = planLaunch('chatgpt', 'x'.repeat(3000));
+  assert.equal(long?.mode, 'copy', 'a prompt too long for a URL falls back to copy');
+  assert.equal(long?.url, 'https://chatgpt.com/');
+
+  const mj = planLaunch('midjourney', 'cinematic bottle');
+  assert.equal(mj?.mode, 'copy');
+  assert.ok(mj!.url.startsWith('https://'));
+
+  assert.equal(planLaunch('universal', 'anything'), null, 'universal has no destination');
+  assert.equal(planLaunch('not-a-tool', 'anything'), null);
+});
+
+test('launch: every tool a blueprint offers has a destination or is universal', () => {
+  const missing: string[] = [];
+  for (const bp of blueprints) {
+    for (const target of bp.tools) {
+      if (target.id === 'universal') continue;
+      if (!planLaunch(target.id, 'test')) missing.push(`${bp.id}:${target.id}`);
+    }
+  }
+  assert.deepEqual(missing, [], 'tool targets without a launch destination');
 });

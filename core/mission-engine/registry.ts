@@ -8,9 +8,12 @@ import { writingBlueprints } from './blueprints/writing.ts';
 import { designBlueprints } from './blueprints/design.ts';
 import { marketingBlueprints } from './blueprints/marketing.ts';
 import { deckBlueprints } from './blueprints/decks.ts';
+import { careerBlueprints } from './blueprints/career.ts';
+import { refineBlueprints } from './blueprints/refine.ts';
+import { opsBlueprints } from './blueprints/ops.ts';
 
 /** Pilot blueprints. Missions without one keep using the current chat workflow. */
-export const blueprints: readonly Blueprint[] = [productPhoto, productVideo, pitchDeck, landingPage, ...businessBlueprints, ...writingBlueprints, ...designBlueprints, ...marketingBlueprints, ...deckBlueprints];
+export const blueprints: readonly Blueprint[] = [productPhoto, productVideo, pitchDeck, landingPage, ...businessBlueprints, ...writingBlueprints, ...designBlueprints, ...marketingBlueprints, ...deckBlueprints, ...careerBlueprints, ...refineBlueprints, ...opsBlueprints];
 
 const byTopic = new Map(blueprints.flatMap(bp => bp.topics.map(topic => [topic, bp] as const)));
 const byId = new Map(blueprints.map(bp => [bp.id, bp] as const));

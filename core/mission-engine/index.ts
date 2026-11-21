@@ -9,4 +9,5 @@ export { validateBlueprint } from './validate-blueprint.ts';
 export { blueprints, blueprintForTopic, blueprintById } from './registry.ts';
 export { LAYERS, LAYER_ORDER, compileSystemPrompt } from './layers.ts';
 export { listResources, type ResourceNeed } from './resources.ts';
+export { TOOL_LAUNCH, planLaunch, launchableTools, type LaunchMode, type LaunchPlan, type ToolLaunch } from './launch.ts';
 export * as modules from './modules.ts';

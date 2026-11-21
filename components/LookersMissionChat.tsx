@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Copy, ImagePlus, Send, Sparkles } from 'lucide-react';
+import { Check, Copy, ExternalLink, ImagePlus, Send, Sparkles } from 'lucide-react';
 import {
-  answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, skip, submitIntake, suggest,
+  answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, planLaunch, skip, submitIntake, suggest,
   type Blueprint, type GateReport, type Lang, type Session, type SlotValueRaw,
 } from '../core/mission-engine';
 import { lookersEngine } from '../services/lookersAiEngineClient';
@@ -190,6 +190,18 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
     void engine.track('copied', bp.id, { sessionId: sessionId.current, meta: { part: key } });
   };
 
+  /** Send the prompt to the tool itself: in the URL where the tool supports it, otherwise copy then open. */
+  const openIn = async (toolId: string, prompt: string) => {
+    const plan = planLaunch(toolId, prompt);
+    if (!plan) return;
+    if (plan.mode === 'copy') {
+      try { await navigator.clipboard.writeText(prompt); } catch { /* clipboard blocked */ }
+      setCopied('launch:' + toolId); setTimeout(() => setCopied(''), 2600);
+    }
+    void engine.track('tool_opened', bp.id, { sessionId: sessionId.current, meta: { tool: toolId, mode: plan.mode } });
+    window.open(plan.url, '_blank', 'noopener,noreferrer');
+  };
+
   const restart = () => {
     const fresh = createSession(bp, lang);
     sessionId.current = fresh.id;
@@ -202,6 +214,19 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   const out = result?.output;
   const variants = (out?.variants ?? {}) as Record<string, string>;
   const shownPrompt = variants[tool] ?? String(out?.prompt ?? '');
+  const toolLabels = bp.slots.find(sl => sl.role === 'target-tool')?.options ?? [];
+  const launchTools = useMemo(() => {
+    const ids = Object.keys(variants).length ? Object.keys(variants) : [tool];
+    const seen = new Set<string>();
+    return ids.flatMap(id => {
+      if (seen.has(id)) return [];
+      seen.add(id);
+      const plan = planLaunch(id, variants[id] ?? shownPrompt);
+      if (!plan) return [];
+      const label = toolLabels.find(o => o.value === id)?.label[lang] ?? id;
+      return [{ id, label, plan }];
+    });
+  }, [variants, shownPrompt, tool, lang, toolLabels]);
   const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 
   const optionGrid = options && (
@@ -302,6 +327,25 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             <div className="lmc-prompt" dir="ltr"><pre>{shownPrompt}</pre>
               <button type="button" className="lai-chat__generate" onClick={() => void copy(shownPrompt, 'prompt')}><Copy size={15} aria-hidden="true" /> {copied === 'prompt' ? t('Copied', 'اتنسخ') : t('Copy prompt', 'انسخ البرومبت')}</button>
             </div>
+            {launchTools.length > 0 && (
+              <section className="lmc-launch">
+                <h3>{t('Open it in the tool', 'افتحه في الأداة')}</h3>
+                <p className="lmc-launch__hint">{t('The prompt travels with you. Where a tool cannot take it in the link, we copy it first — one paste, then send.', 'البرومبت بيمشي معاك. الأدوات اللي مش بتاخده في اللينك بننسخه لك الأول — لزقة واحدة وابعت.')}</p>
+                <div className="lmc-launch__row">
+                  {launchTools.map(({ id, label, plan }) => (
+                    <button type="button" key={id} className="lmc-tool" onClick={() => void openIn(id, variants[id] ?? shownPrompt)}
+                      aria-label={t(`Open ${label}`, `افتح ${label}`)}>
+                      <img src={plan.logo} alt="" aria-hidden="true" width={22} height={22} loading="lazy"
+                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <span className="lmc-tool__name">{label}</span>
+                      {copied === 'launch:' + id
+                        ? <span className="lmc-tool__state">{t('Copied — paste it', 'اتنسخ — الزقه')}</span>
+                        : <ExternalLink size={13} aria-hidden="true" />}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
             {typeof out.negative === 'string' && <section><h3>{t('Avoid (negative prompt)', 'الممنوعات (Negative)')}</h3><div className="lmc-prompt lmc-prompt--small" dir="ltr"><pre>{out.negative}</pre><button type="button" className="lai-explain" onClick={() => void copy(String(out.negative), 'negative')}>{copied === 'negative' ? t('Copied', 'اتنسخ') : t('Copy', 'انسخ')}</button></div></section>}
             {out.params && typeof out.params === 'object' && <p className="lmc-params">{Object.entries(out.params as Record<string, unknown>).map(([k, v]) => `${k === 'aspectRatio' ? t('Size', 'المقاس') : k === 'duration' ? t('Length (s)', 'المدة (ثانية)') : k}: ${String(v)}`).join(' · ')}</p>}
             {list(out.shots).length > 0 && <section><h3>{t('Shot plan', 'خطة اللقطات')}</h3><ol dir="ltr">{list(out.shots).map((s, i) => <li key={i}>{s}</li>)}</ol></section>}

@@ -10,10 +10,10 @@ const groups: Record<WorkflowFamily, string> = {
   business: 'business-plan feasibility-study business-model swot-analysis go-to-market pricing-strategy growth-strategy financial-plan brand-positioning',
   research: 'competitor-analysis market-research audience-research deep-research fact-checking product-comparison literature-review',
   data: 'spreadsheet-formula data-cleaning data-analysis dashboard-design kpi-definition sales-analysis financial-report survey-analysis',
-  presentation: 'investor-pitch company-profile sales-deck quarterly-review marketing-deck strategy-deck executive-deck product-launch-deck training-deck workshop-deck education-deck data-storytelling project-proposal hotel-deck tourism-deck report-document',
+  presentation: 'investor-pitch company-profile sales-deck quarterly-review marketing-deck strategy-deck executive-deck product-launch-deck training-deck workshop-deck education-deck data-storytelling project-proposal hotel-deck tourism-deck report-document deck-improve',
   software: 'website landing-page web-app mobile-app ui-ux ai-chatbot ai-agent api-integration database-design debugging refactoring testing architecture-review deployment-plan',
-  automation: 'operational-sop workflow-automation no-code-integration spreadsheet-automation project-plan task-prioritization',
-  learning: 'cv-resume cover-letter interview-preparation linkedin-profile career-plan job-search skill-roadmap lesson-plan exam-preparation tutor quiz training-curriculum',
+  automation: 'operational-sop workflow-automation no-code-integration spreadsheet-automation project-plan task-prioritization ai-operator',
+  learning: 'cv-resume cover-letter interview-preparation linkedin-profile career-plan job-search skill-roadmap cv-improve lesson-plan exam-preparation tutor quiz training-curriculum',
   service: 'customer-support support-script faq-knowledge-base escalation travel-itinerary hotel-offer tourism-package booking-communication'
 };
 export type TopicEntry = { id: string; family: WorkflowFamily };

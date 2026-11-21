@@ -80,6 +80,7 @@ export function makeTextMission(cfg: {
   outputDescription: Copy;
   role: string;
   understanding: string[]; intelligence: string[]; controlExtra?: string[]; deliveryExtra?: string[];
+  extraGates?: Gate[];
   examples: { good: string; bad: string; why: string }[];
 }): Blueprint {
   return {
@@ -87,7 +88,7 @@ export function makeTextMission(cfg: {
     intake: cfg.intake, questionBudget: cfg.questionBudget ?? 3,
     slots: [...cfg.slots, brandName({ label: cfg.nameLabel }), language(), avoid(cfg.avoidVocab), targetTool(textToolOptions)],
     output: textOutput(cfg.id.startsWith('text-') ? cfg.id : `text-${cfg.id}`, cfg.outputDescription, cfg.outlineKey, cfg.outlineDesc),
-    gates: textGates(cfg.outlineKey),
+    gates: [...textGates(cfg.outlineKey), ...(cfg.extraGates ?? [])],
     tools: textTools(),
     role: cfg.role,
     strategy: {

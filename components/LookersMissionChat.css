@@ -56,3 +56,21 @@
 .lmc-checks{margin-inline-start:0}
 }
 @media(prefers-reduced-motion:reduce){.lmc-thinking{animation:none}}
+
+/* Open-in-tool buttons: the prompt travels to the tool itself. */
+.lmc-launch { margin-top: 18px; }
+.lmc-launch__hint { margin: 2px 0 10px; font-size: .82rem; opacity: .72; line-height: 1.5; }
+.lmc-launch__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.lmc-tool {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 13px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .05);
+  color: inherit; font: inherit; font-size: .88rem; line-height: 1;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.lmc-tool:hover { border-color: rgba(255, 255, 255, .34); background: rgba(255, 255, 255, .09); transform: translateY(-1px); }
+.lmc-tool:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.lmc-tool img { border-radius: 5px; flex: none; }
+.lmc-tool__name { font-weight: 600; }
+.lmc-tool__state { font-size: .76rem; opacity: .8; }
+@media (max-width: 520px) { .lmc-tool { flex: 1 1 calc(50% - 8px); justify-content: center; } }

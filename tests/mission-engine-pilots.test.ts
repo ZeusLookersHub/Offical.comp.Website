@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  answer, blueprintForTopic, blueprints, compileSystemPrompt, confirmBrief, createSession, listResources,
-  nextStep, runGates, submitIntake, type Blueprint, type Session,
+  answer, blueprintById, blueprintForTopic, blueprints, compileSystemPrompt, confirmBrief, createSession, listResources,
+  nextStep, plannedQuestions, runGates, submitIntake, type Blueprint, type Session,
 } from '../core/mission-engine/index.ts';
 
 const ok = <T>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
@@ -134,4 +134,26 @@ test('landing page: asks offer, action, visitors, brand — and wires WhatsApp p
   assert.equal(noLink.results.find(r => r.id === 'whatsapp-link')!.ok, false);
   const fake = runGates(l, s, { ...out, pageOutline: ['Reviews — 1000+ happy customers, rated 4.9'] });
   assert.equal(fake.results.find(r => r.id === 'no-invented-numbers')!.ok, false);
+});
+
+test('edit missions end with a paste block and never rewrite your facts', () => {
+  for (const id of ['cv-improve', 'deck-improve', 'rewrite', 'ai-operator']) {
+    const bp = blueprintById(id)!;
+    assert.ok(bp, `${id} is registered`);
+    assert.ok(bp.gates.some(g => g.id === 'paste-block'), `${id} gates the paste block`);
+    const control = bp.strategy.control.join(' ').toLowerCase();
+    assert.ok(/never (invent|change|add)/.test(control), `${id} forbids inventing facts`);
+    const delivery = bp.strategy.delivery.join(' ');
+    assert.ok(delivery.includes('>>>'), `${id} delivery defines the paste marker`);
+  }
+});
+
+test('the standing assistant asks few questions and keeps its stop line', () => {
+  const bp = blueprintById('ai-operator')!;
+  const after = ok(submitIntake(createSession(bp, 'ar', 'op1'), bp, 'عايز مساعد يرد على عملاء الصيدلية بتاعتي على واتساب طول اليوم'));
+  const asked = plannedQuestions(after, bp).map(q => q.slot);
+  assert.ok(asked.length <= 5, `asked ${asked.length} questions: ${asked.join(', ')}`);
+  assert.ok(bp.slots.some(s => s.id === 'escalation' && s.layer === 'control'), 'escalation is a control slot');
+  const control = bp.strategy.control.join(' ');
+  assert.ok(/human/i.test(control), 'it must hand over to a human');
 });
