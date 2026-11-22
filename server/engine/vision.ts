@@ -5,7 +5,13 @@ import { applyCandidates } from '../../core/mission-engine/intake.ts';
 import { ModelError } from './model.ts';
 
 export type ImageInput = { mimeType: string; data: string };
-export interface VisionModel { id: string; describe(input: { prompt: string; image: ImageInput; signal?: AbortSignal }): Promise<unknown> }
+/**
+ * `id` is what is configured, which with a backup is a pair; `modelId` on the result is the one
+ * that actually answered. Reporting only the configured name is how a DeepSeek answer passed for
+ * a Gemini one, so the answer carries its own attribution rather than the caller assuming it.
+ */
+export interface VisionResult { output: unknown; modelId: string }
+export interface VisionModel { id: string; describe(input: { prompt: string; image: ImageInput; signal?: AbortSignal }): Promise<VisionResult> }
 
 const MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export const validImage = (v: unknown): v is ImageInput => !!v && typeof v === 'object'
@@ -55,7 +61,7 @@ export function createGeminiVision(cfg: { key: string; model?: string; timeoutMs
           if (raw.includes(cfg.key)) throw new ModelError('model_bad_output');
           try {
             const text = JSON.parse(raw)?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? '';
-            return JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g, ''));
+            return { output: JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g, '')), modelId: model };
           } catch { throw new ModelError('model_bad_output'); }
         }, cfg.timeoutMs ?? 40000, signal);
       } catch (error) {
@@ -91,7 +97,7 @@ export function createDeepSeekVision(cfg: { key: string; model?: string; timeout
           if (raw.includes(cfg.key)) throw new ModelError('model_bad_output');
           try {
             const content = JSON.parse(raw)?.choices?.[0]?.message?.content;
-            return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, ''));
+            return { output: JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, '')), modelId: model };
           } catch { throw new ModelError('model_bad_output'); }
         }, cfg.timeoutMs ?? 40000, signal);
       } catch (error) {
@@ -145,12 +151,13 @@ export async function describeReference(vision: VisionModel, bp: Blueprint, imag
     `description: 2–4 factual sentences in ${lang === 'ar' ? 'Egyptian Arabic, keeping any visible text in its original script' : 'English'}: what is shown, shape, materials, colours, finish, setting, and any visible text quoted exactly.`,
     'Only fill a slot that the image clearly shows. Never guess brand names; only report text you can read. Slots:', slots,
   ].join('\n');
-  const out = await vision.describe({ prompt, image, signal }) as { description?: unknown; candidates?: unknown };
+  const answer = await vision.describe({ prompt, image, signal });
+  const out = answer.output as { description?: unknown; candidates?: unknown };
   const description = typeof out?.description === 'string' ? out.description.slice(0, 1500) : '';
-  if (!description) return { description: '', candidates: [], model: vision.id };
+  if (!description) return { description: '', candidates: [], model: answer.modelId };
   const list = Array.isArray(out.candidates) ? out.candidates as Candidate[] : [];
   const empty = { id: 'v', blueprintId: bp.id, blueprintVersion: bp.version, lang, phase: 'questions' as const, values: {}, asked: [], revision: 0 };
   const candidates = list.filter(c => c && typeof c.slot === 'string' && typeof c.evidence === 'string' && (typeof c.value === 'string' || Array.isArray(c.value)))
     .slice(0, 12).filter(c => applyCandidates(empty, bp, description, [c]).values[c.slot]);
-  return { description, candidates, model: vision.id };
+  return { description, candidates, model: answer.modelId };
 }

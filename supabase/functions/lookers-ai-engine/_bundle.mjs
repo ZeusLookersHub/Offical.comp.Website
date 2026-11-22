@@ -158,29 +158,29 @@ prompt,image,signal}){try{return await bounded(async abort=>{let res;try{res=awa
 enerateContent`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[
 {text:prompt},{inline_data:{mime_type:image.mimeType,data:image.data}}]}],generationConfig:{responseMimeType:"application/json",temperature:.2,maxOutputTokens:1500}})})}catch{throw new ModelError(
 "model_unavailable")}res.ok||await explain("gemini",model,res,cfg.key);let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let text=JSON.
-parse(raw)?.candidates?.[0]?.content?.parts?.map(p=>p.text??"").join("")??"";return JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g,""))}catch{throw new ModelError("model_bad_o\
-utput")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}function createDeepSeekVision(cfg){
-let transport=cfg.transport??fetch,model=cfg.model||"deepseek-flash";return{id:model,async describe({prompt,image,signal}){try{return await bounded(async abort=>{let res;try{res=await transport(
-"https://api.deepseek.com/chat/completions",{method:"POST",redirect:"error",signal:abort,headers:{Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"},body:JSON.stringify(
-{model,stream:!1,temperature:.2,max_tokens:1500,response_format:{type:"json_object"},messages:[{role:"user",content:[{type:"text",text:prompt},{type:"image_url",image_url:{url:`dat\
-a:${image.mimeType};base64,${image.data}`}}]}]})})}catch{throw new ModelError("model_unavailable")}if(res.status===402)throw new ModelError("model_rate_limited");res.ok||await explain(
-"deepseek",model,res,cfg.key);let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let content=JSON.parse(raw)?.choices?.[0]?.message?.content;
-return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g,""))}catch{throw new ModelError("model_bad_output")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof
-ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}function visionWithBackup(primary,backup){return backup?{id:`${primary.id}→${backup.
-id}`,async describe(input){try{return await primary.describe(input)}catch(error){if(!(error instanceof ModelError)||error.code==="model_bad_output")throw error;return console.warn(
-"vision failover",{from:primary.id,to:backup.id,code:error.code}),await backup.describe(input)}}}:primary}var visionFromEnv=(env2,transport)=>{let gem=geminiKey(env2).key,ds=env2("\
-DEEPSEEK_API_KEY"),deepseek=ds?createDeepSeekVision({key:ds,model:env2("ENGINE_VISION_MODEL"),transport}):null;return gem?visionWithBackup(createGeminiVision({key:gem,model:env2("G\
-EMINI_VISION_MODEL"),transport}),deepseek):deepseek};async function describeReference(vision2,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!=="delivery"&&s.role!=="tar\
-get-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exact text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` options=[${s.options.map(o=>o.
-value).join(", ")}]`:""}`).join(`
+parse(raw)?.candidates?.[0]?.content?.parts?.map(p=>p.text??"").join("")??"";return{output:JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g,"")),modelId:model}}catch{throw new ModelError(
+"model_bad_output")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailabl\
+e")}}}}function createDeepSeekVision(cfg){let transport=cfg.transport??fetch,model=cfg.model||"deepseek-flash";return{id:model,async describe({prompt,image,signal}){try{return await bounded(
+async abort=>{let res;try{res=await transport("https://api.deepseek.com/chat/completions",{method:"POST",redirect:"error",signal:abort,headers:{Authorization:"Bearer "+cfg.key,"Con\
+tent-Type":"application/json"},body:JSON.stringify({model,stream:!1,temperature:.2,max_tokens:1500,response_format:{type:"json_object"},messages:[{role:"user",content:[{type:"text",
+text:prompt},{type:"image_url",image_url:{url:`data:${image.mimeType};base64,${image.data}`}}]}]})})}catch{throw new ModelError("model_unavailable")}if(res.status===402)throw new ModelError(
+"model_rate_limited");res.ok||await explain("deepseek",model,res,cfg.key);let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let content=JSON.
+parse(raw)?.choices?.[0]?.message?.content;return{output:JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g,"")),modelId:model}}catch{throw new ModelError("model_bad_ou\
+tput")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}function visionWithBackup(primary,backup){
+return backup?{id:`${primary.id}→${backup.id}`,async describe(input){try{return await primary.describe(input)}catch(error){if(!(error instanceof ModelError)||error.code==="model_\
+bad_output")throw error;return console.warn("vision failover",{from:primary.id,to:backup.id,code:error.code}),await backup.describe(input)}}}:primary}var visionFromEnv=(env2,transport)=>{
+let gem=geminiKey(env2).key,ds=env2("DEEPSEEK_API_KEY"),deepseek=ds?createDeepSeekVision({key:ds,model:env2("ENGINE_VISION_MODEL"),transport}):null;return gem?visionWithBackup(createGeminiVision(
+{key:gem,model:env2("GEMINI_VISION_MODEL"),transport}),deepseek):deepseek};async function describeReference(vision2,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!=="de\
+livery"&&s.role!=="target-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exact text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` opti\
+ons=[${s.options.map(o=>o.value).join(", ")}]`:""}`).join(`
 `),prompt=[`You look at a reference image for a "${bp.title.en}" brief.`,'Return JSON {"description": "...", "candidates":[{"slot":"<id>","value":"...","evidence":"<exact span copi\
 ed from your description>"}]}.',`description: 2–4 factual sentences in ${lang==="ar"?"Egyptian Arabic, keeping any visible text in its original script":"English"}: what is shown,\
  shape, materials, colours, finish, setting, and any visible text quoted exactly.`,"Only fill a slot that the image clearly shows. Never guess brand names; only report text you can\
  read. Slots:",slots].join(`
-`),out=await vision2.describe({prompt,image,signal}),description=typeof out?.description=="string"?out.description.slice(0,1500):"";if(!description)return{description:"",candidates:[],
-model:vision2.id};let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},asked:[],revision:0},
-candidates=list.filter(c=>c&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,12).filter(c=>applyCandidates(empty,bp,
-description,[c]).values[c.slot]);return{description,candidates,model:vision2.id}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
+`),answer=await vision2.describe({prompt,image,signal}),out=answer.output,description=typeof out?.description=="string"?out.description.slice(0,1500):"";if(!description)return{description:"",
+candidates:[],model:answer.modelId};let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},
+asked:[],revision:0},candidates=list.filter(c=>c&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,12).filter(c=>applyCandidates(
+empty,bp,description,[c]).values[c.slot]);return{description,candidates,model:answer.modelId}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
 ANY_VERCEL_PREVIEW=/^https:\/\/[a-z0-9-]+\.vercel\.app$/,MAX_BODY=6e4,RATE_LIMITS={compose:10,describe:10,intake:30,ideas:60},RATE_WINDOW_SECONDS=60,MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function withinRate(transport,url,serviceKey,owner,op){if(!serviceKey)return!0;try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/rpc/engine_rate_c\
 heck",{method:"POST",signal,redirect:"error",headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_owner:owner,p_op:op,

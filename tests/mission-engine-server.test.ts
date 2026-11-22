@@ -150,13 +150,13 @@ test('model adapter: JSON mode, key never echoed, timeouts mapped', async () => 
 });
 
 test('vision: description + evidence-checked candidates; label text must be read verbatim', async () => {
-  const vision = { id: 'v', describe: async () => ({
+  const vision = { id: 'v', describe: async () => ({ modelId: 'v', output: {
     description: 'زجاجة برفان زرقا غامقة بغطا فضي، والليبل مكتوب عليه "DAVIDOFF" على خلفية رخام إسود.',
     candidates: [
       { slot: 'product', value: 'زجاجة برفان زرقا غامقة بغطا فضي', evidence: 'زجاجة برفان زرقا غامقة بغطا فضي' },
       { slot: 'brandName', value: 'DAVIDOFF', evidence: 'DAVIDOFF' },
       { slot: 'scene', value: 'gold sand', evidence: 'gold sand' },
-    ] }) };
+    ] } }) };
   const out = await describeReference(vision, photo, { mimeType: 'image/jpeg', data: 'A'.repeat(200) }, 'ar');
   assert.match(out.description, /DAVIDOFF/);
   assert.deepEqual(out.candidates.map(c => c.slot), ['product', 'brandName']);
@@ -169,7 +169,8 @@ test('gemini adapter: inline image, JSON mode, key in header only', async () => 
     return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"description":"ok","candidates":[]}' }] } }] }));
   };
   const g = createGeminiVision({ key: 'g-key', transport });
-  assert.deepEqual(await g.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'B'.repeat(200) } }), { description: 'ok', candidates: [] });
+  assert.deepEqual(await g.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'B'.repeat(200) } }),
+    { output: { description: 'ok', candidates: [] }, modelId: 'gemini-3.5-flash-lite' });
   assert.match(seen!.url, /gemini-3\.5-flash-lite:generateContent$/);
   assert.ok(!seen!.url.includes('g-key'));
   assert.equal(seen!.headers['x-goog-api-key'], 'g-key');
@@ -181,7 +182,8 @@ test('deepseek vision: image_url data URL in a user message, JSON mode; used whe
   let body: any;
   const transport: typeof fetch = async (_u, init) => { body = JSON.parse(String(init!.body)); return new Response(JSON.stringify({ choices: [{ message: { content: '{"description":"d","candidates":[]}' } }] })); };
   const v = createDeepSeekVision({ key: 'ds', transport });
-  assert.deepEqual(await v.describe({ prompt: 'p', image: { mimeType: 'image/jpeg', data: 'C'.repeat(200) } }), { description: 'd', candidates: [] });
+  assert.deepEqual(await v.describe({ prompt: 'p', image: { mimeType: 'image/jpeg', data: 'C'.repeat(200) } }),
+    { output: { description: 'd', candidates: [] }, modelId: 'deepseek-flash' });
   assert.equal(body.model, 'deepseek-flash');
   assert.equal(body.response_format.type, 'json_object');
   assert.match(body.messages[0].content[1].image_url.url, /^data:image\/jpeg;base64,C+$/);
@@ -306,11 +308,11 @@ test('every answer names the model that produced it', async () => {
   assert.equal(typeof extracted.model, 'string');
   assert.ok(extracted.model.length > 0);
 
-  const vision = { id: 'test-vision-model', describe: async () => ({ description: 'a dark bottle on a light background', candidates: [] }) };
+  const vision = { id: 'test-vision-model', describe: async () => ({ modelId: 'test-vision-model', output: { description: 'a dark bottle on a light background', candidates: [] } }) };
   const described = await describeReference(vision, photo, { mimeType: 'image/jpeg', data: 'x'.repeat(200) }, 'en');
   assert.equal(described.model, 'test-vision-model', 'describe says which eyes looked at the image');
 
-  const blind = { id: 'empty-vision', describe: async () => ({}) };
+  const blind = { id: 'empty-vision', describe: async () => ({ modelId: 'empty-vision', output: {} }) };
   const nothing = await describeReference(blind, photo, { mimeType: 'image/jpeg', data: 'x'.repeat(200) }, 'en');
   assert.equal(nothing.model, 'empty-vision', 'even an empty answer names its source');
 });
@@ -368,15 +370,16 @@ test('a vision failure costs the image reading, not the request', async () => {
       createGeminiVision({ key: 'gemini-test-key', transport: quotaWall }),
       createDeepSeekVision({ key: 'deepseek-test-key', transport: ok }));
     assert.match(paired.id, /^gemini-3\.5-flash-lite→deepseek/, 'the id names both');
-    const out = await paired.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }) as { description: string };
-    assert.match(out.description, /عبوة/, 'the backup answered');
+    const out = await paired.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } });
+    assert.match((out.output as { description: string }).description, /عبوة/, 'the backup answered');
+    assert.equal(out.modelId, 'deepseek-flash', 'and the result says so, not the pair name');
 
     // Garbage from the primary is not something a second model can fix, so it is not retried.
     let calls = 0;
     const garbage: typeof fetch = async () => new Response('not json');
     await assert.rejects(() => visionWithBackup(
       createGeminiVision({ key: 'gemini-test-key', transport: garbage }),
-      { id: 'b', describe: async () => { calls++; return {}; } },
+      { id: 'b', describe: async () => { calls++; return { modelId: 'b', output: {} }; } },
     ).describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }));
     assert.equal(calls, 0);
   } finally { console.warn = warn; }
