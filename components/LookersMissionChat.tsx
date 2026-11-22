@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, ExternalLink, ImagePlus, Send, Sparkles } from 'lucide-react';
 import {
-  answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, planLaunch, skip, submitIntake, suggest,
+  answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, normalize, planLaunch, skip, submitIntake, suggest,
   type Blueprint, type GateReport, type Lang, type Session, type SlotValueRaw,
 } from '../core/mission-engine/client';
 import { lookersEngine } from '../services/lookersAiEngineClient';
@@ -80,9 +80,17 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   const slotDef = activeSlot && activeSlot !== 'intake' ? bp.slots.find(s => s.id === activeSlot) : undefined;
   const freeText = activeSlot === 'intake' || (slotDef && (slotDef.kind === 'text' || slotDef.kind === 'longtext' || slotDef.kind === 'exact'));
 
-  // Contextual ideas from the model, debounced, only for descriptive fields.
+  // Contextual ideas from the model, debounced, only for descriptive fields — and only once the
+  // mission's own vocabulary has stopped being useful. The vocabulary always has something to
+  // show, but when nothing continues the word being typed those chips are padding, and that is
+  // the moment a model is worth paying for. This call fires more often than any other, so every
+  // one it skips is quota and balance kept for the writing itself.
   useEffect(() => {
     if (!slotDef || (slotDef.kind !== 'text' && slotDef.kind !== 'longtext') || typed.trim().length < 3) { setIdeas([]); return; }
+    const lastWord = normalize(typed.trim().split(/\s+/).pop() ?? '');
+    const localFits = lastWord.length >= 1
+      && suggest(bp, slotDef.id, typed, { lang }).some(chip => normalize(chip).startsWith(lastWord));
+    if (localFits || typed.trim().length < 12) { setIdeas([]); return; }
     let live = true;
     const timer = setTimeout(() => {
       engine.ideas(bp.id, slotDef.id, typed, session.idea ?? '', lang).then(list => { if (live) setIdeas(list); }).catch(() => {});

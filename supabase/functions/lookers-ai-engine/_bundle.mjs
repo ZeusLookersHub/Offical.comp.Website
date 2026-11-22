@@ -125,14 +125,14 @@ let v=s.values[slot.id];if(!v)continue;let value=v.value===NONE?NONE:validValue2
 "default"?"default":v.source==="extracted"?"extracted":"user"}}if(bp.slots.some(slot=>slot.importance==="critical"&&!values[slot.id]))return{error:"invalid_session"};let idea=typeof s.
 idea=="string"?s.idea.slice(0,4e3):"";return{bp,session:{id:String(s.id??"").slice(0,64),blueprintId:bp.id,blueprintVersion:bp.version,lang:s.lang,phase:"confirmed",idea,values,asked:[],
 revision:Number(s.revision)||0}}}async function compose(model,bp,session,signal){let request=buildComposeRequest(bp,session),user=JSON.stringify({brief:request.brief,tools:request.
-tools.map(t2=>t2.id)}),{json}=await model.complete({system:request.system,user,maxTokens:4e3,signal}),report2=runGates(bp,session,json),attempts=1,fix=repairInstruction(report2);if(fix){
-let repaired=await model.complete({system:request.system,user:`${user}
+tools.map(t2=>t2.id)}),{json,modelId}=await model.complete({system:request.system,user,maxTokens:4e3,signal}),report2=runGates(bp,session,json),attempts=1,fix=repairInstruction(report2);
+if(fix){let repaired=await model.complete({system:request.system,user:`${user}
 
 Your previous answer:
 ${JSON.stringify(json).slice(0,12e3)}
 
-${fix}`,maxTokens:4e3,signal}),second=runGates(bp,session,repaired.json);attempts=2,second.passed>=report2.passed&&(json=repaired.json,report2=second)}return{output:json,report:report2,
-attempts,model:model.id}}var ModelError=class extends Error{constructor(code){super(code);this.code=code}};function createChatJsonModel(cfg){let transport=cfg.transport??fetch,timeoutMs=cfg.timeoutMs??4e4;
+${fix}`,maxTokens:4e3,signal});modelId=repaired.modelId??modelId;let second=runGates(bp,session,repaired.json);attempts=2,second.passed>=report2.passed&&(json=repaired.json,report2=
+second)}return{output:json,report:report2,attempts,model:modelId??model.id}}var ModelError=class extends Error{constructor(code){super(code);this.code=code}};function createChatJsonModel(cfg){let transport=cfg.transport??fetch,timeoutMs=cfg.timeoutMs??4e4;
 return{id:cfg.model,async complete({system,user,maxTokens,signal}){if(!cfg.key)throw new ModelError("model_unavailable");try{return await bounded(async abort=>{let res;try{res=await transport(
 cfg.url,{method:"POST",redirect:"error",signal:abort,headers:{Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"},body:JSON.stringify({model:cfg.model,stream:!1,temperature:.3,
 max_tokens:maxTokens,response_format:{type:"json_object"},messages:[{role:"system",content:system},{role:"user",content:user}],...cfg.extraBody})})}catch{throw new ModelError("mode\
@@ -149,15 +149,10 @@ navailable")}if(res.status===401||res.status===403)throw new ModelError("model_a
 "model_unavailable");let raw=await res.text();if(raw.length>4e5||raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let payload=JSON.parse(raw),text=payload?.candidates?.[0]?.
 content?.parts?.map(p=>p.text??"").join("")??"";if(!text)throw new Error;let json=JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g,"")),u=payload?.usageMetadata,usage=u?{inputTokens:u.
 promptTokenCount,outputTokens:u.candidatesTokenCount}:void 0;return{json,usage}}catch{throw new ModelError("model_bad_output")}},timeoutMs,signal)}catch(error){throw error instanceof
-ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_unavailable")}}}}function modelFromEnv(env2,transport){let gemini=env2("GEMINI_\
-API_KEY"),deepseek=env2("DEEPSEEK_API_KEY"),openrouter=env2("OPENROUTER_API_KEY"),provider=env2("ENGINE_PROVIDER")||(gemini?"gemini":deepseek?"deepseek":openrouter?"openrouter":""),
-makeGemini=()=>createGeminiJsonModel({key:gemini,model:env2("ENGINE_MODEL")||env2("GEMINI_MODEL"),transport}),makeDeepseek=()=>createChatJsonModel({url:"https://api.deepseek.com/ch\
-at/completions",key:deepseek,model:env2("ENGINE_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}),makeOpenRouter=()=>createChatJsonModel({url:"https://op\
-enrouter.ai/api/v1/chat/completions",key:openrouter,model:env2("ENGINE_MODEL")||env2("AI_MODEL_ID")||"google/gemma-4-31b-it:free",transport});return provider==="gemini"&&gemini?makeGemini():
-provider==="deepseek"&&deepseek?makeDeepseek():provider==="openrouter"&&openrouter?makeOpenRouter():gemini?makeGemini():deepseek?makeDeepseek():openrouter?makeOpenRouter():null}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
-/^[A-Za-z0-9+/=]+$/.test(v.data);function createGeminiVision(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.8-flash";return{id:model,async describe({prompt,image,
-signal}){try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateConten\
-t`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt},
+ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_unavailable")}}}}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
+/^[A-Za-z0-9+/=]+$/.test(v.data);function createGeminiVision(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.8-flash-lite";return{id:model,async describe({prompt,
+image,signal}){try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generate\
+Content`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt},
 {inline_data:{mime_type:image.mimeType,data:image.data}}]}],generationConfig:{responseMimeType:"application/json",temperature:.2,maxOutputTokens:1500}})})}catch{throw new ModelError(
 "model_unavailable")}if(res.status===401||res.status===403)throw new ModelError("model_auth_failed");if(res.status===429)throw new ModelError("model_rate_limited");if(!res.ok)throw new ModelError(
 "model_unavailable");let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let text=JSON.parse(raw)?.candidates?.[0]?.content?.parts?.map(p=>p.
@@ -170,7 +165,7 @@ data}`}}]}]})})}catch{throw new ModelError("model_unavailable")}if(res.status===
 throw new ModelError("model_rate_limited");if(!res.ok)throw new ModelError("model_unavailable");let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_ou\
 tput");try{let content=JSON.parse(raw)?.choices?.[0]?.message?.content;return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g,""))}catch{throw new ModelError("model_\
 bad_output")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}
-var visionFromEnv=(env2,transport)=>env2("GEMINI_API_KEY")?createGeminiVision({key:env2("GEMINI_API_KEY"),model:env2("GEMINI_MODEL"),transport}):env2("DEEPSEEK_API_KEY")?createDeepSeekVision(
+var visionFromEnv=(env2,transport)=>env2("GEMINI_API_KEY")?createGeminiVision({key:env2("GEMINI_API_KEY"),model:env2("GEMINI_VISION_MODEL"),transport}):env2("DEEPSEEK_API_KEY")?createDeepSeekVision(
 {key:env2("DEEPSEEK_API_KEY"),model:env2("ENGINE_VISION_MODEL"),transport}):null;async function describeReference(vision,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!==
 "delivery"&&s.role!=="target-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exact text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` o\
 ptions=[${s.options.map(o=>o.value).join(", ")}]`:""}`).join(`
@@ -189,37 +184,47 @@ p_limit:RATE_LIMITS[op]??30,p_window_seconds:RATE_WINDOW_SECONDS})});return res.
 try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/lookers_engine_results",{method:"POST",signal,redirect:"error",headers:{apikey:key,Authorization:"Bear\
 er "+token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(row)});if(!res.ok)return null;let rows=await res.json();return Array.isArray(rows)&&
 rows[0]&&typeof rows[0].id=="string"?rows[0].id:null},4e3)}catch{return null}}function createEngineHandler(options){let transport=options.transport??fetch,blueprintById=options.blueprints,
-allowed=new Set([...DEFAULT_ORIGINS,...(options.env("ENGINE_ALLOWED_ORIGINS")??"").split(",").map(s=>s.trim()).filter(Boolean)]),previewsOpen=options.env("ENGINE_ALLOW_VERCEL_PREVI\
-EWS")==="1",isAllowed=origin=>allowed.has(origin)||PREVIEW_ORIGIN.test(origin)||previewsOpen&&ANY_VERCEL_PREVIEW.test(origin),cors=origin=>({...origin&&isAllowed(origin)?{"Access-C\
-ontrol-Allow-Origin":origin}:{},"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS",Vary:"Origin"}),json=(body,status,origin)=>new Response(
-JSON.stringify(body),{status,headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store"}});return async req=>{let origin=req.headers.get("Origin");if(origin&&
-!isAllowed(origin))return json({error:"origin_not_allowed"},403,null);if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(origin)});if(req.method!=="POST")return json(
-{error:"method_not_allowed"},405,origin);if(Number(req.headers.get("content-length")||0)>MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);let token=req.headers.get(
-"Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1],url=options.env("SUPABASE_URL"),key=options.env("SUPABASE_ANON_KEY");if(!token)return json({error:"unauthorized"},401,origin);if(!url||
-!key)return json({error:"server_configuration_error"},503,origin);let owner="";try{await bounded(async signal=>{let auth=await transport(url+"/auth/v1/user",{headers:{apikey:key,Authorization:"\
-Bearer "+token},signal,redirect:"error"});if(!auth.ok)throw new Error("unauthorized");let user=await auth.json();if(!record(user)||typeof user.id!="string"||user.is_anonymous!==!0)
-throw new Error("unauthorized");owner=user.id},8e3,req.signal)}catch{return json({error:"identity_verification_failed"},401,origin)}let body;try{let raw=await req.text();if(raw.length>
-MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);if(body=JSON.parse(raw),raw.length>MAX_BODY&&!(record(body)&&body.op==="describe"))return json({error:"request_to\
-o_large"},413,origin)}catch{return json({error:"invalid_json"},400,origin)}if(!dataOnly(body)||!record(body))return json({error:"invalid_request"},400,origin);let op=typeof body.op==
-"string"?body.op:"";if(!(op in RATE_LIMITS))return json({error:"unknown_op"},400,origin);if(!await withinRate(transport,url,options.env("SUPABASE_SERVICE_ROLE_KEY"),owner,op))return new Response(
-JSON.stringify({error:"rate_limited"}),{status:429,headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store","Retry-After":String(RATE_WINDOW_SECONDS)}});
-try{if(body.op==="describe"){if(!options.vision)return json({error:"vision_unavailable"},503,origin);let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):
-void 0;return!bp||!validImage(body.image)?json({error:"invalid_request"},400,origin):json(await describeReference(options.vision,bp,body.image,body.lang==="ar"?"ar":"en",req.signal),
-200,origin)}if(!options.model)return json({error:"model_unavailable"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):
-void 0;return!bp||typeof body.text!="string"||body.text.trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):json({candidates:await extract(options.model,
-bp,body.text,req.signal)},200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;if(!bp||typeof body.slot!="string"||
-typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json({ideas:await ideas(options.model,
-bp,body.slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(body.session,blueprintById);
-if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(options.model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId=="string"&&
-UUID.test(body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.version,output:result.
-output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,resultId},200,origin)}
-return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("blueprints_")?"blueprint\
-s_unavailable":"engine_failed";return json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_auth_failed"||code==="b\
-lueprints_unavailable"?503:502,origin)}}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
+route2=options.model&&"for"in options.model?options.model:null,modelFor=op=>route2?route2.for(op):options.model,allowed=new Set([...DEFAULT_ORIGINS,...(options.env("ENGINE_ALLOWED_\
+ORIGINS")??"").split(",").map(s=>s.trim()).filter(Boolean)]),previewsOpen=options.env("ENGINE_ALLOW_VERCEL_PREVIEWS")==="1",isAllowed=origin=>allowed.has(origin)||PREVIEW_ORIGIN.test(
+origin)||previewsOpen&&ANY_VERCEL_PREVIEW.test(origin),cors=origin=>({...origin&&isAllowed(origin)?{"Access-Control-Allow-Origin":origin}:{},"Access-Control-Allow-Headers":"authori\
+zation, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS",Vary:"Origin"}),json=(body,status,origin)=>new Response(JSON.stringify(body),{status,headers:{
+...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store"}});return async req=>{let origin=req.headers.get("Origin");if(origin&&!isAllowed(origin))return json({error:"\
+origin_not_allowed"},403,null);if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(origin)});if(req.method!=="POST")return json({error:"method_not_allowed"},
+405,origin);if(Number(req.headers.get("content-length")||0)>MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);let token=req.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1],
+url=options.env("SUPABASE_URL"),key=options.env("SUPABASE_ANON_KEY");if(!token)return json({error:"unauthorized"},401,origin);if(!url||!key)return json({error:"server_configuration\
+_error"},503,origin);let owner="";try{await bounded(async signal=>{let auth=await transport(url+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token},signal,redirect:"\
+error"});if(!auth.ok)throw new Error("unauthorized");let user=await auth.json();if(!record(user)||typeof user.id!="string"||user.is_anonymous!==!0)throw new Error("unauthorized");owner=
+user.id},8e3,req.signal)}catch{return json({error:"identity_verification_failed"},401,origin)}let body;try{let raw=await req.text();if(raw.length>MAX_IMAGE_BODY)return json({error:"\
+request_too_large"},413,origin);if(body=JSON.parse(raw),raw.length>MAX_BODY&&!(record(body)&&body.op==="describe"))return json({error:"request_too_large"},413,origin)}catch{return json(
+{error:"invalid_json"},400,origin)}if(!dataOnly(body)||!record(body))return json({error:"invalid_request"},400,origin);let op=typeof body.op=="string"?body.op:"";if(!(op in RATE_LIMITS))
+return json({error:"unknown_op"},400,origin);if(!await withinRate(transport,url,options.env("SUPABASE_SERVICE_ROLE_KEY"),owner,op))return new Response(JSON.stringify({error:"rate_l\
+imited"}),{status:429,headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store","Retry-After":String(RATE_WINDOW_SECONDS)}});try{if(body.op==="describe"){
+if(!options.vision)return json({error:"vision_unavailable"},503,origin);let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;return!bp||!validImage(
+body.image)?json({error:"invalid_request"},400,origin):json(await describeReference(options.vision,bp,body.image,body.lang==="ar"?"ar":"en",req.signal),200,origin)}let model=modelFor(
+body.op==="intake"?"intake":body.op==="ideas"?"ideas":"compose");if(!model)return json({error:"model_unavailable"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId==
+"string"?await blueprintById(body.blueprintId):void 0;return!bp||typeof body.text!="string"||body.text.trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):
+json({candidates:await extract(model,bp,body.text,req.signal)},200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;
+if(!bp||typeof body.slot!="string"||typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json(
+{ideas:await ideas(model,bp,body.slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(
+body.session,blueprintById);if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId==
+"string"&&UUID.test(body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.
+version,output:result.output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,
+resultId},200,origin)}return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("bl\
+ueprints_")?"blueprints_unavailable":"engine_failed";return json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_a\
+uth_failed"||code==="blueprints_unavailable"?503:502,origin)}}}var DEFAULT_ROUTE={compose:"deepseek",intake:"gemini",ideas:"gemini"},COVERABLE=new Set(["model_rate_limited","model_unavailable","model_timeout"]);function withBackup(primary,backup){
+return backup?{id:`${primary.id}→${backup.id}`,async complete(input){try{let result=await primary.complete(input);return{...result,modelId:result.modelId??primary.id}}catch(error){
+if(!(error instanceof ModelError)||!COVERABLE.has(error.code))throw error;let result=await backup.complete(input);return{...result,modelId:result.modelId??backup.id}}}}:primary}function parseRoute(raw){
+let out={};for(let pair of(raw??"").split(",")){let[op,provider]=pair.split(":").map(s=>s.trim().toLowerCase());(op==="intake"||op==="ideas"||op==="compose")&&(provider==="gemini"||
+provider==="deepseek")&&(out[op]=provider)}return out}function routeFromEnv(env2,transport){let geminiKey=env2("GEMINI_API_KEY"),deepseekKey=env2("DEEPSEEK_API_KEY"),gemini=geminiKey?
+createGeminiJsonModel({key:geminiKey,model:env2("GEMINI_MODEL")||env2("ENGINE_MODEL"),transport}):null,deepseek=deepseekKey?createChatJsonModel({url:"https://api.deepseek.com/chat/\
+completions",key:deepseekKey,model:env2("DEEPSEEK_MODEL")||env2("ENGINE_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}):null,pinned=env2("ENGINE_PROVID\
+ER")?.trim().toLowerCase(),overrides=parseRoute(env2("ENGINE_ROUTE")),plan={},pick=op=>{let want=pinned==="gemini"||pinned==="deepseek"?pinned:overrides[op]??DEFAULT_ROUTE[op],primary=want===
+"gemini"?gemini??deepseek:deepseek??gemini,backup=want==="gemini"?deepseek:gemini;if(!primary)return plan[op]="none",null;let model=withBackup(primary,backup===primary?null:backup);
+return plan[op]=model.id,model},models={intake:pick("intake"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
 6e4,now=()=>Date.now()){let cache=null,inflight=null,load=async()=>{if(!supabaseUrl||!serviceKey)throw new Error("blueprints_unconfigured");return await bounded(async signal=>{let res=await transport(
 `${supabaseUrl}/rest/v1/lookers_engine_blueprints?id=eq.current&select=payload,count`,{headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,Accept:"application/json"},signal,
 redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let rows=await res.json(),row=Array.isArray(rows)?rows[0]:void 0;if(!row||!Array.isArray(row.payload)||row.payload.
 length===0)throw new Error("blueprints_missing");if(!row.payload.every(usable))throw new Error("blueprints_malformed");let list=row.payload;return new Map(list.map(bp=>[bp.id,bp]))},
 8e3)};return async id=>{if(cache&&now()-cache.at<ttlMs)return cache.byId.get(id);inflight||(inflight=load().then(byId=>(cache={at:now(),byId},byId)).finally(()=>{inflight=null}));try{
-return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??"");Deno.serve(createEngineHandler({env,model:modelFromEnv(env),
-vision:visionFromEnv(env),blueprints}));
+return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??""),route=routeFromEnv(env);console.log("engine route",route.
+plan);Deno.serve(createEngineHandler({env,model:route,vision:visionFromEnv(env),blueprints}));

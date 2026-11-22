@@ -3,7 +3,12 @@ import { bounded, BoundedError } from '../../core/agent/bounded.ts';
 /** One JSON completion. The engine never sees provider details. */
 export interface JsonModel {
   id: string;
-  complete(input: { system: string; user: string; maxTokens: number; signal?: AbortSignal }): Promise<{ json: unknown; usage?: { inputTokens?: number; outputTokens?: number } }>;
+  complete(input: { system: string; user: string; maxTokens: number; signal?: AbortSignal }): Promise<{
+    json: unknown;
+    usage?: { inputTokens?: number; outputTokens?: number };
+    /** Which model actually answered — differs from id when a backup covered the call. */
+    modelId?: string;
+  }>;
 }
 
 export class ModelError extends Error {

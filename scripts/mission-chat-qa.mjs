@@ -78,12 +78,25 @@ try {
     assert.match(transcript, /DAVIDOFF/);
     checks.push(`${label}: one message → understood brand and mood; asks only what is missing`);
 
+    const ideasBefore = engineCalls.filter(c => c === 'ideas').length;
     await page.locator('.lmc-input').fill('زجاجة كحلي ل');
     await page.waitForTimeout(150);
     const chips = await page.locator('.lmc-chips button').allInnerTexts();
     assert.ok(chips.includes('لامع'), 'local suggestion follows the word being typed: ' + chips.join('|'));
     await page.waitForTimeout(900);
+    // The mission's own vocabulary already covers this word, so no paid call is made for it.
+    assert.equal(engineCalls.filter(c => c === 'ideas').length, ideasBefore, 'the model is not called while local suggestions are enough');
+    checks.push(`${label}: local suggestions answer without calling the model`);
+
+    // Now type something the vocabulary has nothing for: here the model is worth asking.
+    await page.locator('.lmc-input').fill('زجاجة على رخامة جنبها أوراق شجر وضل ناعم جاي من الشباك');
+    await page.waitForTimeout(1300);
+    assert.ok(engineCalls.filter(c => c === 'ideas').length > ideasBefore, 'the model is asked once the vocabulary runs out');
     assert.ok((await page.locator('.lmc-chips button').allInnerTexts()).includes('زجاج مطفي'), 'AI ideas appear while typing');
+
+    // Back to the short text the rest of the walkthrough builds on.
+    await page.locator('.lmc-input').fill('زجاجة كحلي ل');
+    await page.waitForTimeout(250);
     checks.push(`${label}: suggestions follow typing (local + AI ideas)`);
     await page.screenshot({ path: `${output}/${label}-2-question.png` });
     await page.getByRole('button', { name: 'لامع', exact: true }).click();

@@ -5,6 +5,7 @@ import { compose, extract, sanitizeSession } from '../server/engine/engine.ts';
 import { createEngineHandler } from '../server/engine/handler.ts';
 import { serverShape } from '../scripts/build-engine-blueprints.ts';
 import { privateBlueprints } from '../server/engine/private-blueprints.ts';
+import { routeFromEnv } from '../server/engine/router.ts';
 const serverBlueprints = serverShape() as unknown as Blueprint[];
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
 import { createChatJsonModel, createGeminiJsonModel, modelFromEnv, type JsonModel } from '../server/engine/model.ts';
@@ -168,7 +169,7 @@ test('gemini adapter: inline image, JSON mode, key in header only', async () => 
   };
   const g = createGeminiVision({ key: 'g-key', transport });
   assert.deepEqual(await g.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'B'.repeat(200) } }), { description: 'ok', candidates: [] });
-  assert.match(seen!.url, /gemini-3\.8-flash:generateContent$/);
+  assert.match(seen!.url, /gemini-3\.8-flash-lite:generateContent$/);
   assert.ok(!seen!.url.includes('g-key'));
   assert.equal(seen!.headers['x-goog-api-key'], 'g-key');
   assert.equal(seen!.body.generationConfig.responseMimeType, 'application/json');
@@ -238,4 +239,61 @@ test('origins: the site, localhost and our previews pass; others only with the t
 
   const listed = make({ ...base, ENGINE_ALLOWED_ORIGINS: 'https://staging.lookershub.com' });
   assert.equal(await ask(listed, 'https://staging.lookershub.com'), 204);
+});
+
+test('routing: each job gets the model that suits its shape, and covers for itself', async () => {
+  const calls: string[] = [];
+  const transport: typeof fetch = async (url) => {
+    const target = String(url).includes('deepseek') ? 'deepseek' : 'gemini';
+    calls.push(target);
+    return target === 'gemini'
+      ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"ideas":["a"]}' }] } }] }))
+      : new Response(JSON.stringify({ choices: [{ message: { content: '{"ideas":["a"]}' } }] }));
+  };
+  const env = (v: Record<string, string>) => (name: string) => v[name];
+  const both = { GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' };
+
+  const route = routeFromEnv(env(both), transport);
+  assert.match(route.plan.compose, /^deepseek/, 'the long, paid-token job stays on DeepSeek');
+  assert.match(route.plan.ideas, /^gemini/, 'the high-volume job sits on the free tier');
+  assert.match(route.plan.intake, /^gemini/);
+
+  // Each one still has the other behind it.
+  for (const op of ['compose', 'intake', 'ideas'] as const) assert.match(route.plan[op], /→/, `${op} has a backup`);
+
+  // An explicit route wins.
+  const flipped = routeFromEnv(env({ ...both, ENGINE_ROUTE: 'ideas:deepseek, compose:gemini' }), transport);
+  assert.match(flipped.plan.ideas, /^deepseek/);
+  assert.match(flipped.plan.compose, /^gemini/);
+
+  // A pinned provider still pins everything, so an existing setting keeps its behaviour.
+  const pinned = routeFromEnv(env({ ...both, ENGINE_PROVIDER: 'deepseek' }), transport);
+  for (const op of ['compose', 'intake', 'ideas'] as const) assert.match(pinned.plan[op], /^deepseek/);
+
+  // One key configured: everything runs there, with nothing to fail over to.
+  const only = routeFromEnv(env({ DEEPSEEK_API_KEY: 'd' }), transport);
+  assert.equal(only.plan.compose, 'deepseek-flash');
+  assert.equal(only.plan.ideas, 'deepseek-flash');
+  assert.equal(routeFromEnv(env({}), transport).for('compose'), null);
+});
+
+test('routing: a rate-limited free tier falls through to the paid one, and says who answered', async () => {
+  let geminiCalls = 0;
+  const transport: typeof fetch = async (url) => {
+    if (String(url).includes('deepseek')) return new Response(JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }] }));
+    geminiCalls++;
+    return new Response('quota', { status: 429 });
+  };
+  const route = routeFromEnv((n: string) => ({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' } as Record<string, string>)[n], transport);
+  const result = await route.for('ideas')!.complete({ system: 's', user: 'u', maxTokens: 50 });
+  assert.deepEqual(result.json, { ok: true }, 'the answer still arrives');
+  assert.equal(result.modelId, 'deepseek-flash', 'and reports the model that actually answered');
+  assert.equal(geminiCalls, 1, 'the free tier was tried first, once');
+
+  // An auth failure is a real fault, not a quota blip: it must surface, not be papered over.
+  const badKey: typeof fetch = async (url) => String(url).includes('deepseek')
+    ? new Response(JSON.stringify({ choices: [{ message: { content: '{}' } }] }))
+    : new Response('nope', { status: 401 });
+  const route2 = routeFromEnv((n: string) => ({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' } as Record<string, string>)[n], badKey);
+  await assert.rejects(route2.for('ideas')!.complete({ system: 's', user: 'u', maxTokens: 50 }), /model_auth_failed/);
 });

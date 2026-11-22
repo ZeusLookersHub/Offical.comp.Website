@@ -83,16 +83,17 @@ export interface ComposeResult { output: unknown; report: GateReport; attempts: 
 export async function compose(model: JsonModel, bp: Blueprint, session: Session, signal?: AbortSignal): Promise<ComposeResult> {
   const request = buildComposeRequest(bp, session);
   const user = JSON.stringify({ brief: request.brief, tools: request.tools.map(t => t.id) });
-  let { json } = await model.complete({ system: request.system, user, maxTokens: 4000, signal });
+  let { json, modelId } = await model.complete({ system: request.system, user, maxTokens: 4000, signal });
   let report = runGates(bp, session, json);
   let attempts = 1;
   const fix = repairInstruction(report);
   if (fix) {
     const repaired = await model.complete({ system: request.system, user: `${user}\n\nYour previous answer:\n${JSON.stringify(json).slice(0, 12000)}\n\n${fix}`, maxTokens: 4000, signal });
+    modelId = repaired.modelId ?? modelId;
     const second = runGates(bp, session, repaired.json);
     attempts = 2;
     // Keep whichever attempt passes more checks; report honestly either way.
     if (second.passed >= report.passed) { json = repaired.json; report = second; }
   }
-  return { output: json, report, attempts, model: model.id };
+  return { output: json, report, attempts, model: modelId ?? model.id };
 }

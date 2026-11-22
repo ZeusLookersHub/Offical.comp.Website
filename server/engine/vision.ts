@@ -13,7 +13,10 @@ export const validImage = (v: unknown): v is ImageInput => !!v && typeof v === '
 
 /** Gemini generateContent with inline image, JSON output. Key stays server-side. */
 export function createGeminiVision(cfg: { key: string; model?: string; timeoutMs?: number; transport?: typeof fetch }): VisionModel {
-  const transport = cfg.transport ?? fetch, model = cfg.model || 'gemini-3.8-flash';
+  // Flash-Lite over Flash on purpose: on the free tier Flash is capped at a couple of dozen
+  // requests a day while Flash-Lite gets hundreds, and reading a product photo does not need
+  // the bigger model. GEMINI_VISION_MODEL overrides it once there is a paid key.
+  const transport = cfg.transport ?? fetch, model = cfg.model || 'gemini-3.8-flash-lite';
   return {
     id: model,
     async describe({ prompt, image, signal }) {
@@ -87,7 +90,7 @@ export function createDeepSeekVision(cfg: { key: string; model?: string; timeout
 
 /** Gemini if its key is set, otherwise DeepSeek (same key as the text engine). */
 export const visionFromEnv = (env: (name: string) => string | undefined, transport?: typeof fetch): VisionModel | null =>
-  env('GEMINI_API_KEY') ? createGeminiVision({ key: env('GEMINI_API_KEY')!, model: env('GEMINI_MODEL'), transport })
+  env('GEMINI_API_KEY') ? createGeminiVision({ key: env('GEMINI_API_KEY')!, model: env('GEMINI_VISION_MODEL'), transport })
     : env('DEEPSEEK_API_KEY') ? createDeepSeekVision({ key: env('DEEPSEEK_API_KEY')!, model: env('ENGINE_VISION_MODEL'), transport })
     : null;
 

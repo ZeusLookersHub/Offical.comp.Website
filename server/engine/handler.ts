@@ -2,6 +2,7 @@ import { bounded } from '../../core/agent/bounded.ts';
 import { dataOnly, record } from '../../core/agent/validation.ts';
 import { compose, extract, ideas, sanitizeSession, type BlueprintLookup } from './engine.ts';
 import { ModelError, type JsonModel } from './model.ts';
+import type { EngineOp, ModelRoute } from './router.ts';
 import { describeReference, validImage, type VisionModel } from './vision.ts';
 
 const DEFAULT_ORIGINS = ['https://lookershub.com', 'https://www.lookershub.com', 'http://localhost:3000', 'http://localhost:5173'];
@@ -58,9 +59,19 @@ async function saveResult(transport: typeof fetch, url: string, key: string, tok
  * POST { op: 'compose', session }                      → { output, report, attempts, model }
  * Same boundary as lookers-ai-generate: anonymous Supabase user, allowed origins, size caps.
  */
-export function createEngineHandler(options: { env: (name: string) => string | undefined; model: JsonModel | null; vision?: VisionModel | null; blueprints: BlueprintLookup; transport?: typeof fetch }) {
+export function createEngineHandler(options: {
+  env: (name: string) => string | undefined;
+  /** Per-job models. A single model may still be passed; it then serves every job. */
+  model: JsonModel | ModelRoute | null;
+  vision?: VisionModel | null;
+  blueprints: BlueprintLookup;
+  transport?: typeof fetch;
+}) {
   const transport = options.transport ?? fetch;
   const blueprintById = options.blueprints;
+  const route = options.model && 'for' in options.model ? options.model : null;
+  const modelFor = (op: EngineOp): JsonModel | null =>
+    route ? route.for(op) : (options.model as JsonModel | null);
   const allowed = new Set([...DEFAULT_ORIGINS, ...(options.env('ENGINE_ALLOWED_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)]);
   const previewsOpen = options.env('ENGINE_ALLOW_VERCEL_PREVIEWS') === '1';
   const isAllowed = (origin: string) => allowed.has(origin) || PREVIEW_ORIGIN.test(origin)
@@ -118,22 +129,23 @@ export function createEngineHandler(options: { env: (name: string) => string | u
         if (!bp || !validImage(body.image)) return json({ error: 'invalid_request' }, 400, origin);
         return json(await describeReference(options.vision, bp, body.image, body.lang === 'ar' ? 'ar' : 'en', req.signal), 200, origin);
       }
-      if (!options.model) return json({ error: 'model_unavailable' }, 503, origin);
+      const model = modelFor(body.op === 'intake' ? 'intake' : body.op === 'ideas' ? 'ideas' : 'compose');
+      if (!model) return json({ error: 'model_unavailable' }, 503, origin);
       if (body.op === 'intake') {
         const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
         if (!bp || typeof body.text !== 'string' || body.text.trim().length < 2 || body.text.length > 4000) return json({ error: 'invalid_request' }, 400, origin);
-        return json({ candidates: await extract(options.model, bp, body.text, req.signal) }, 200, origin);
+        return json({ candidates: await extract(model, bp, body.text, req.signal) }, 200, origin);
       }
       if (body.op === 'ideas') {
         const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
         if (!bp || typeof body.slot !== 'string' || typeof body.typed !== 'string' || body.typed.length > 400) return json({ error: 'invalid_request' }, 400, origin);
         const lang = body.lang === 'ar' ? 'ar' : 'en';
-        return json({ ideas: await ideas(options.model, bp, body.slot, body.typed, typeof body.context === 'string' ? body.context : '', lang, req.signal) }, 200, origin);
+        return json({ ideas: await ideas(model, bp, body.slot, body.typed, typeof body.context === 'string' ? body.context : '', lang, req.signal) }, 200, origin);
       }
       if (body.op === 'compose') {
         const clean = await sanitizeSession(body.session, blueprintById);
         if ('error' in clean) return json({ error: clean.error }, 400, origin);
-        const result = await compose(options.model, clean.bp, clean.session, req.signal);
+        const result = await compose(model, clean.bp, clean.session, req.signal);
         const sessionId = typeof body.sessionId === 'string' && UUID.test(body.sessionId) ? body.sessionId : null;
         const resultId = await saveResult(transport, url, key, token, {
           session_id: sessionId, blueprint_id: clean.bp.id, blueprint_version: clean.bp.version,

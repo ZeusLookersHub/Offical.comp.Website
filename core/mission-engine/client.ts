@@ -12,6 +12,7 @@ export { createSession, submitIntake, answer, skip, nextStep, confirmBrief, plan
 export { extractDeterministic, applyCandidates } from './intake.ts';
 export { buildBrief, displayValue } from './brief.ts';
 export { suggest } from './suggest.ts';
+export { normalize } from './text.ts';
 export { planLaunch, launchableTools, type LaunchMode, type LaunchPlan } from './launch.ts';
 // Type only: erased at compile time, so compose.ts never reaches the bundle.
 export type { ComposeRequest } from './compose.ts';
