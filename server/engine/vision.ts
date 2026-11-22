@@ -12,6 +12,20 @@ export const validImage = (v: unknown): v is ImageInput => !!v && typeof v === '
   && MIME.has((v as ImageInput).mimeType) && typeof (v as ImageInput).data === 'string'
   && (v as ImageInput).data.length > 100 && (v as ImageInput).data.length < 4_000_000 && /^[A-Za-z0-9+/=]+$/.test((v as ImageInput).data);
 
+/**
+ * Why a vision call failed, said out loud. Mapping every non-ok response to one opaque code
+ * meant a wrong model name, a disabled API and a quota wall all looked the same from outside,
+ * so there was nothing to read and the cause had to be guessed at. The provider's own reason is
+ * logged, truncated, with the key scrubbed in case it is ever echoed back.
+ */
+async function explain(provider: string, model: string, res: Response, key: string): Promise<never> {
+  const body = (await res.text().catch(() => '')).split(key).join('[key]').slice(0, 300);
+  console.warn('vision call failed', { provider, model, status: res.status, body });
+  if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
+  if (res.status === 429) throw new ModelError('model_rate_limited');
+  throw new ModelError('model_unavailable');
+}
+
 /** Gemini generateContent with inline image, JSON output. Key stays server-side. */
 export function createGeminiVision(cfg: { key: string; model?: string; timeoutMs?: number; transport?: typeof fetch }): VisionModel {
   // Flash-Lite over Flash on purpose: on the free tier Flash is capped at a couple of dozen
@@ -34,9 +48,7 @@ export function createGeminiVision(cfg: { key: string; model?: string; timeoutMs
               }),
             });
           } catch { throw new ModelError('model_unavailable'); }
-          if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
-          if (res.status === 429) throw new ModelError('model_rate_limited');
-          if (!res.ok) throw new ModelError('model_unavailable');
+          if (!res.ok) await explain('gemini', model, res, cfg.key);
           const raw = await res.text();
           if (raw.includes(cfg.key)) throw new ModelError('model_bad_output');
           try {
@@ -71,9 +83,8 @@ export function createDeepSeekVision(cfg: { key: string; model?: string; timeout
               }),
             });
           } catch { throw new ModelError('model_unavailable'); }
-          if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
-          if (res.status === 429 || res.status === 402) throw new ModelError('model_rate_limited');
-          if (!res.ok) throw new ModelError('model_unavailable');
+          if (res.status === 402) throw new ModelError('model_rate_limited');
+          if (!res.ok) await explain('deepseek', model, res, cfg.key);
           const raw = await res.text();
           if (raw.includes(cfg.key)) throw new ModelError('model_bad_output');
           try {

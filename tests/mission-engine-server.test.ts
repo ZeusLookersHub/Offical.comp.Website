@@ -8,7 +8,7 @@ import { privateBlueprints } from '../server/engine/private-blueprints.ts';
 import { routeFromEnv } from '../server/engine/router.ts';
 const serverBlueprints = serverShape() as unknown as Blueprint[];
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
-import { createChatJsonModel, createGeminiJsonModel, modelFromEnv, type JsonModel } from '../server/engine/model.ts';
+import { createChatJsonModel, createGeminiJsonModel, modelFromEnv, ModelError, type JsonModel } from '../server/engine/model.ts';
 import { describeReference, createGeminiVision, createDeepSeekVision, visionFromEnv } from '../server/engine/vision.ts';
 
 const photo = blueprintById('product-photo')!;
@@ -332,4 +332,27 @@ test('the Gemini key is found under the names actually in use, and the name is r
   // No key at all is reported as such rather than guessed at.
   assert.equal(routeFromEnv(env({ DEEPSEEK_API_KEY: 'd' }), transport).geminiKeyName, 'none');
   assert.equal(visionFromEnv(env({ DEEPSEEK_API_KEY: 'd' }), transport)?.id.startsWith('gemini'), false);
+});
+
+test('a failed vision call reports the provider reason instead of one opaque code', async () => {
+  const seen: unknown[] = [];
+  const warn = console.warn; console.warn = (...a) => { seen.push(a[1]); };
+  try {
+    const notFound: typeof fetch = async () => new Response('{"error":{"message":"models/typo is not found","status":"NOT_FOUND"}}', { status: 404 });
+    const vision = createGeminiVision({ key: 'SECRET-KEY', model: 'typo', transport: notFound });
+    await assert.rejects(() => vision.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }),
+      (e: Error) => e instanceof ModelError && e.code === 'model_unavailable');
+
+    const logged = seen[0] as { status: number; model: string; body: string };
+    assert.equal(logged.status, 404, 'the upstream status is in the log');
+    assert.equal(logged.model, 'typo');
+    assert.match(logged.body, /NOT_FOUND/, 'and so is the provider wording');
+
+    // A key echoed back by the provider never reaches the log.
+    seen.length = 0;
+    const echoes: typeof fetch = async () => new Response('{"error":"bad key SECRET-KEY"}', { status: 400 });
+    await assert.rejects(() => createGeminiVision({ key: 'SECRET-KEY', transport: echoes })
+      .describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }));
+    assert.ok(!JSON.stringify(seen).includes('SECRET-KEY'), 'the key is scrubbed');
+  } finally { console.warn = warn; }
 });
