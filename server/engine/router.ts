@@ -1,4 +1,5 @@
 import { createGeminiJsonModel, createChatJsonModel, ModelError, type JsonModel } from './model.ts';
+import { geminiKey } from './keys.ts';
 
 /**
  * Which model does which job.
@@ -32,8 +33,10 @@ const DEFAULT_ROUTE: Record<EngineOp, 'gemini' | 'deepseek'> = {
 export interface ModelRoute {
   /** The model for this job, already wrapped so it covers for itself. */
   for(op: EngineOp): JsonModel | null;
-  /** What actually got configured, for diagnostics — never includes a key. */
+  /** What actually got configured, for diagnostics — names only, never a key. */
   readonly plan: Record<EngineOp, string>;
+  /** Which environment name the Gemini key was found under, or 'none'. */
+  readonly geminiKeyName: string;
 }
 
 /** Fails over to the backup when the primary is out of quota, down, or too slow. */
@@ -71,11 +74,11 @@ function parseRoute(raw: string | undefined): Partial<Record<EngineOp, 'gemini' 
  * behaving exactly as it did; remove it to let the split above take over.
  */
 export function routeFromEnv(env: (name: string) => string | undefined, transport?: typeof fetch): ModelRoute {
-  const geminiKey = env('GEMINI_API_KEY');
+  const gem = geminiKey(env);
   const deepseekKey = env('DEEPSEEK_API_KEY');
 
-  const gemini = geminiKey
-    ? createGeminiJsonModel({ key: geminiKey, model: env('GEMINI_MODEL') || env('ENGINE_MODEL'), transport })
+  const gemini = gem.key
+    ? createGeminiJsonModel({ key: gem.key, model: env('GEMINI_MODEL') || env('ENGINE_MODEL'), transport })
     : null;
   const deepseek = deepseekKey
     ? createChatJsonModel({
@@ -100,5 +103,5 @@ export function routeFromEnv(env: (name: string) => string | undefined, transpor
   };
 
   const models: Record<EngineOp, JsonModel | null> = { intake: pick('intake'), ideas: pick('ideas'), compose: pick('compose') };
-  return { for: op => models[op], plan };
+  return { for: op => models[op], plan, geminiKeyName: gem.name };
 }

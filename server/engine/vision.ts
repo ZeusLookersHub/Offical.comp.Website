@@ -1,4 +1,5 @@
 import { bounded, BoundedError } from '../../core/agent/bounded.ts';
+import { geminiKey } from './keys.ts';
 import type { Blueprint, Candidate, Lang } from '../../core/mission-engine/types.ts';
 import { applyCandidates } from '../../core/mission-engine/intake.ts';
 import { ModelError } from './model.ts';
@@ -90,7 +91,7 @@ export function createDeepSeekVision(cfg: { key: string; model?: string; timeout
 
 /** Gemini if its key is set, otherwise DeepSeek (same key as the text engine). */
 export const visionFromEnv = (env: (name: string) => string | undefined, transport?: typeof fetch): VisionModel | null =>
-  env('GEMINI_API_KEY') ? createGeminiVision({ key: env('GEMINI_API_KEY')!, model: env('GEMINI_VISION_MODEL'), transport })
+  geminiKey(env).key ? createGeminiVision({ key: geminiKey(env).key!, model: env('GEMINI_VISION_MODEL'), transport })
     : env('DEEPSEEK_API_KEY') ? createDeepSeekVision({ key: env('DEEPSEEK_API_KEY')!, model: env('ENGINE_VISION_MODEL'), transport })
     : null;
 

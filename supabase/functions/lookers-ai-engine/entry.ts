@@ -11,5 +11,5 @@ const env = (name: string) => Deno.env.get(name);
 const blueprints = privateBlueprints(env('SUPABASE_URL') ?? '', env('SUPABASE_SERVICE_ROLE_KEY') ?? '');
 const route = routeFromEnv(env);
 const vision = visionFromEnv(env);
-console.log('engine route', { ...route.plan, describe: vision?.id ?? 'none' });
+console.log('engine route', { ...route.plan, describe: vision?.id ?? 'none', geminiKeyName: route.geminiKeyName });
 Deno.serve(createEngineHandler({ env, model: route, vision, blueprints }));

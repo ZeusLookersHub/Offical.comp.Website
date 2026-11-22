@@ -149,7 +149,8 @@ navailable")}if(res.status===401||res.status===403)throw new ModelError("model_a
 "model_unavailable");let raw=await res.text();if(raw.length>4e5||raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let payload=JSON.parse(raw),text=payload?.candidates?.[0]?.
 content?.parts?.map(p=>p.text??"").join("")??"";if(!text)throw new Error;let json=JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g,"")),u=payload?.usageMetadata,usage=u?{inputTokens:u.
 promptTokenCount,outputTokens:u.candidatesTokenCount}:void 0;return{json,usage}}catch{throw new ModelError("model_bad_output")}},timeoutMs,signal)}catch(error){throw error instanceof
-ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_unavailable")}}}}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
+ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_unavailable")}}}}var GEMINI_KEY_NAMES=["GEMINI_API_KEY","gemini_Free_API_Key","GEMINI_FREE_API_KEY"];function geminiKey(env2){for(let name of GEMINI_KEY_NAMES){let key=env2(name)?.trim();if(key)return{
+key,name}}return{name:"none"}}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
 /^[A-Za-z0-9+/=]+$/.test(v.data);function createGeminiVision(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.8-flash-lite";return{id:model,async describe({prompt,
 image,signal}){try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generate\
 Content`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt},
@@ -165,7 +166,7 @@ data}`}}]}]})})}catch{throw new ModelError("model_unavailable")}if(res.status===
 throw new ModelError("model_rate_limited");if(!res.ok)throw new ModelError("model_unavailable");let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_ou\
 tput");try{let content=JSON.parse(raw)?.choices?.[0]?.message?.content;return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g,""))}catch{throw new ModelError("model_\
 bad_output")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}
-var visionFromEnv=(env2,transport)=>env2("GEMINI_API_KEY")?createGeminiVision({key:env2("GEMINI_API_KEY"),model:env2("GEMINI_VISION_MODEL"),transport}):env2("DEEPSEEK_API_KEY")?createDeepSeekVision(
+var visionFromEnv=(env2,transport)=>geminiKey(env2).key?createGeminiVision({key:geminiKey(env2).key,model:env2("GEMINI_VISION_MODEL"),transport}):env2("DEEPSEEK_API_KEY")?createDeepSeekVision(
 {key:env2("DEEPSEEK_API_KEY"),model:env2("ENGINE_VISION_MODEL"),transport}):null;async function describeReference(vision2,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!==
 "delivery"&&s.role!=="target-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exact text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` o\
 ptions=[${s.options.map(o=>o.value).join(", ")}]`:""}`).join(`
@@ -215,16 +216,16 @@ lueprints_unavailable"?503:502,origin)}}}var DEFAULT_ROUTE={compose:"deepseek",i
 return backup?{id:`${primary.id}→${backup.id}`,async complete(input){try{let result=await primary.complete(input);return{...result,modelId:result.modelId??primary.id}}catch(error){
 if(!(error instanceof ModelError)||!COVERABLE.has(error.code))throw error;let result=await backup.complete(input);return{...result,modelId:result.modelId??backup.id}}}}:primary}function parseRoute(raw){
 let out={};for(let pair of(raw??"").split(",")){let[op,provider]=pair.split(":").map(s=>s.trim().toLowerCase());(op==="intake"||op==="ideas"||op==="compose")&&(provider==="gemini"||
-provider==="deepseek")&&(out[op]=provider)}return out}function routeFromEnv(env2,transport){let geminiKey=env2("GEMINI_API_KEY"),deepseekKey=env2("DEEPSEEK_API_KEY"),gemini=geminiKey?
-createGeminiJsonModel({key:geminiKey,model:env2("GEMINI_MODEL")||env2("ENGINE_MODEL"),transport}):null,deepseek=deepseekKey?createChatJsonModel({url:"https://api.deepseek.com/chat/\
-completions",key:deepseekKey,model:env2("DEEPSEEK_MODEL")||env2("ENGINE_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}):null,pinned=env2("ENGINE_PROVID\
-ER")?.trim().toLowerCase(),overrides=parseRoute(env2("ENGINE_ROUTE")),plan={},pick=op=>{let want=pinned==="gemini"||pinned==="deepseek"?pinned:overrides[op]??DEFAULT_ROUTE[op],primary=want===
-"gemini"?gemini??deepseek:deepseek??gemini,backup=want==="gemini"?deepseek:gemini;if(!primary)return plan[op]="none",null;let model=withBackup(primary,backup===primary?null:backup);
-return plan[op]=model.id,model},models={intake:pick("intake"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
+provider==="deepseek")&&(out[op]=provider)}return out}function routeFromEnv(env2,transport){let gem=geminiKey(env2),deepseekKey=env2("DEEPSEEK_API_KEY"),gemini=gem.key?createGeminiJsonModel(
+{key:gem.key,model:env2("GEMINI_MODEL")||env2("ENGINE_MODEL"),transport}):null,deepseek=deepseekKey?createChatJsonModel({url:"https://api.deepseek.com/chat/completions",key:deepseekKey,
+model:env2("DEEPSEEK_MODEL")||env2("ENGINE_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}):null,pinned=env2("ENGINE_PROVIDER")?.trim().toLowerCase(),overrides=parseRoute(
+env2("ENGINE_ROUTE")),plan={},pick=op=>{let want=pinned==="gemini"||pinned==="deepseek"?pinned:overrides[op]??DEFAULT_ROUTE[op],primary=want==="gemini"?gemini??deepseek:deepseek??gemini,
+backup=want==="gemini"?deepseek:gemini;if(!primary)return plan[op]="none",null;let model=withBackup(primary,backup===primary?null:backup);return plan[op]=model.id,model},models={intake:pick(
+"intake"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan,geminiKeyName:gem.name}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
 6e4,now=()=>Date.now()){let cache=null,inflight=null,load=async()=>{if(!supabaseUrl||!serviceKey)throw new Error("blueprints_unconfigured");return await bounded(async signal=>{let res=await transport(
 `${supabaseUrl}/rest/v1/lookers_engine_blueprints?id=eq.current&select=payload,count`,{headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,Accept:"application/json"},signal,
 redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let rows=await res.json(),row=Array.isArray(rows)?rows[0]:void 0;if(!row||!Array.isArray(row.payload)||row.payload.
 length===0)throw new Error("blueprints_missing");if(!row.payload.every(usable))throw new Error("blueprints_malformed");let list=row.payload;return new Map(list.map(bp=>[bp.id,bp]))},
 8e3)};return async id=>{if(cache&&now()-cache.at<ttlMs)return cache.byId.get(id);inflight||(inflight=load().then(byId=>(cache={at:now(),byId},byId)).finally(()=>{inflight=null}));try{
 return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??""),route=routeFromEnv(env),vision=visionFromEnv(env);console.
-log("engine route",{...route.plan,describe:vision?.id??"none"});Deno.serve(createEngineHandler({env,model:route,vision,blueprints}));
+log("engine route",{...route.plan,describe:vision?.id??"none",geminiKeyName:route.geminiKeyName});Deno.serve(createEngineHandler({env,model:route,vision,blueprints}));

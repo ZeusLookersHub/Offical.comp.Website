@@ -314,3 +314,22 @@ test('every answer names the model that produced it', async () => {
   const nothing = await describeReference(blind, photo, { mimeType: 'image/jpeg', data: 'x'.repeat(200) }, 'en');
   assert.equal(nothing.model, 'empty-vision', 'even an empty answer names its source');
 });
+
+test('the Gemini key is found under the names actually in use, and the name is reported', async () => {
+  const transport: typeof fetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{}' }] } }] }));
+  const env = (v: Record<string, string>) => (n: string) => v[n];
+
+  // The canonical name wins when both are present.
+  const both = routeFromEnv(env({ GEMINI_API_KEY: 'canonical', gemini_Free_API_Key: 'theirs', DEEPSEEK_API_KEY: 'd' }), transport);
+  assert.equal(both.geminiKeyName, 'GEMINI_API_KEY');
+
+  // A key stored under the name the dashboard already uses is still found — text and vision alike.
+  const theirs = routeFromEnv(env({ gemini_Free_API_Key: 'theirs', DEEPSEEK_API_KEY: 'd' }), transport);
+  assert.equal(theirs.geminiKeyName, 'gemini_Free_API_Key');
+  assert.match(theirs.plan.ideas, /^gemini/, 'and it is routed, not ignored');
+  assert.ok(visionFromEnv(env({ gemini_Free_API_Key: 'theirs' }), transport), 'vision finds it too');
+
+  // No key at all is reported as such rather than guessed at.
+  assert.equal(routeFromEnv(env({ DEEPSEEK_API_KEY: 'd' }), transport).geminiKeyName, 'none');
+  assert.equal(visionFromEnv(env({ DEEPSEEK_API_KEY: 'd' }), transport)?.id.startsWith('gemini'), false);
+});
