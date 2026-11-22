@@ -9,7 +9,7 @@ import { routeFromEnv } from '../server/engine/router.ts';
 const serverBlueprints = serverShape() as unknown as Blueprint[];
 const lookup = (id: string) => serverBlueprints.find(b => b.id === id);
 import { createChatJsonModel, createGeminiJsonModel, modelFromEnv, ModelError, type JsonModel } from '../server/engine/model.ts';
-import { describeReference, createGeminiVision, createDeepSeekVision, visionFromEnv } from '../server/engine/vision.ts';
+import { describeReference, createGeminiVision, createDeepSeekVision, visionFromEnv, visionWithBackup } from '../server/engine/vision.ts';
 
 const photo = blueprintById('product-photo')!;
 
@@ -170,7 +170,7 @@ test('gemini adapter: inline image, JSON mode, key in header only', async () => 
   };
   const g = createGeminiVision({ key: 'g-key', transport });
   assert.deepEqual(await g.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'B'.repeat(200) } }), { description: 'ok', candidates: [] });
-  assert.match(seen!.url, /gemini-3\.8-flash-lite:generateContent$/);
+  assert.match(seen!.url, /gemini-3\.5-flash-lite:generateContent$/);
   assert.ok(!seen!.url.includes('g-key'));
   assert.equal(seen!.headers['x-goog-api-key'], 'g-key');
   assert.equal(seen!.body.generationConfig.responseMimeType, 'application/json');
@@ -327,7 +327,7 @@ test('the Gemini key is found under the names actually in use, and the name is r
   const theirs = routeFromEnv(env({ gemini_Free_API_Key: 'theirs', DEEPSEEK_API_KEY: 'd' }), transport);
   assert.equal(theirs.geminiKeyName, 'gemini_Free_API_Key');
   assert.match(theirs.plan.ideas, /^gemini/, 'and it is routed, not ignored');
-  assert.ok(visionFromEnv(env({ gemini_Free_API_Key: 'theirs' }), transport), 'vision finds it too');
+  assert.match(visionFromEnv(env({ gemini_Free_API_Key: 'theirs' }), transport)!.id, /^gemini/, 'vision finds it too');
 
   // No key at all is reported as such rather than guessed at.
   assert.equal(routeFromEnv(env({ DEEPSEEK_API_KEY: 'd' }), transport).geminiKeyName, 'none');
@@ -354,5 +354,30 @@ test('a failed vision call reports the provider reason instead of one opaque cod
     await assert.rejects(() => createGeminiVision({ key: 'SECRET-KEY', transport: echoes })
       .describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }));
     assert.ok(!JSON.stringify(seen).includes('SECRET-KEY'), 'the key is scrubbed');
+  } finally { console.warn = warn; }
+});
+
+test('a vision failure costs the image reading, not the request', async () => {
+  const warn = console.warn; console.warn = () => {};
+  try {
+    const quotaWall: typeof fetch = async () => new Response('{"error":"quota"}', { status: 429 });
+    const ok: typeof fetch = async () => new Response(JSON.stringify({
+      choices: [{ message: { content: '{"description":"عبوة سودا على خلفية بيضا","candidates":[]}' } }],
+    }));
+    const paired = visionWithBackup(
+      createGeminiVision({ key: 'gemini-test-key', transport: quotaWall }),
+      createDeepSeekVision({ key: 'deepseek-test-key', transport: ok }));
+    assert.match(paired.id, /^gemini-3\.5-flash-lite→deepseek/, 'the id names both');
+    const out = await paired.describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }) as { description: string };
+    assert.match(out.description, /عبوة/, 'the backup answered');
+
+    // Garbage from the primary is not something a second model can fix, so it is not retried.
+    let calls = 0;
+    const garbage: typeof fetch = async () => new Response('not json');
+    await assert.rejects(() => visionWithBackup(
+      createGeminiVision({ key: 'gemini-test-key', transport: garbage }),
+      { id: 'b', describe: async () => { calls++; return {}; } },
+    ).describe({ prompt: 'p', image: { mimeType: 'image/png', data: 'x'.repeat(200) } }));
+    assert.equal(calls, 0);
   } finally { console.warn = warn; }
 });

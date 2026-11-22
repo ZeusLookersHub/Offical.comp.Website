@@ -153,7 +153,7 @@ ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):n
 key,name}}return{name:"none"}}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
 /^[A-Za-z0-9+/=]+$/.test(v.data);async function explain(provider,model,res,key){let body=(await res.text().catch(()=>"")).split(key).join("[key]").slice(0,300);throw console.warn("\
 vision call failed",{provider,model,status:res.status,body}),res.status===401||res.status===403?new ModelError("model_auth_failed"):res.status===429?new ModelError("model_rate_limi\
-ted"):new ModelError("model_unavailable")}function createGeminiVision(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.8-flash-lite";return{id:model,async describe({
+ted"):new ModelError("model_unavailable")}function createGeminiVision(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.5-flash-lite";return{id:model,async describe({
 prompt,image,signal}){try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:g\
 enerateContent`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[
 {text:prompt},{inline_data:{mime_type:image.mimeType,data:image.data}}]}],generationConfig:{responseMimeType:"application/json",temperature:.2,maxOutputTokens:1500}})})}catch{throw new ModelError(
@@ -166,10 +166,13 @@ let transport=cfg.transport??fetch,model=cfg.model||"deepseek-flash";return{id:m
 a:${image.mimeType};base64,${image.data}`}}]}]})})}catch{throw new ModelError("model_unavailable")}if(res.status===402)throw new ModelError("model_rate_limited");res.ok||await explain(
 "deepseek",model,res,cfg.key);let raw=await res.text();if(raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let content=JSON.parse(raw)?.choices?.[0]?.message?.content;
 return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g,""))}catch{throw new ModelError("model_bad_output")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof
-ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}var visionFromEnv=(env2,transport)=>geminiKey(env2).key?createGeminiVision({key:geminiKey(
-env2).key,model:env2("GEMINI_VISION_MODEL"),transport}):env2("DEEPSEEK_API_KEY")?createDeepSeekVision({key:env2("DEEPSEEK_API_KEY"),model:env2("ENGINE_VISION_MODEL"),transport}):null;
-async function describeReference(vision2,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!=="delivery"&&s.role!=="target-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exa\
-ct text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` options=[${s.options.map(o=>o.value).join(", ")}]`:""}`).join(`
+ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}function visionWithBackup(primary,backup){return backup?{id:`${primary.id}→${backup.
+id}`,async describe(input){try{return await primary.describe(input)}catch(error){if(!(error instanceof ModelError)||error.code==="model_bad_output")throw error;return console.warn(
+"vision failover",{from:primary.id,to:backup.id,code:error.code}),await backup.describe(input)}}}:primary}var visionFromEnv=(env2,transport)=>{let gem=geminiKey(env2).key,ds=env2("\
+DEEPSEEK_API_KEY"),deepseek=ds?createDeepSeekVision({key:ds,model:env2("ENGINE_VISION_MODEL"),transport}):null;return gem?visionWithBackup(createGeminiVision({key:gem,model:env2("G\
+EMINI_VISION_MODEL"),transport}),deepseek):deepseek};async function describeReference(vision2,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!=="delivery"&&s.role!=="tar\
+get-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exact text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` options=[${s.options.map(o=>o.
+value).join(", ")}]`:""}`).join(`
 `),prompt=[`You look at a reference image for a "${bp.title.en}" brief.`,'Return JSON {"description": "...", "candidates":[{"slot":"<id>","value":"...","evidence":"<exact span copi\
 ed from your description>"}]}.',`description: 2–4 factual sentences in ${lang==="ar"?"Egyptian Arabic, keeping any visible text in its original script":"English"}: what is shown,\
  shape, materials, colours, finish, setting, and any visible text quoted exactly.`,"Only fill a slot that the image clearly shows. Never guess brand names; only report text you can\

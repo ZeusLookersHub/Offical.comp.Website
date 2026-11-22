@@ -30,8 +30,10 @@ async function explain(provider: string, model: string, res: Response, key: stri
 export function createGeminiVision(cfg: { key: string; model?: string; timeoutMs?: number; transport?: typeof fetch }): VisionModel {
   // Flash-Lite over Flash on purpose: on the free tier Flash is capped at a couple of dozen
   // requests a day while Flash-Lite gets hundreds, and reading a product photo does not need
-  // the bigger model. GEMINI_VISION_MODEL overrides it once there is a paid key.
-  const transport = cfg.transport ?? fetch, model = cfg.model || 'gemini-3.8-flash-lite';
+  // the bigger model. The latest Flash-Lite that generateContent serves is 3.5 — there is no
+  // 3.8 Flash-Lite outside the TTS variants, and asking for one returns a 404 that used to
+  // surface as a bare 503. GEMINI_VISION_MODEL overrides it once there is a paid key.
+  const transport = cfg.transport ?? fetch, model = cfg.model || 'gemini-3.5-flash-lite';
   return {
     id: model,
     async describe({ prompt, image, signal }) {
@@ -100,11 +102,34 @@ export function createDeepSeekVision(cfg: { key: string; model?: string; timeout
   };
 }
 
-/** Gemini if its key is set, otherwise DeepSeek (same key as the text engine). */
-export const visionFromEnv = (env: (name: string) => string | undefined, transport?: typeof fetch): VisionModel | null =>
-  geminiKey(env).key ? createGeminiVision({ key: geminiKey(env).key!, model: env('GEMINI_VISION_MODEL'), transport })
-    : env('DEEPSEEK_API_KEY') ? createDeepSeekVision({ key: env('DEEPSEEK_API_KEY')!, model: env('ENGINE_VISION_MODEL'), transport })
-    : null;
+/**
+ * Vision with somewhere to fall back to. Reading a reference image is one step of a brief, so a
+ * quota wall or a bad model name should cost the user the image reading, not the whole request.
+ * Same rule as the text router: the failover is logged, and the id says which pair is in play.
+ */
+export function visionWithBackup(primary: VisionModel, backup: VisionModel | null): VisionModel {
+  if (!backup) return primary;
+  return {
+    id: `${primary.id}\u2192${backup.id}`,
+    async describe(input) {
+      try {
+        return await primary.describe(input);
+      } catch (error) {
+        if (!(error instanceof ModelError) || error.code === 'model_bad_output') throw error;
+        console.warn('vision failover', { from: primary.id, to: backup.id, code: error.code });
+        return await backup.describe(input);
+      }
+    },
+  };
+}
+
+/** Gemini when its key is set, with DeepSeek behind it; DeepSeek alone when it is not. */
+export const visionFromEnv = (env: (name: string) => string | undefined, transport?: typeof fetch): VisionModel | null => {
+  const gem = geminiKey(env).key, ds = env('DEEPSEEK_API_KEY');
+  const deepseek = ds ? createDeepSeekVision({ key: ds, model: env('ENGINE_VISION_MODEL'), transport }) : null;
+  if (!gem) return deepseek;
+  return visionWithBackup(createGeminiVision({ key: gem, model: env('GEMINI_VISION_MODEL'), transport }), deepseek);
+};
 
 /**
  * "Explain this image": a factual description plus candidates whose evidence is a span of that
