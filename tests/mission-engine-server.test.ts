@@ -384,3 +384,19 @@ test('a vision failure costs the image reading, not the request', async () => {
     assert.equal(calls, 0);
   } finally { console.warn = warn; }
 });
+
+test('a failed text-model call reports the provider reason too', async () => {
+  const seen: unknown[] = [];
+  const warn = console.warn; console.warn = (...a) => { seen.push(a[1]); };
+  try {
+    const refused: typeof fetch = async () => new Response('{"error":{"message":"API has not been used in project","status":"PERMISSION_DENIED"}}', { status: 403 });
+    await assert.rejects(() => createGeminiJsonModel({ key: 'KEY-ABC', transport: refused })
+      .complete({ system: 's', user: 'u', maxTokens: 100 }),
+      (e: Error) => e instanceof ModelError && e.code === 'model_auth_failed');
+    const logged = seen[0] as { status: number; body: string; provider: string };
+    assert.equal(logged.status, 403);
+    assert.equal(logged.provider, 'gemini');
+    assert.match(logged.body, /PERMISSION_DENIED/, 'the reason is readable instead of guessed at');
+    assert.ok(!JSON.stringify(seen).includes('KEY-ABC'), 'and the key is scrubbed');
+  } finally { console.warn = warn; }
+});

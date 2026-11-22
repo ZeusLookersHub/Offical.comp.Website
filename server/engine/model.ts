@@ -19,6 +19,20 @@ export class ModelError extends Error {
  * OpenAI-compatible chat endpoint (DeepSeek, OpenRouter, …) in JSON mode.
  * The key never leaves the server and is checked out of every response.
  */
+/**
+ * Why a model call failed, said out loud. One opaque model_unavailable for every non-ok response
+ * makes a wrong model name, a disabled API and a quota wall indistinguishable, which is how a
+ * silent failover looked like a provider that was never wired up. The provider's own status and
+ * wording are logged, truncated, with the key scrubbed in case it is echoed back.
+ */
+async function explainFailure(provider: string, model: string, res: Response, key: string): Promise<never> {
+  const body = (await res.text().catch(() => '')).split(key).join('[key]').slice(0, 300);
+  console.warn('model call failed', { provider, model, status: res.status, body });
+  if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
+  if (res.status === 429 || res.status === 402) throw new ModelError('model_rate_limited');
+  throw new ModelError('model_unavailable');
+}
+
 export function createChatJsonModel(cfg: { url: string; key: string; model: string; timeoutMs?: number; extraBody?: Record<string, unknown>; transport?: typeof fetch }): JsonModel {
   const transport = cfg.transport ?? fetch;
   const timeoutMs = cfg.timeoutMs ?? 40000;
@@ -41,9 +55,7 @@ export function createChatJsonModel(cfg: { url: string; key: string; model: stri
               }),
             });
           } catch { throw new ModelError('model_unavailable'); }
-          if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
-          if (res.status === 429 || res.status === 402) throw new ModelError('model_rate_limited');
-          if (!res.ok) throw new ModelError('model_unavailable');
+          if (!res.ok) await explainFailure('chat', cfg.model, res, cfg.key);
           const raw = await res.text();
           if (raw.length > 400000 || raw.includes(cfg.key)) throw new ModelError('model_bad_output');
           try {
@@ -90,9 +102,7 @@ export function createGeminiJsonModel(cfg: { key: string; model?: string; timeou
               }),
             });
           } catch { throw new ModelError('model_unavailable'); }
-          if (res.status === 401 || res.status === 403) throw new ModelError('model_auth_failed');
-          if (res.status === 429) throw new ModelError('model_rate_limited');
-          if (!res.ok) throw new ModelError('model_unavailable');
+          if (!res.ok) await explainFailure('gemini', model, res, cfg.key);
           const raw = await res.text();
           if (raw.length > 400000 || raw.includes(cfg.key)) throw new ModelError('model_bad_output');
           try {

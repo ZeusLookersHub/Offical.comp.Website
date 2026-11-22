@@ -132,24 +132,25 @@ Your previous answer:
 ${JSON.stringify(json).slice(0,12e3)}
 
 ${fix}`,maxTokens:4e3,signal});modelId=repaired.modelId??modelId;let second=runGates(bp,session,repaired.json);attempts=2,second.passed>=report2.passed&&(json=repaired.json,report2=
-second)}return{output:json,report:report2,attempts,model:modelId??model.id}}var ModelError=class extends Error{constructor(code){super(code);this.code=code}};function createChatJsonModel(cfg){let transport=cfg.transport??fetch,timeoutMs=cfg.timeoutMs??4e4;
-return{id:cfg.model,async complete({system,user,maxTokens,signal}){if(!cfg.key)throw new ModelError("model_unavailable");try{return await bounded(async abort=>{let res;try{res=await transport(
-cfg.url,{method:"POST",redirect:"error",signal:abort,headers:{Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"},body:JSON.stringify({model:cfg.model,stream:!1,temperature:.3,
-max_tokens:maxTokens,response_format:{type:"json_object"},messages:[{role:"system",content:system},{role:"user",content:user}],...cfg.extraBody})})}catch{throw new ModelError("mode\
-l_unavailable")}if(res.status===401||res.status===403)throw new ModelError("model_auth_failed");if(res.status===429||res.status===402)throw new ModelError("model_rate_limited");if(!res.
-ok)throw new ModelError("model_unavailable");let raw=await res.text();if(raw.length>4e5||raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let payload=JSON.parse(raw),
-content=payload?.choices?.[0]?.message?.content;if(typeof content!="string")throw new Error;let json=JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g,"")),usage=payload.usage?
-{inputTokens:payload.usage.prompt_tokens,outputTokens:payload.usage.completion_tokens}:void 0;return{json,usage}}catch{throw new ModelError("model_bad_output")}},timeoutMs,signal)}catch(error){
-throw error instanceof ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_unavailable")}}}}function createGeminiJsonModel(cfg){let transport=cfg.
-transport??fetch,model=cfg.model||"gemini-3.8-flash",timeoutMs=cfg.timeoutMs??4e4;return{id:model,async complete({system,user,maxTokens,signal}){if(!cfg.key)throw new ModelError("m\
-odel_unavailable");try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:gene\
-rateContent`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:system}]},
-contents:[{role:"user",parts:[{text:user}]}],generationConfig:{responseMimeType:"application/json",temperature:.3,maxOutputTokens:maxTokens}})})}catch{throw new ModelError("model_u\
-navailable")}if(res.status===401||res.status===403)throw new ModelError("model_auth_failed");if(res.status===429)throw new ModelError("model_rate_limited");if(!res.ok)throw new ModelError(
-"model_unavailable");let raw=await res.text();if(raw.length>4e5||raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let payload=JSON.parse(raw),text=payload?.candidates?.[0]?.
-content?.parts?.map(p=>p.text??"").join("")??"";if(!text)throw new Error;let json=JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g,"")),u=payload?.usageMetadata,usage=u?{inputTokens:u.
-promptTokenCount,outputTokens:u.candidatesTokenCount}:void 0;return{json,usage}}catch{throw new ModelError("model_bad_output")}},timeoutMs,signal)}catch(error){throw error instanceof
-ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_unavailable")}}}}var GEMINI_KEY_NAMES=["GEMINI_API_KEY","gemini_Free_API_Key","GEMINI_FREE_API_KEY"];function geminiKey(env2){for(let name of GEMINI_KEY_NAMES){let key=env2(name)?.trim();if(key)return{
+second)}return{output:json,report:report2,attempts,model:modelId??model.id}}var ModelError=class extends Error{constructor(code){super(code);this.code=code}};async function explainFailure(provider,model,res,key){let body=(await res.text().catch(()=>"")).split(
+key).join("[key]").slice(0,300);throw console.warn("model call failed",{provider,model,status:res.status,body}),res.status===401||res.status===403?new ModelError("model_auth_failed"):
+res.status===429||res.status===402?new ModelError("model_rate_limited"):new ModelError("model_unavailable")}function createChatJsonModel(cfg){let transport=cfg.transport??fetch,timeoutMs=cfg.
+timeoutMs??4e4;return{id:cfg.model,async complete({system,user,maxTokens,signal}){if(!cfg.key)throw new ModelError("model_unavailable");try{return await bounded(async abort=>{let res;
+try{res=await transport(cfg.url,{method:"POST",redirect:"error",signal:abort,headers:{Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"},body:JSON.stringify({model:cfg.
+model,stream:!1,temperature:.3,max_tokens:maxTokens,response_format:{type:"json_object"},messages:[{role:"system",content:system},{role:"user",content:user}],...cfg.extraBody})})}catch{
+throw new ModelError("model_unavailable")}res.ok||await explainFailure("chat",cfg.model,res,cfg.key);let raw=await res.text();if(raw.length>4e5||raw.includes(cfg.key))throw new ModelError(
+"model_bad_output");try{let payload=JSON.parse(raw),content=payload?.choices?.[0]?.message?.content;if(typeof content!="string")throw new Error;let json=JSON.parse(content.replace(
+/^```(?:json)?\s*|\s*```$/g,"")),usage=payload.usage?{inputTokens:payload.usage.prompt_tokens,outputTokens:payload.usage.completion_tokens}:void 0;return{json,usage}}catch{throw new ModelError(
+"model_bad_output")}},timeoutMs,signal)}catch(error){throw error instanceof ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_una\
+vailable")}}}}function createGeminiJsonModel(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.8-flash",timeoutMs=cfg.timeoutMs??4e4;return{id:model,async complete({
+system,user,maxTokens,signal}){if(!cfg.key)throw new ModelError("model_unavailable");try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelangu\
+age.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"applic\
+ation/json"},body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{responseMimeType:"application/json",temperature:.3,
+maxOutputTokens:maxTokens}})})}catch{throw new ModelError("model_unavailable")}res.ok||await explainFailure("gemini",model,res,cfg.key);let raw=await res.text();if(raw.length>4e5||
+raw.includes(cfg.key))throw new ModelError("model_bad_output");try{let payload=JSON.parse(raw),text=payload?.candidates?.[0]?.content?.parts?.map(p=>p.text??"").join("")??"";if(!text)
+throw new Error;let json=JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g,"")),u=payload?.usageMetadata,usage=u?{inputTokens:u.promptTokenCount,outputTokens:u.candidatesTokenCount}:
+void 0;return{json,usage}}catch{throw new ModelError("model_bad_output")}},timeoutMs,signal)}catch(error){throw error instanceof ModelError?error:error instanceof BoundedError?new ModelError(
+"model_timeout"):new ModelError("model_unavailable")}}}}var GEMINI_KEY_NAMES=["GEMINI_API_KEY","gemini_Free_API_Key","GEMINI_FREE_API_KEY"];function geminiKey(env2){for(let name of GEMINI_KEY_NAMES){let key=env2(name)?.trim();if(key)return{
 key,name}}return{name:"none"}}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
 /^[A-Za-z0-9+/=]+$/.test(v.data);async function explain(provider,model,res,key){let body=(await res.text().catch(()=>"")).split(key).join("[key]").slice(0,300);throw console.warn("\
 vision call failed",{provider,model,status:res.status,body}),res.status===401||res.status===403?new ModelError("model_auth_failed"):res.status===429?new ModelError("model_rate_limi\
