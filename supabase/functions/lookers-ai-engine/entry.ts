@@ -10,5 +10,6 @@ import { privateBlueprints } from '../../../server/engine/private-blueprints.ts'
 const env = (name: string) => Deno.env.get(name);
 const blueprints = privateBlueprints(env('SUPABASE_URL') ?? '', env('SUPABASE_SERVICE_ROLE_KEY') ?? '');
 const route = routeFromEnv(env);
-console.log('engine route', route.plan);
-Deno.serve(createEngineHandler({ env, model: route, vision: visionFromEnv(env), blueprints }));
+const vision = visionFromEnv(env);
+console.log('engine route', { ...route.plan, describe: vision?.id ?? 'none' });
+Deno.serve(createEngineHandler({ env, model: route, vision, blueprints }));

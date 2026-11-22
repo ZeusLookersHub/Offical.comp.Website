@@ -58,7 +58,8 @@ test('intake extraction keeps only candidates with real evidence', async () => {
     { slot: 'style', value: 'luxury-dark', evidence: 'something fancy' },
   ] }]);
   const out = await extract(model, photo, 'Ad for our blue perfume bottle with a silver cap, DAVIDOFF, luxury mood');
-  assert.deepEqual(out.map(c => c.slot), ['product']);
+  assert.deepEqual(out.candidates.map(c => c.slot), ['product']);
+  assert.ok(out.model, 'the answer names the model that produced it');
 });
 
 test('server rebuilds the session and refuses unconfirmed or tampered ones', async () => {
@@ -296,4 +297,20 @@ test('routing: a rate-limited free tier falls through to the paid one, and says 
     : new Response('nope', { status: 401 });
   const route2 = routeFromEnv((n: string) => ({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' } as Record<string, string>)[n], badKey);
   await assert.rejects(route2.for('ideas')!.complete({ system: 's', user: 'u', maxTokens: 50 }), /model_auth_failed/);
+});
+
+test('every answer names the model that produced it', async () => {
+  // The bug this prevents: a working result read as proof that a particular provider served it.
+  const photo = blueprintForTopic('product-photography')!;
+  const extracted = await extract(scripted([{ candidates: [] }]), photo, 'anything');
+  assert.equal(typeof extracted.model, 'string');
+  assert.ok(extracted.model.length > 0);
+
+  const vision = { id: 'test-vision-model', describe: async () => ({ description: 'a dark bottle on a light background', candidates: [] }) };
+  const described = await describeReference(vision, photo, { mimeType: 'image/jpeg', data: 'x'.repeat(200) }, 'en');
+  assert.equal(described.model, 'test-vision-model', 'describe says which eyes looked at the image');
+
+  const blind = { id: 'empty-vision', describe: async () => ({}) };
+  const nothing = await describeReference(blind, photo, { mimeType: 'image/jpeg', data: 'x'.repeat(200) }, 'en');
+  assert.equal(nothing.model, 'empty-vision', 'even an empty answer names its source');
 });

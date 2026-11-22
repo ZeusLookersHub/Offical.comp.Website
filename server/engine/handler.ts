@@ -134,7 +134,7 @@ export function createEngineHandler(options: {
       if (body.op === 'intake') {
         const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
         if (!bp || typeof body.text !== 'string' || body.text.trim().length < 2 || body.text.length > 4000) return json({ error: 'invalid_request' }, 400, origin);
-        return json({ candidates: await extract(model, bp, body.text, req.signal) }, 200, origin);
+        return json(await extract(model, bp, body.text, req.signal), 200, origin);
       }
       if (body.op === 'ideas') {
         const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;

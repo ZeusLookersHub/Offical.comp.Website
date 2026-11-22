@@ -99,7 +99,7 @@ export const visionFromEnv = (env: (name: string) => string | undefined, transpo
  * description. Values read from the image (e.g. label text) still go through the brief for the
  * user to confirm; exact values must appear verbatim in the description.
  */
-export async function describeReference(vision: VisionModel, bp: Blueprint, image: ImageInput, lang: Lang, signal?: AbortSignal): Promise<{ description: string; candidates: Candidate[] }> {
+export async function describeReference(vision: VisionModel, bp: Blueprint, image: ImageInput, lang: Lang, signal?: AbortSignal): Promise<{ description: string; candidates: Candidate[]; model: string }> {
   const slots = bp.slots.filter(s => s.layer !== 'delivery' && s.role !== 'target-tool').map(s =>
     `- ${s.id}: ${s.kind === 'exact' ? 'exact text visible in the image, copied character for character' : s.kind}; ${s.question.en}${s.options ? ` options=[${s.options.map(o => o.value).join(', ')}]` : ''}`).join('\n');
   const prompt = [
@@ -110,10 +110,10 @@ export async function describeReference(vision: VisionModel, bp: Blueprint, imag
   ].join('\n');
   const out = await vision.describe({ prompt, image, signal }) as { description?: unknown; candidates?: unknown };
   const description = typeof out?.description === 'string' ? out.description.slice(0, 1500) : '';
-  if (!description) return { description: '', candidates: [] };
+  if (!description) return { description: '', candidates: [], model: vision.id };
   const list = Array.isArray(out.candidates) ? out.candidates as Candidate[] : [];
   const empty = { id: 'v', blueprintId: bp.id, blueprintVersion: bp.version, lang, phase: 'questions' as const, values: {}, asked: [], revision: 0 };
   const candidates = list.filter(c => c && typeof c.slot === 'string' && typeof c.evidence === 'string' && (typeof c.value === 'string' || Array.isArray(c.value)))
     .slice(0, 12).filter(c => applyCandidates(empty, bp, description, [c]).values[c.slot]);
-  return { description, candidates };
+  return { description, candidates, model: vision.id };
 }

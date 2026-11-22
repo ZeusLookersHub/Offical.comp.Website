@@ -21,22 +21,24 @@ function slotCatalogue(bp: Blueprint): string {
   }).join('\n');
 }
 
-export async function extract(model: JsonModel, bp: Blueprint, text: string, signal?: AbortSignal): Promise<Candidate[]> {
+export async function extract(model: JsonModel, bp: Blueprint, text: string, signal?: AbortSignal): Promise<{ candidates: Candidate[]; model: string }> {
   const system = [
     `You extract facts for a "${bp.title.en}" brief from the user's message. Arabic or English.`,
     'Return JSON: {"candidates":[{"slot":"<id>","value":"<value or option id or array of option ids>","evidence":"<exact words copied from the message>"}]}',
     'Only include a slot when the message clearly states it. evidence must be a verbatim span of the message. Never guess, never infer brand names, never translate exact values.',
     'Slots:', slotCatalogue(bp),
   ].join('\n');
-  const { json } = await model.complete({ system, user: text, maxTokens: 800, signal });
+  const { json, modelId } = await model.complete({ system, user: text, maxTokens: 800, signal });
   const list = (json as { candidates?: unknown })?.candidates;
-  if (!Array.isArray(list)) return [];
-  return list.filter((c): c is Candidate => !!c && typeof c === 'object'
+  const served = modelId ?? model.id;
+  if (!Array.isArray(list)) return { candidates: [], model: served };
+  const candidates = list.filter((c): c is Candidate => !!c && typeof c === 'object'
     && typeof (c as Candidate).slot === 'string' && typeof (c as Candidate).evidence === 'string'
     && (typeof (c as Candidate).value === 'string' || Array.isArray((c as Candidate).value)))
     .slice(0, 20)
     // Pre-filter here too; the client applies the same rule again with applyCandidates.
     .filter(c => applyCandidates({ id: 'x', blueprintId: bp.id, blueprintVersion: bp.version, lang: 'en', phase: 'questions', values: {}, asked: [], revision: 0 }, bp, text, [c]).values[c.slot]);
+  return { candidates, model: served };
 }
 
 // ---------- 2. Ideas while typing: contextual chips ----------

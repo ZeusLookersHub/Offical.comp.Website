@@ -110,12 +110,12 @@ y verbatim from the text, keep case)":s.kind;return`- ${s.id}: ${kind}; ${LAYERS
 `)}async function extract(model,bp,text,signal){let system=[`You extract facts for a "${bp.title.en}" brief from the user's message. Arabic or English.`,'Return JSON: {"candidates"\
 :[{"slot":"<id>","value":"<value or option id or array of option ids>","evidence":"<exact words copied from the message>"}]}',"Only include a slot when the message clearly states i\
 t. evidence must be a verbatim span of the message. Never guess, never infer brand names, never translate exact values.","Slots:",slotCatalogue(bp)].join(`
-`),{json}=await model.complete({system,user:text,maxTokens:800,signal}),list=json?.candidates;return Array.isArray(list)?list.filter(c=>!!c&&typeof c=="object"&&typeof c.slot=="str\
-ing"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,20).filter(c=>applyCandidates({id:"x",blueprintId:bp.id,blueprintVersion:bp.version,lang:"\
-en",phase:"questions",values:{},asked:[],revision:0},bp,text,[c]).values[c.slot]):[]}async function ideas(model,bp,slotId,typed,context,lang,signal){let slot=bp.slots.find(s=>s.id===
-slotId);if(!slot||slot.kind==="single"||slot.kind==="multi"||slot.kind==="exact")return[];let system=[`You suggest short continuations for a field in a "${bp.title.en}" brief. Fiel\
-d: ${slot.question.en}`,`Reply in ${lang==="ar"?"Egyptian Arabic":"English"}. Return JSON {"ideas":["…"]} with up to 6 ideas, each 1–5 words, specific to what the user already wrot\
-e, no brand names, no numbers, no repetition of their words.`].join(`
+`),{json,modelId}=await model.complete({system,user:text,maxTokens:800,signal}),list=json?.candidates,served=modelId??model.id;return Array.isArray(list)?{candidates:list.filter(c=>!!c&&
+typeof c=="object"&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,20).filter(c=>applyCandidates({id:"x",blueprintId:bp.
+id,blueprintVersion:bp.version,lang:"en",phase:"questions",values:{},asked:[],revision:0},bp,text,[c]).values[c.slot]),model:served}:{candidates:[],model:served}}async function ideas(model,bp,slotId,typed,context,lang,signal){
+let slot=bp.slots.find(s=>s.id===slotId);if(!slot||slot.kind==="single"||slot.kind==="multi"||slot.kind==="exact")return[];let system=[`You suggest short continuations for a field \
+in a "${bp.title.en}" brief. Field: ${slot.question.en}`,`Reply in ${lang==="ar"?"Egyptian Arabic":"English"}. Return JSON {"ideas":["…"]} with up to 6 ideas, each 1–5 words, speci\
+fic to what the user already wrote, no brand names, no numbers, no repetition of their words.`].join(`
 `),{json}=await model.complete({system,user:`Context: ${context.slice(0,600)}
 Typed so far: ${typed.slice(0,400)}`,maxTokens:200,signal}),out=json?.ideas;return Array.isArray(out)?out.filter(x=>typeof x=="string"&&x.trim().length>0&&x.length<=60&&!/\d/.test(
 x)).slice(0,6):[]}async function sanitizeSession(raw,lookup){if(!raw||typeof raw!="object")return{error:"invalid_session"};let s=raw,bp=typeof s.blueprintId=="string"?await lookup(
@@ -166,17 +166,17 @@ throw new ModelError("model_rate_limited");if(!res.ok)throw new ModelError("mode
 tput");try{let content=JSON.parse(raw)?.choices?.[0]?.message?.content;return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g,""))}catch{throw new ModelError("model_\
 bad_output")}},cfg.timeoutMs??4e4,signal)}catch(error){throw error instanceof ModelError?error:new ModelError(error instanceof BoundedError?"model_timeout":"model_unavailable")}}}}
 var visionFromEnv=(env2,transport)=>env2("GEMINI_API_KEY")?createGeminiVision({key:env2("GEMINI_API_KEY"),model:env2("GEMINI_VISION_MODEL"),transport}):env2("DEEPSEEK_API_KEY")?createDeepSeekVision(
-{key:env2("DEEPSEEK_API_KEY"),model:env2("ENGINE_VISION_MODEL"),transport}):null;async function describeReference(vision,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!==
+{key:env2("DEEPSEEK_API_KEY"),model:env2("ENGINE_VISION_MODEL"),transport}):null;async function describeReference(vision2,bp,image,lang,signal){let slots=bp.slots.filter(s=>s.layer!==
 "delivery"&&s.role!=="target-tool").map(s=>`- ${s.id}: ${s.kind==="exact"?"exact text visible in the image, copied character for character":s.kind}; ${s.question.en}${s.options?` o\
 ptions=[${s.options.map(o=>o.value).join(", ")}]`:""}`).join(`
 `),prompt=[`You look at a reference image for a "${bp.title.en}" brief.`,'Return JSON {"description": "...", "candidates":[{"slot":"<id>","value":"...","evidence":"<exact span copi\
 ed from your description>"}]}.',`description: 2–4 factual sentences in ${lang==="ar"?"Egyptian Arabic, keeping any visible text in its original script":"English"}: what is shown,\
  shape, materials, colours, finish, setting, and any visible text quoted exactly.`,"Only fill a slot that the image clearly shows. Never guess brand names; only report text you can\
  read. Slots:",slots].join(`
-`),out=await vision.describe({prompt,image,signal}),description=typeof out?.description=="string"?out.description.slice(0,1500):"";if(!description)return{description:"",candidates:[]};
-let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},asked:[],revision:0},candidates=list.
-filter(c=>c&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,12).filter(c=>applyCandidates(empty,bp,description,[c]).
-values[c.slot]);return{description,candidates}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
+`),out=await vision2.describe({prompt,image,signal}),description=typeof out?.description=="string"?out.description.slice(0,1500):"";if(!description)return{description:"",candidates:[],
+model:vision2.id};let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},asked:[],revision:0},
+candidates=list.filter(c=>c&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,12).filter(c=>applyCandidates(empty,bp,
+description,[c]).values[c.slot]);return{description,candidates,model:vision2.id}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
 ANY_VERCEL_PREVIEW=/^https:\/\/[a-z0-9-]+\.vercel\.app$/,MAX_BODY=6e4,RATE_LIMITS={compose:10,describe:10,intake:30,ideas:60},RATE_WINDOW_SECONDS=60,MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function withinRate(transport,url,serviceKey,owner,op){if(!serviceKey)return!0;try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/rpc/engine_rate_c\
 heck",{method:"POST",signal,redirect:"error",headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_owner:owner,p_op:op,
@@ -203,15 +203,15 @@ if(!options.vision)return json({error:"vision_unavailable"},503,origin);let bp=t
 body.image)?json({error:"invalid_request"},400,origin):json(await describeReference(options.vision,bp,body.image,body.lang==="ar"?"ar":"en",req.signal),200,origin)}let model=modelFor(
 body.op==="intake"?"intake":body.op==="ideas"?"ideas":"compose");if(!model)return json({error:"model_unavailable"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId==
 "string"?await blueprintById(body.blueprintId):void 0;return!bp||typeof body.text!="string"||body.text.trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):
-json({candidates:await extract(model,bp,body.text,req.signal)},200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;
-if(!bp||typeof body.slot!="string"||typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json(
-{ideas:await ideas(model,bp,body.slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(
-body.session,blueprintById);if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId==
-"string"&&UUID.test(body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.
-version,output:result.output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,
-resultId},200,origin)}return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("bl\
-ueprints_")?"blueprints_unavailable":"engine_failed";return json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_a\
-uth_failed"||code==="blueprints_unavailable"?503:502,origin)}}}var DEFAULT_ROUTE={compose:"deepseek",intake:"gemini",ideas:"gemini"},COVERABLE=new Set(["model_rate_limited","model_unavailable","model_timeout"]);function withBackup(primary,backup){
+json(await extract(model,bp,body.text,req.signal),200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;if(!bp||typeof body.
+slot!="string"||typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json({ideas:await ideas(
+model,bp,body.slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(body.session,blueprintById);
+if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId=="string"&&UUID.test(
+body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.version,output:result.
+output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,resultId},200,origin)}
+return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("blueprints_")?"blueprint\
+s_unavailable":"engine_failed";return json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_auth_failed"||code==="b\
+lueprints_unavailable"?503:502,origin)}}}var DEFAULT_ROUTE={compose:"deepseek",intake:"gemini",ideas:"gemini"},COVERABLE=new Set(["model_rate_limited","model_unavailable","model_timeout"]);function withBackup(primary,backup){
 return backup?{id:`${primary.id}→${backup.id}`,async complete(input){try{let result=await primary.complete(input);return{...result,modelId:result.modelId??primary.id}}catch(error){
 if(!(error instanceof ModelError)||!COVERABLE.has(error.code))throw error;let result=await backup.complete(input);return{...result,modelId:result.modelId??backup.id}}}}:primary}function parseRoute(raw){
 let out={};for(let pair of(raw??"").split(",")){let[op,provider]=pair.split(":").map(s=>s.trim().toLowerCase());(op==="intake"||op==="ideas"||op==="compose")&&(provider==="gemini"||
@@ -226,5 +226,5 @@ return plan[op]=model.id,model},models={intake:pick("intake"),ideas:pick("ideas"
 redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let rows=await res.json(),row=Array.isArray(rows)?rows[0]:void 0;if(!row||!Array.isArray(row.payload)||row.payload.
 length===0)throw new Error("blueprints_missing");if(!row.payload.every(usable))throw new Error("blueprints_malformed");let list=row.payload;return new Map(list.map(bp=>[bp.id,bp]))},
 8e3)};return async id=>{if(cache&&now()-cache.at<ttlMs)return cache.byId.get(id);inflight||(inflight=load().then(byId=>(cache={at:now(),byId},byId)).finally(()=>{inflight=null}));try{
-return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??""),route=routeFromEnv(env);console.log("engine route",route.
-plan);Deno.serve(createEngineHandler({env,model:route,vision:visionFromEnv(env),blueprints}));
+return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??""),route=routeFromEnv(env),vision=visionFromEnv(env);console.
+log("engine route",{...route.plan,describe:vision?.id??"none"});Deno.serve(createEngineHandler({env,model:route,vision,blueprints}));
