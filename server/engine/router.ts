@@ -52,6 +52,9 @@ export function withBackup(primary: JsonModel, backup: JsonModel | null): JsonMo
         return { ...result, modelId: result.modelId ?? primary.id };
       } catch (error) {
         if (!(error instanceof ModelError) || !COVERABLE.has(error.code)) throw error;
+        // A silent failover reads exactly like the primary never being configured, which is how
+        // a misnamed key went unnoticed. Say which model stepped aside and why, with no payload.
+        console.warn('model failover', { from: primary.id, to: backup.id, code: error.code, detail: error.message.slice(0, 200) });
         const result = await backup.complete(input);
         return { ...result, modelId: result.modelId ?? backup.id };
       }

@@ -214,14 +214,15 @@ return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanc
 s_unavailable":"engine_failed";return json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_auth_failed"||code==="b\
 lueprints_unavailable"?503:502,origin)}}}var DEFAULT_ROUTE={compose:"deepseek",intake:"gemini",ideas:"gemini"},COVERABLE=new Set(["model_rate_limited","model_unavailable","model_timeout"]);function withBackup(primary,backup){
 return backup?{id:`${primary.id}→${backup.id}`,async complete(input){try{let result=await primary.complete(input);return{...result,modelId:result.modelId??primary.id}}catch(error){
-if(!(error instanceof ModelError)||!COVERABLE.has(error.code))throw error;let result=await backup.complete(input);return{...result,modelId:result.modelId??backup.id}}}}:primary}function parseRoute(raw){
-let out={};for(let pair of(raw??"").split(",")){let[op,provider]=pair.split(":").map(s=>s.trim().toLowerCase());(op==="intake"||op==="ideas"||op==="compose")&&(provider==="gemini"||
-provider==="deepseek")&&(out[op]=provider)}return out}function routeFromEnv(env2,transport){let gem=geminiKey(env2),deepseekKey=env2("DEEPSEEK_API_KEY"),gemini=gem.key?createGeminiJsonModel(
-{key:gem.key,model:env2("GEMINI_MODEL")||env2("ENGINE_MODEL"),transport}):null,deepseek=deepseekKey?createChatJsonModel({url:"https://api.deepseek.com/chat/completions",key:deepseekKey,
-model:env2("DEEPSEEK_MODEL")||env2("ENGINE_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}):null,pinned=env2("ENGINE_PROVIDER")?.trim().toLowerCase(),overrides=parseRoute(
-env2("ENGINE_ROUTE")),plan={},pick=op=>{let want=pinned==="gemini"||pinned==="deepseek"?pinned:overrides[op]??DEFAULT_ROUTE[op],primary=want==="gemini"?gemini??deepseek:deepseek??gemini,
-backup=want==="gemini"?deepseek:gemini;if(!primary)return plan[op]="none",null;let model=withBackup(primary,backup===primary?null:backup);return plan[op]=model.id,model},models={intake:pick(
-"intake"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan,geminiKeyName:gem.name}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
+if(!(error instanceof ModelError)||!COVERABLE.has(error.code))throw error;console.warn("model failover",{from:primary.id,to:backup.id,code:error.code,detail:error.message.slice(0,200)});
+let result=await backup.complete(input);return{...result,modelId:result.modelId??backup.id}}}}:primary}function parseRoute(raw){let out={};for(let pair of(raw??"").split(",")){let[
+op,provider]=pair.split(":").map(s=>s.trim().toLowerCase());(op==="intake"||op==="ideas"||op==="compose")&&(provider==="gemini"||provider==="deepseek")&&(out[op]=provider)}return out}
+function routeFromEnv(env2,transport){let gem=geminiKey(env2),deepseekKey=env2("DEEPSEEK_API_KEY"),gemini=gem.key?createGeminiJsonModel({key:gem.key,model:env2("GEMINI_MODEL")||env2(
+"ENGINE_MODEL"),transport}):null,deepseek=deepseekKey?createChatJsonModel({url:"https://api.deepseek.com/chat/completions",key:deepseekKey,model:env2("DEEPSEEK_MODEL")||env2("ENGIN\
+E_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}):null,pinned=env2("ENGINE_PROVIDER")?.trim().toLowerCase(),overrides=parseRoute(env2("ENGINE_ROUTE")),
+plan={},pick=op=>{let want=pinned==="gemini"||pinned==="deepseek"?pinned:overrides[op]??DEFAULT_ROUTE[op],primary=want==="gemini"?gemini??deepseek:deepseek??gemini,backup=want==="g\
+emini"?deepseek:gemini;if(!primary)return plan[op]="none",null;let model=withBackup(primary,backup===primary?null:backup);return plan[op]=model.id,model},models={intake:pick("intak\
+e"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan,geminiKeyName:gem.name}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
 6e4,now=()=>Date.now()){let cache=null,inflight=null,load=async()=>{if(!supabaseUrl||!serviceKey)throw new Error("blueprints_unconfigured");return await bounded(async signal=>{let res=await transport(
 `${supabaseUrl}/rest/v1/lookers_engine_blueprints?id=eq.current&select=payload,count`,{headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,Accept:"application/json"},signal,
 redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let rows=await res.json(),row=Array.isArray(rows)?rows[0]:void 0;if(!row||!Array.isArray(row.payload)||row.payload.
