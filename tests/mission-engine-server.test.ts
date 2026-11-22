@@ -301,7 +301,7 @@ test('routing: a rate-limited free tier falls through to the paid one, and says 
 
 test('every answer names the model that produced it', async () => {
   // The bug this prevents: a working result read as proof that a particular provider served it.
-  const photo = blueprintForTopic('product-photography')!;
+  // (photo is the product-photo blueprint, defined at the top of this file.)
   const extracted = await extract(scripted([{ candidates: [] }]), photo, 'anything');
   assert.equal(typeof extracted.model, 'string');
   assert.ok(extracted.model.length > 0);
