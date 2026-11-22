@@ -35,7 +35,8 @@ export function createEngineClient(getClient: () => Promise<Client>) {
       call<{ ideas: string[] }>({ op: 'ideas', blueprintId, slot, typed, context, lang }).then(r => r.ideas ?? []),
     compose: (session: Session, sessionId?: string) =>
       call<{ output: Record<string, unknown>; report: GateReport; attempts: number; model: string; resultId: string | null }>({ op: 'compose', session, sessionId }),
-    /** "Explain this image": description + evidence-checked candidates (needs GEMINI_API_KEY on the server). */
+    /** "Explain this image": description + evidence-checked candidates. Served by whichever vision
+     *  model the server has configured; the answer reports which one looked at the image. */
     describe: (blueprintId: string, image: { mimeType: string; data: string }, lang: Session['lang']) =>
       call<{ description: string; candidates: Candidate[] }>({ op: 'describe', blueprintId, image, lang }),
     /** Fire-and-forget; never carries user text, only ids and counts. */

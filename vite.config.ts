@@ -9,7 +9,10 @@ export default defineConfig({
     host: '0.0.0.0',
   },
   build: {
+    // docs/ holds the project's written documentation as well as the published site, so the out
+    // dir is never emptied wholesale — scripts/clean-build-output.mjs removes just the previous
+    // build's own files first. Emptying it deleted the committed markdown on every build.
     outDir: 'docs',
-    emptyOutDir: true,
+    emptyOutDir: false,
   },
 })
