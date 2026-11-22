@@ -202,7 +202,7 @@ test('gemini text model: systemInstruction + JSON mode; key stays in the header'
   const out = await m.complete({ system: 'rules', user: 'brief', maxTokens: 500 });
   assert.deepEqual(out.json, { title: 'ok' });
   assert.deepEqual(out.usage, { inputTokens: 7, outputTokens: 3 });
-  assert.match(seen.url, /gemini-3\.8-flash:generateContent$/);
+  assert.match(seen.url, /gemini-3\.5-flash-lite:generateContent$/);
   assert.ok(!seen.url.includes('g-key'));
   assert.equal(seen.headers['x-goog-api-key'], 'g-key');
   assert.equal(seen.body.systemInstruction.parts[0].text, 'rules');
@@ -213,7 +213,7 @@ test('gemini text model: systemInstruction + JSON mode; key stays in the header'
 
 test('modelFromEnv: Gemini wins when its key is present; ENGINE_PROVIDER forces a choice', () => {
   const env = (o: Record<string, string>) => (k: string) => o[k];
-  assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' }))!.id, 'gemini-3.8-flash');
+  assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd' }))!.id, 'gemini-3.5-flash-lite');
   assert.equal(modelFromEnv(env({ DEEPSEEK_API_KEY: 'd' }))!.id, 'deepseek-flash');
   assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', DEEPSEEK_API_KEY: 'd', ENGINE_PROVIDER: 'deepseek' }))!.id, 'deepseek-flash');
   assert.equal(modelFromEnv(env({ GEMINI_API_KEY: 'g', ENGINE_MODEL: 'gemini-4-argon' }))!.id, 'gemini-4-argon');

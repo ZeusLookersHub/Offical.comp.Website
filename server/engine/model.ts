@@ -82,7 +82,11 @@ export function createChatJsonModel(cfg: { url: string; key: string; model: stri
  */
 export function createGeminiJsonModel(cfg: { key: string; model?: string; timeoutMs?: number; transport?: typeof fetch }): JsonModel {
   const transport = cfg.transport ?? fetch;
-  const model = cfg.model || 'gemini-3.8-flash';
+  // Flash-Lite, not Flash: the jobs Gemini is given here are extraction and chip suggestions,
+  // not reasoning, and 3.8 Flash thinks before it answers — it timed out on a short intake and
+  // its free tier allows a couple of dozen calls a day against Flash-Lite's hundreds. The bigger
+  // model is one GEMINI_MODEL away when there is a paid key and a job that needs it.
+  const model = cfg.model || 'gemini-3.5-flash-lite';
   const timeoutMs = cfg.timeoutMs ?? 40000;
   return {
     id: model,

@@ -142,7 +142,7 @@ throw new ModelError("model_unavailable")}res.ok||await explainFailure("chat",cf
 "model_bad_output");try{let payload=JSON.parse(raw),content=payload?.choices?.[0]?.message?.content;if(typeof content!="string")throw new Error;let json=JSON.parse(content.replace(
 /^```(?:json)?\s*|\s*```$/g,"")),usage=payload.usage?{inputTokens:payload.usage.prompt_tokens,outputTokens:payload.usage.completion_tokens}:void 0;return{json,usage}}catch{throw new ModelError(
 "model_bad_output")}},timeoutMs,signal)}catch(error){throw error instanceof ModelError?error:error instanceof BoundedError?new ModelError("model_timeout"):new ModelError("model_una\
-vailable")}}}}function createGeminiJsonModel(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.8-flash",timeoutMs=cfg.timeoutMs??4e4;return{id:model,async complete({
+vailable")}}}}function createGeminiJsonModel(cfg){let transport=cfg.transport??fetch,model=cfg.model||"gemini-3.5-flash-lite",timeoutMs=cfg.timeoutMs??4e4;return{id:model,async complete({
 system,user,maxTokens,signal}){if(!cfg.key)throw new ModelError("model_unavailable");try{return await bounded(async abort=>{let res;try{res=await transport(`https://generativelangu\
 age.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",redirect:"error",signal:abort,headers:{"x-goog-api-key":cfg.key,"Content-Type":"applic\
 ation/json"},body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{responseMimeType:"application/json",temperature:.3,
