@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Copy, ExternalLink, ImagePlus, Send, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Copy, ExternalLink, ImagePlus, MessageSquarePlus, Send, Sparkles } from 'lucide-react';
 import {
   answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, normalize, planLaunch, skip, submitIntake, suggest,
   type Blueprint, type GateReport, type Lang, type Session, type SlotValueRaw,
@@ -66,6 +66,10 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   const [editing, setEditing] = useState<string | null>(null);
   const [tool, setTool] = useState('universal');
   const [copied, setCopied] = useState('');
+  const [continuing, setContinuing] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [revisionRequest, setRevisionRequest] = useState('');
+  const [continuationError, setContinuationError] = useState('');
   const body = useRef<HTMLDivElement>(null);
   const step = nextStep(session, bp);
   const sessionId = useRef<string>(initial.session.id);
@@ -207,6 +211,39 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
     void engine.track('copied', bp.id, { sessionId: sessionId.current, meta: { part: key } });
   };
 
+  /** Continue after the AI tool responded: append the revision context and re-compose. */
+  const handleContinuation = async () => {
+    if (!revisionRequest.trim() || busy) return;
+    setContinuationError('');
+    const responsePart = aiResponse.trim()
+      ? `${t('External AI response (reference only):', 'رد الأداة الخارجية (مرجع فقط):')}\n${aiResponse.trim().slice(0, 3000)}`
+      : '';
+    const revisionPart = `${t('User revision request:', 'تعديل المستخدم:')}\n${revisionRequest.trim().slice(0, 1000)}`;
+    const appendedIdea = [session.idea ?? '', responsePart, revisionPart].filter(Boolean).join('\n\n');
+    if (new TextEncoder().encode(appendedIdea).length > 16000) {
+      setContinuationError(t('The combined text is too long — shorten the AI response or revision.', 'النص كله طويل أوي — قصّر رد الـ AI أو التعديل.'));
+      return;
+    }
+    const revisedSession: Session = { ...session, idea: appendedIdea, phase: 'confirmed', revision: session.revision + 1 };
+    setSession(revisedSession);
+    setResult(undefined);
+    setContinuing(false);
+    setAiResponse('');
+    setRevisionRequest('');
+    setBusy('writing'); setError('');
+    void engine.track('brief_confirmed', bp.id, { sessionId: sessionId.current, meta: { revision: true } });
+    try {
+      const res = await engine.compose(revisedSession);
+      setResult({ output: res.output, report: res.report, attempts: res.attempts });
+      const variants = (res.output.variants ?? {}) as Record<string, string>;
+      const chosen = String(revisedSession.values.tool?.value ?? 'universal');
+      setTool(variants[chosen] ? chosen : Object.keys(variants)[0] ?? 'universal');
+      void engine.track('composed', bp.id, { sessionId: sessionId.current, meta: { passed: res.report.passed, total: res.report.total, attempts: res.attempts, revision: true } });
+    } catch {
+      setError(t('The writer is busy right now. Your brief is saved — try again.', 'الكاتب مشغول دلوقتي. البريف بتاعك محفوظ، جرّب تاني.'));
+    } finally { setBusy(''); }
+  };
+
   /** Send the prompt to the tool itself: in the URL where the tool supports it, otherwise copy then open. */
   const openIn = async (toolId: string, prompt: string) => {
     const plan = planLaunch(toolId, prompt);
@@ -309,19 +346,29 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
         {busy && <p className="lai-message lai-message--assistant lmc-thinking" role="status">{busy === 'reading' ? t('Reading…', 'بقرا…') : t('Writing and checking your prompt…', 'بكتب البرومبت وبراجعه…')}</p>}
 
         {brief && !busy && !result && (
-          <article className="lmc-brief" data-testid="brief">
+          <article className="lmc-brief lmc-brief--compact" data-testid="brief">
             <header><Sparkles size={16} aria-hidden="true" /><h2>{t('Your brief', 'البريف بتاعك')}</h2></header>
-            {brief.idea && <p className="lmc-idea">“{brief.idea}”</p>}
-            {[[t('What you told me', 'اللي قلته'), brief.facts], [t('What I assumed — change anything', 'اللي افترضته · غيّر أي حاجة'), brief.assumptions], [t('Excluded', 'ممنوع'), brief.exclusions]].map(([title, items]) =>
-              (items as typeof brief.facts).length ? (
-                <section key={title as string}>
-                  <h3>{title as string}</h3>
-                  <ul>{(items as typeof brief.facts).map(item => (
-                    <li key={item.slot} className={item.source === 'default' ? 'is-assumed' : ''}>
-                      <span><b>{item.label}</b>{item.value}{item.reason && <small>{item.reason}</small>}</span>
-                      <button type="button" onClick={() => { setEditing(item.slot); setPicked([]); setTyped(''); }}>{t('Change', 'غيّر')}</button>
-                    </li>))}</ul>
-                </section>) : null)}
+            {brief.idea && <p className="lmc-idea">{`"${brief.idea}"`}</p>}
+            <ul className="lmc-bullets">
+              {[...brief.facts, ...brief.assumptions].map(item => (
+                <li key={item.slot} className={item.source === 'default' ? 'is-assumed' : ''}
+                  role="button" tabIndex={0}
+                  onClick={() => { setEditing(item.slot); setPicked([]); setTyped(''); }}
+                  onKeyDown={e => { if (e.key === 'Enter') { setEditing(item.slot); setPicked([]); setTyped(''); } }}>
+                  <b>{item.label}:</b> {item.value}
+                  {item.source === 'default' && <small className="lmc-assumed-tag">{t('assumed', 'مفترض')}</small>}
+                </li>
+              ))}
+              {brief.exclusions.length > 0 && brief.exclusions.map(item => (
+                <li key={item.slot} className="is-excluded"
+                  role="button" tabIndex={0}
+                  onClick={() => { setEditing(item.slot); setPicked([]); setTyped(''); }}
+                  onKeyDown={e => { if (e.key === 'Enter') { setEditing(item.slot); setPicked([]); setTyped(''); } }}>
+                  <b>✗ {item.label}:</b> {item.value}
+                </li>
+              ))}
+            </ul>
+            <p className="lmc-bullets-hint">{t('Tap any point to change it', 'اضغط على أي نقطة عشان تغيّرها')}</p>
             {editing && slotDef && (
               <div className="lmc-edit" data-slot={editing}>
                 <p>{slotDef.question[lang]}</p>
@@ -330,7 +377,6 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
               </div>
             )}
             {!editing && <button type="button" className="lai-chat__generate" disabled={!brief.ready} onClick={() => void compose()}>{t('Looks right — write my prompt', 'تمام كده · اكتب البرومبت')}</button>}
-            <p className="lmc-note">{brief.output}</p>
           </article>
         )}
 
@@ -381,10 +427,41 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             {list(out.pageOutline).length > 0 && <section><h3>{t('Page outline', 'أقسام الصفحة')}</h3><ol>{list(out.pageOutline).map((s, i) => <li key={i}>{s}</li>)}</ol></section>}
             {list(out.missingData).length > 0 && <section className="lmc-missing"><h3>{t('Fill these in before using it', 'كمّل دول قبل ما تستخدمه')}</h3><ul>{list(out.missingData).map((s, i) => <li key={i}>{s}</li>)}</ul></section>}
             {list(out.checklist).length > 0 && <section><h3>{t('Check the result', 'راجع النتيجة على')}</h3><ul>{list(out.checklist).map((s, i) => <li key={i}>{s}</li>)}</ul></section>}
-            <div className="lmc-row">
-              <button type="button" className="lai-explain" onClick={() => { setResult(undefined); setSession({ ...session, phase: 'brief' }); }}>{t('Edit the brief', 'عدّل البريف')}</button>
-              <button type="button" className="lai-explain" onClick={restart}>{t('New request', 'طلب جديد')}</button>
-            </div>
+            {/* ── Continuation: what happens next ── */}
+            <section className="lmc-next">
+              <h3><MessageSquarePlus size={15} aria-hidden="true" /> {t('What happens next?', 'إيه اللي بعد كده؟')}</h3>
+              <p className="lmc-next__hint">{t(
+                'Used the prompt? Paste what you got back and tell us what to fix or add — we will re-write it.',
+                'استخدمت البرومبت؟ حط الرد اللي جالك وقولنا عايز تعدّل إيه — هنكتبهولك تاني.'
+              )}</p>
+              {!continuing ? (
+                <div className="lmc-next__actions">
+                  <button type="button" className="lmc-next__primary" onClick={() => { setContinuing(true); setContinuationError(''); }}>
+                    <ArrowRight size={16} aria-hidden="true" /> {t('Continue — improve the prompt', 'كمّل — حسّن البرومبت')}
+                  </button>
+                  <button type="button" className="lai-explain" onClick={() => { setResult(undefined); setSession({ ...session, phase: 'brief' }); }}>{t('Edit the brief', 'عدّل البريف')}</button>
+                  <button type="button" className="lai-explain" onClick={restart}>{t('Start over', 'ابدأ من الأول')}</button>
+                </div>
+              ) : (
+                <form className="lmc-next__form" onSubmit={e => { e.preventDefault(); void handleContinuation(); }}>
+                  <label htmlFor="lmc-ai-response">{t('AI response (optional — paste what you got)', 'رد الـ AI — اختياري، حط اللي جالك')}</label>
+                  <textarea id="lmc-ai-response" value={aiResponse} maxLength={3000} disabled={!!busy}
+                    onChange={e => setAiResponse(e.target.value)}
+                    placeholder={t('Paste the reply from the AI tool…', 'انسخ رد الأداة وحطّه هنا…')} />
+                  <label htmlFor="lmc-revision-request">{t('What should change or be added?', 'عايز نعدّل أو نزود إيه؟')}</label>
+                  <textarea id="lmc-revision-request" value={revisionRequest} maxLength={1000} required disabled={!!busy}
+                    onChange={e => setRevisionRequest(e.target.value)}
+                    placeholder={t('e.g. make the background darker and add a headline area', 'مثلاً: غمّق الخلفية وسيب مكان لعنوان')} />
+                  {continuationError && <p className="lmc-next__error" role="alert">{continuationError}</p>}
+                  <div className="lmc-next__actions">
+                    <button type="submit" className="lmc-next__primary" disabled={!revisionRequest.trim() || !!busy}>
+                      {busy === 'writing' ? t('Re-writing…', 'بيتكتب من تاني…') : t('Update the prompt', 'حدّث البرومبت')}
+                    </button>
+                    <button type="button" className="lai-explain" disabled={!!busy} onClick={() => setContinuing(false)}>{t('Cancel', 'إلغاء')}</button>
+                  </div>
+                </form>
+              )}
+            </section>
           </article>
         )}
       </div>

@@ -32,6 +32,15 @@
 .lmc-edit{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:#ffffff06}
 .lmc-edit>p{margin:0;color:#f1e9de;font-size:14px}
 .lmc-note{margin:0;font-size:11px;color:#9ea7b0;line-height:1.7}
+/* Compact brief bullets */
+.lmc-brief--compact .lmc-bullets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.lmc-brief--compact .lmc-bullets li{padding:8px 12px;border-radius:8px;background:#ffffff05;border:1px solid transparent;font-size:13px;color:#ece7df;line-height:1.6;cursor:pointer;transition:border-color .15s,background .15s}
+.lmc-brief--compact .lmc-bullets li:hover{border-color:#d5a65a50;background:#ffffff0a}
+.lmc-brief--compact .lmc-bullets li b{font-weight:500;color:#c9b88a;margin-inline-end:4px}
+.lmc-brief--compact .lmc-bullets li.is-assumed{border-style:dashed;border-color:#d5a65a20}
+.lmc-brief--compact .lmc-bullets li.is-excluded{color:#b5a08a;border-color:#ffffff08}
+.lmc-assumed-tag{display:inline-block;margin-inline-start:6px;padding:1px 6px;border-radius:4px;font-size:10px;color:#d8bd86;background:#d5a65a18;vertical-align:middle}
+.lmc-bullets-hint{margin:2px 0 0;font-size:11px;color:#8a9199;text-align:center}
 .lmc-checks{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid #e0a35a66;color:#f0c890;background:#e0a35a14}
 .lmc-checks.is-ok{border-color:#7fcaa266;color:#bfe8d0;background:#7fcaa214}
 .lmc-summary{margin:0;color:#d8dbe0;font-size:13px;line-height:1.85}
@@ -74,6 +83,22 @@
 .lmc-tool__name { font-weight: 600; }
 .lmc-tool__state { font-size: .76rem; opacity: .8; }
 @media (max-width: 520px) { .lmc-tool { flex: 1 1 calc(50% - 8px); justify-content: center; } }
+
+/* ── Continuation / what-happens-next section ── */
+.lmc-next{margin-top:4px;padding:18px 16px;border-radius:14px;border:1px solid #d5a65a40;background:linear-gradient(145deg,#0f1f2e,#0a1620)}
+.lmc-next>h3{margin:0 0 6px;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;color:#e3b967}
+.lmc-next__hint{margin:0 0 14px;font-size:13px;color:#b5bcc5;line-height:1.7}
+.lmc-next__actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lmc-next__primary{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:12px;border:1px solid #e3b967;background:#e3b96718;color:#f5e2b8;font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s}
+.lmc-next__primary:hover:not(:disabled){background:#e3b96730;border-color:#f5e2b8}
+.lmc-next__primary:disabled{opacity:.5;cursor:not-allowed}
+.lmc-next__form{display:flex;flex-direction:column;gap:10px}
+.lmc-next__form label{font-size:12px;font-weight:500;color:#c9b88a;letter-spacing:.01em}
+.lmc-next__form textarea{width:100%;min-height:64px;max-height:160px;resize:vertical;border:1px solid #b5c0cb28;border-radius:12px;background:#0d1922;color:#ece7df;padding:12px 14px;font:inherit;font-size:13px;line-height:1.6;box-sizing:border-box}
+.lmc-next__form textarea::placeholder{color:#7a8694}
+.lmc-next__form textarea:focus{border-color:#d5a65a80;outline:none}
+.lmc-next__error{margin:0;font-size:12px;color:#f0b38a;line-height:1.5}
+@media(max-width:659px){.lmc-next{padding:14px 12px}.lmc-next__form textarea{font-size:16px}}
 
 /* The tool's own logo when we have it; a monogram until then — never an imitation of one. */
 .lmc-tool__mark { position: relative; display: inline-grid; place-items: center; width: 22px; height: 22px; flex: none; }
