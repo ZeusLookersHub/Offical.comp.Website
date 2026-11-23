@@ -5,16 +5,17 @@
 .lookers-ai-shell .lookers-ai[data-chat="true"] .lookers-ai__wrap{width:min(1160px,100%);height:100%;min-height:0;display:flex;flex-direction:column}
 .lookers-ai-shell .lookers-ai[data-chat="true"] .lai-trends-header{width:min(800px,100%);max-width:800px;margin:0 auto 14px;flex:none}
 .lookers-ai-shell .lookers-ai[data-chat="true"] .lookers-ai__footer{display:none}
-.lookers-ai-shell .lai-chat.lai-adaptive-chat{width:100%;height:auto;flex:1;min-height:0;max-height:none;margin:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid #c9a05b90;border-radius:22px;background:linear-gradient(130deg,#081522ed,#06101ac9);box-shadow:0 18px 50px #0005;backdrop-filter:blur(12px)}
-.lookers-ai-shell .lai-adaptive-chat .lai-adaptive-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;min-height:52px;border-bottom:1px solid #ffffff12;flex:none;letter-spacing:0;font-size:12px;color:#c7c4bc}
-.lai-adaptive-topbar>span::before{content:'●';color:#e3b967;font-size:9px;margin-inline-end:7px}
-.lai-adaptive-topbar button{border:0;background:transparent;color:#d3b67d;font:inherit;cursor:pointer;min-height:30px}
+.lookers-ai-shell .lai-chat.lai-adaptive-chat{width:100%;height:auto;flex:1;min-height:0;max-height:none;margin:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid #2e363f;border-radius:20px;background:linear-gradient(135deg,#0e1420ee,#080e18e8);box-shadow:0 16px 48px #0006;backdrop-filter:blur(14px)}
+.lookers-ai-shell .lai-adaptive-chat .lai-adaptive-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;min-height:48px;border-bottom:1px solid #ffffff0a;flex:none;letter-spacing:.01em;font-size:12px;color:#a0a8b2}
+.lai-adaptive-topbar>span::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#e3b967;margin-inline-end:8px;vertical-align:middle}
+.lai-adaptive-topbar button{border:0;background:transparent;color:#c9a05b;font:inherit;cursor:pointer;min-height:30px;transition:color .15s}
+.lai-adaptive-topbar button:hover{color:#e8d4a4}
 .lai-adaptive-chat button{font:inherit;cursor:pointer}
 .lai-adaptive-question{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;margin:0}
 .lai-adaptive-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:24px 30px;scrollbar-width:thin;scrollbar-color:#89939c60 transparent;display:flex;flex-direction:column;gap:18px;overflow-wrap:anywhere;scroll-padding:20px}
-.lai-message{max-width:76%;padding:14px 19px;line-height:1.85;font-size:14px;margin:0;white-space:pre-wrap;border:1px solid #ffffff1c;border-radius:18px;flex:none}
-.lai-message--assistant{align-self:flex-start;background:linear-gradient(130deg,#25323c7a,#14202b85);color:#eeeae2;border-end-start-radius:5px}
-.lai-message--user{align-self:flex-end;background:linear-gradient(130deg,#263f60bb,#1b2d47bb);color:#f1f3f7;border-end-end-radius:5px}
+.lai-message{max-width:78%;padding:14px 18px;line-height:1.8;font-size:14px;margin:0;white-space:pre-wrap;border:1px solid #ffffff0c;border-radius:16px;flex:none}
+.lai-message--assistant{align-self:flex-start;background:#1a2230;color:#e8e4dc;border-end-start-radius:4px}
+.lai-message--user{align-self:flex-end;background:linear-gradient(135deg,#3d2e14,#2a2010);color:#f4efe6;border-end-end-radius:4px;border-color:#c9a05b25}
 .lai-current-message{display:flex;flex-direction:column;align-items:flex-start;gap:12px;flex:none;animation:lai-adaptive-turn .18s ease-out}
 .lai-current-message>.lai-message{max-width:85%}
 .lai-adaptive-body h2{font-size:16px;line-height:1.85;color:#f1e9de;margin:0;font-weight:500}
@@ -25,14 +26,17 @@
 .lai-adaptive-options input{accent-color:#d4aa5a;flex:none}
 .lai-explain,.lai-adaptive-ready>button,.lai-adaptive-history button,.lai-adaptive-refinements>button{border:1px solid #d5a65a35;background:#15202b80;color:#ddc494;border-radius:10px;padding:9px 13px;font-size:12px!important;min-height:38px}
 .lai-adaptive-help{max-width:650px;padding:12px 15px;border-inline-start:2px solid #d3ae6c;background:#ffffff06;border-radius:8px;font-size:13px;line-height:1.85;color:#e4ded5;margin:0;white-space:pre-wrap}
-.lai-adaptive-footer{border-top:1px solid #ffffff13;padding:12px 22px 10px;flex:none;background:#06101a6b}
-.lai-composer{display:flex;align-items:center;gap:12px;min-width:0}
-.lai-composer input{flex:1;min-width:0;height:48px;border:1px solid #b5c0cb32;border-radius:26px;background:#18212b6b;color:#f4eee4;padding:0 18px;font:inherit;font-size:14px;box-sizing:border-box}
-.lai-composer input::placeholder{color:#939da9}
-.lai-composer-hint{flex:1;min-width:0;color:#aab2bd;font-size:13px;margin:0;padding:10px}
-.lai-composer .lai-attach,.lai-attach{display:grid;place-items:center;border:1px solid #c3cbd536;background:transparent;color:#e8e6df;border-radius:50%;width:44px;height:44px;flex:none;font-size:22px}
+.lai-adaptive-footer{border-top:1px solid #ffffff08;padding:12px 20px 10px;flex:none;background:#0a0e1480}
+.lai-composer{display:flex;align-items:center;gap:10px;min-width:0}
+.lai-composer input{flex:1;min-width:0;height:46px;border:1px solid #2e363f;border-radius:999px;background:#111820;color:#e8e4dc;padding:0 18px;font:inherit;font-size:14px;box-sizing:border-box;transition:border-color .15s}
+.lai-composer input:focus{border-color:#c9a05b55;outline:none}
+.lai-composer input::placeholder{color:#6b7580}
+.lai-composer-hint{flex:1;min-width:0;color:#8a9099;font-size:13px;margin:0;padding:10px}
+.lai-composer .lai-attach,.lai-attach{display:grid;place-items:center;border:1px solid #2e363f;background:transparent;color:#a0a8b2;border-radius:50%;width:42px;height:42px;flex:none;font-size:20px;transition:border-color .15s,color .15s}
+.lai-composer .lai-attach:hover{border-color:#c9a05b55;color:#e8d4a4}
 .lai-adaptive-footer>.lai-attach{width:auto;height:auto;border-radius:12px;font-size:12px;padding:9px 12px;margin-top:8px}
-.lai-composer .lai-send{display:grid;place-items:center;width:48px;height:48px;border:0;border-radius:50%;background:linear-gradient(130deg,#f9d37e,#e6b24d);color:#10202c;font-size:23px;flex:none}
+.lai-composer .lai-send{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:linear-gradient(135deg,#e3b967,#c9a05b);color:#111820;font-size:22px;flex:none;transition:transform .12s}
+.lai-composer .lai-send:hover:not(:disabled){transform:scale(1.05)}
 [dir=rtl] .lai-send>span{transform:rotate(180deg)}
 .lai-composer-caption{font-size:11px;color:#acb0b7;text-align:center;margin:9px 0 0}
 .lai-adaptive-nav{display:flex;align-items:center;gap:9px;flex-wrap:wrap}

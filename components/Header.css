@@ -19,21 +19,26 @@
 
 /* Approved flat navigation is limited to the AI experience; the signature logo is unchanged. */
 .site-menu-toggle{display:none}
-.lookers-ai-shell .site-header{padding:4px 24px;background:#06101ad9;flex:none}
-.lookers-ai-shell .site-header-row{border:0;border-radius:0;box-shadow:none;background:transparent;max-width:1240px;min-height:72px;padding:0;gap:22px}
-.lookers-ai-shell .site-nav a{font-size:12px;font-weight:500;text-transform:none;letter-spacing:0;color:#e4e4e6}
+.lookers-ai-shell .site-header{padding:6px 28px;background:#06101ae0;flex:none;border-bottom:1px solid #ffffff08}
+.lookers-ai-shell .site-header-row{border:0;border-radius:0;box-shadow:none;background:transparent;max-width:1240px;min-height:64px;padding:0;gap:24px}
+.lookers-ai-shell .signature-logo{width:155px;height:54px}
+.lookers-ai-shell .site-nav a{font-size:11px;font-weight:500;text-transform:none;letter-spacing:.02em;color:#b0b4bb}
+.lookers-ai-shell .site-nav a:hover{color:#e8d4a4}
 .lookers-ai-shell .site-nav a:last-child{display:none}
-.lookers-ai-shell .site-language button{background:transparent;border-radius:0;color:#b7b9c0;font-size:11px;font-weight:400;min-width:30px;padding:5px}
-.lookers-ai-shell .site-language button[aria-pressed=true]{color:#e8bd65}
-.lookers-ai-shell .site-language button+button{border-inline-start:1px solid #85898f60}
-.lookers-ai-shell .site-ai-button{background:transparent;border:1px solid #d9b465;color:#e7c36e;border-radius:10px;text-transform:none;font-size:12px;font-weight:500;padding:9px 17px;min-height:38px}
+.lookers-ai-shell .site-language button{background:transparent;border-radius:0;color:#8a9099;font-size:11px;font-weight:500;min-width:30px;padding:5px}
+.lookers-ai-shell .site-language button[aria-pressed=true]{color:#e3b967}
+.lookers-ai-shell .site-language button+button{border-inline-start:1px solid #ffffff18}
+.lookers-ai-shell .site-ai-button{background:transparent;border:1px solid #c9a05b55;color:#e3b967;border-radius:999px;text-transform:none;font-size:11px;font-weight:600;padding:8px 18px;min-height:36px;letter-spacing:.02em;transition:background .15s,border-color .15s}
+.lookers-ai-shell .site-ai-button:hover{background:#c9a05b12;border-color:#e3b967}
 @media(max-width:659px){
-.lookers-ai-shell .site-header{padding:4px 12px}
-.lookers-ai-shell .site-header-row{display:flex;min-height:58px;gap:4px;position:relative}
-.lookers-ai-shell .site-actions{margin-left:auto;gap:9px}
+.lookers-ai-shell .site-header{padding:4px 14px;border-bottom-color:#ffffff06}
+.lookers-ai-shell .site-header-row{display:flex;min-height:52px;gap:6px;position:relative}
+.lookers-ai-shell .signature-logo{width:130px;height:46px}
+.lookers-ai-shell .site-actions{margin-left:auto;gap:8px}
 .lookers-ai-shell .site-ai-button{display:none}
-.lookers-ai-shell .site-menu-toggle{display:block;background:transparent;border:0;color:#e9e3d9;font-size:24px;padding:4px;min-height:40px;min-width:40px}
+.lookers-ai-shell .site-menu-toggle{display:block;background:transparent;border:0;color:#d2d8e0;font-size:22px;padding:4px;min-height:40px;min-width:40px}
 .lookers-ai-shell .site-nav{display:none}
-.lookers-ai-shell .site-nav.is-open{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;padding:12px;background:#0b1725;border:1px solid #c5a36750;border-radius:12px;gap:0;z-index:60}
-.lookers-ai-shell .site-nav.is-open a{padding:5px 12px}
+.lookers-ai-shell .site-nav.is-open{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;padding:14px;background:#0d1620f8;border:1px solid #2e363f;border-radius:14px;gap:2px;z-index:60;box-shadow:0 12px 36px #000a}
+.lookers-ai-shell .site-nav.is-open a{padding:8px 14px;border-radius:8px}
+.lookers-ai-shell .site-nav.is-open a:hover{background:#ffffff08}
 }
