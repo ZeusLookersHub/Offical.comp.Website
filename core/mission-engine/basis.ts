@@ -111,7 +111,7 @@ const RULES = {
 
 export function withBasis(bp: Blueprint): Blueprint {
   const ref = bp.slots.find(s => s.id === 'reference');
-  if (!ref) return bp;
+  if (!ref || bp.slots.some(s => s.id === 'basis')) return bp; // idempotent: a payload may already carry it
   const fixed = bp.id === 'photo-retouch';
   const slots = bp.slots.filter(s => s.id !== 'reference');
   const first = slots.findIndex(s => s.importance === 'critical');
@@ -148,8 +148,8 @@ export function withBasis(bp: Blueprint): Blueprint {
  */
 export function withCoverage(bp: Blueprint): Blueprint {
   const prompt = bp.output.fields.find(f => f.path === 'prompt' && f.type === 'string');
-  if (!prompt) return bp;
-  const slots = bp.slots.filter(s => s.kind !== 'exact' && !s.role && s.layer !== 'delivery' && !['reference', 'basis'].includes(s.id)).map(s => s.id);
+  if (!prompt || bp.gates.some(g => g.kind === 'coverage')) return bp;
+  const slots = bp.slots.filter(s => s.kind !== 'exact' && !s.role && s.layer !== 'delivery' && !['reference', 'basis', 'avoid', 'tool'].includes(s.id)).map(s => s.id);
   if (!slots.length) return bp;
   return {
     ...bp,

@@ -1,5 +1,6 @@
 import { bounded } from '../../core/agent/bounded.ts';
 import type { Blueprint } from '../../core/mission-engine/types.ts';
+import { withBasis, withCoverage } from '../../core/mission-engine/basis.ts';
 
 /**
  * The blueprints live in a locked table (`lookers_engine_blueprints`): RLS on, no policy,
@@ -44,7 +45,9 @@ export function privateBlueprints(
       const row = Array.isArray(rows) ? rows[0] : undefined;
       if (!row || !Array.isArray(row.payload) || row.payload.length === 0) throw new Error('blueprints_missing');
       if (!row.payload.every(usable)) throw new Error('blueprints_malformed');
-      const list = row.payload as Blueprint[];
+      // Shared upgrades (new-vs-existing step, coverage) are applied here too, so a payload
+      // uploaded before them still matches the browser. Both are idempotent.
+      const list = (row.payload as Blueprint[]).map(withBasis).map(withCoverage);
       return new Map(list.map(bp => [bp.id, bp] as const));
     }, 8000);
   };

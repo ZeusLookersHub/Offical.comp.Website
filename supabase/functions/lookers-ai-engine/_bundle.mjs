@@ -34,10 +34,10 @@ key||joined[0]!==key[0]||Math.abs(joined.length-key.length)>limit||levenshtein(j
 /\s/g,"").includes(key))}var isFilled=v=>typeof v=="string"?v.trim().length>0:Array.isArray(v)?v.length>0:!1;function validValue2(slot,value,sourceText){if(slot.kind==="single")return typeof value=="string"&&
 slot.options?.some(o=>o.value===value)?value:null;if(slot.kind==="multi"){if(!Array.isArray(value)||!value.length)return null;let unique=[...new Set(value)];return unique.every(v=>slot.
 options?.some(o=>o.value===v))?unique:null}if(typeof value!="string")return null;let trimmed=value.trim();return!trimmed||trimmed.length>(slot.maxLength??2e3)||slot.kind==="exact"&&
-sourceText!==void 0&&!sourceText.includes(trimmed)?null:trimmed}function applyCandidates(session,blueprint,text,candidates){let values={...session.values},plain=normalize(text),bySlot=new Map;for(let c of candidates)bySlot.set(c.slot,[...bySlot.
-get(c.slot)??[],c]);for(let[slotId,list]of bySlot){let slot=blueprint.slots.find(s=>s.id===slotId);if(!slot||values[slotId]?.source==="user")continue;let accepted=list.filter(c=>typeof c.
-evidence=="string"&&c.evidence.trim().length>0&&plain.includes(normalize(c.evidence))).map(c=>({c,v:validValue2(slot,c.value,text)})).filter(x=>x.v!==null&&isFilled(x.v));new Set(accepted.
-map(x=>JSON.stringify(x.v))).size===1&&(values[slotId]={value:accepted[0].v,source:"extracted",evidence:accepted[0].c.evidence.trim()})}return{...session,values}}var NONE="none";var LAYERS={understanding:{order:1,name:{en:"Understanding",ar:"الفهم"},scope:{en:"Goal, subject, audience, where it will be used, the facts and references available.",ar:"اله\
+sourceText!==void 0&&!sourceText.includes(trimmed)?null:trimmed}function applyCandidates(session,blueprint,text,candidates){let values={...session.values},plain=normalize(text),bySlot=new Map;for(let c2 of candidates)bySlot.set(c2.slot,[...bySlot.
+get(c2.slot)??[],c2]);for(let[slotId,list]of bySlot){let slot=blueprint.slots.find(s=>s.id===slotId);if(!slot||values[slotId]?.source==="user")continue;let accepted=list.filter(c2=>typeof c2.
+evidence=="string"&&c2.evidence.trim().length>0&&plain.includes(normalize(c2.evidence))).map(c2=>({c:c2,v:validValue2(slot,c2.value,text)})).filter(x=>x.v!==null&&isFilled(x.v));new Set(
+accepted.map(x=>JSON.stringify(x.v))).size===1&&(values[slotId]={value:accepted[0].v,source:"extracted",evidence:accepted[0].c.evidence.trim()})}return{...session,values}}var NONE="none";var LAYERS={understanding:{order:1,name:{en:"Understanding",ar:"الفهم"},scope:{en:"Goal, subject, audience, where it will be used, the facts and references available.",ar:"اله\
 دف، والموضوع، والجمهور، وهيتستخدم فين، والمعلومات والمراجع المتاحة."},delivers:{en:"A correct picture of what is wanted, \
 built only from confirmed facts.",ar:"صورة صح للمطلوب، مبنية على معلومات مؤكدة بس."},heading:"1 · UNDERSTANDING — what you are given"},intelligence:{
 order:2,name:{en:"Intelligence",ar:"التفكير"},scope:{en:"Approach and creative or strategic direction: style, structure, sequence, decision criteria.",ar:"طريقة الحل والاتجا\
@@ -105,28 +105,28 @@ session.values).flatMap(v=>Array.isArray(v.value)?v.value:[v.value])];for(let sr
 numbersIn).filter(n=>n.significant&&!known.has(n.value)).map(n=>n.raw);results.push({id:gate.id,ok:invented.length===0,message,detail:invented.length?`numbers not from the user: ${[
 ...new Set(invented)].join(", ")}`:void 0})}else if(gate.kind==="array-length"){let want=Number(slotValue(gate.slot));if(!Number.isFinite(want))continue;let found=readPath(out,gate.
 field)[0],n=Array.isArray(found)?found.length:-1;results.push({id:gate.id,ok:n===want,message,detail:n===want?void 0:`expected ${want}, got ${n}`})}else if(gate.kind==="includes-wh\
-en"){if(!gate.when.every(c=>{let v=slotValue(c.slot),wanted=c.equals===void 0?[]:Array.isArray(c.equals)?c.equals:[c.equals];return Array.isArray(v)?v.some(x=>wanted.includes(x)):typeof v==
-"string"&&wanted.includes(v)}))continue;let text=strings(out,[gate.field]).join(" ").toLowerCase(),hit=gate.anyOf.some(term=>text.includes(term.toLowerCase()));results.push({id:gate.
-id,ok:hit,message,detail:hit?void 0:`missing any of: ${gate.anyOf.join(" / ")}`})}else if(gate.kind==="filled-when"){if(!gate.whenAny.some(c=>{let v=slotValue(c.slot),wanted=c.equals===
-void 0?[]:Array.isArray(c.equals)?c.equals:[c.equals];return Array.isArray(v)?v.some(x=>wanted.includes(x)):typeof v=="string"&&wanted.includes(v)}))continue;let found=readPath(out,
-gate.field)[0],ok=Array.isArray(found)&&found.filter(x=>typeof x=="string"&&x.trim()).length>=2;results.push({id:gate.id,ok,message,detail:ok?void 0:`${gate.field} must list the st\
-eps`})}else if(gate.kind==="coverage"){let given=gate.slots.filter(id=>{let v=session.values[id];return v&&v.source!=="default"&&v.value!==NONE&&(Array.isArray(v.value)?v.value.length>
-0:v.value.trim().length>0)});if(!given.length)continue;let flat=x=>x.toLowerCase().replace(/\s+/g," ").trim(),text=flat(strings(out,[gate.field]).join(" ")),map=readPath(out,gate.map)[0]??
-{},missing=given.filter(id=>{let phrase=typeof map[id]=="string"?flat(map[id]):"";return phrase.length<3||!text.includes(phrase)});results.push({id:gate.id,ok:missing.length===0,message,
-detail:missing.length?`not realised in ${gate.field} (give each a phrase copied from it): ${missing.join(", ")}`:void 0})}else if(gate.kind==="latin-ratio"){let text=strings(out,[gate.
-field]).join(" ");for(let id of gate.exceptSlots){let v=slotValue(id);typeof v=="string"&&v!==NONE&&(text=text.split(v).join(" "))}let letters=[...text].filter(c=>/\p{L}/u.test(c)),
-latin=letters.filter(c=>/\p{Script=Latin}/u.test(c)).length,ratio=letters.length?latin/letters.length:1;results.push({id:gate.id,ok:ratio>=gate.min,message,detail:ratio>=gate.min?void 0:
-`latin ratio ${ratio.toFixed(2)}`})}}return report(results)}function numbersIn(text){let clean=text.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/\d+\s*:\s*\d+/g,
-" ").replace(/\[[^\]]*\]/g," "),out=[];for(let m of clean.matchAll(/([$€£]\s?)?(\d[\d,]*(?:\.\d+)?)\s*(%|٪|[kKmMbB](?![a-zA-Z])|ألف|مليون|مليار)?/g)){let value=m[2].
-replace(/,/g,""),num=Number(value),unit=!!(m[1]||m[3]),year=!unit&&/^(19|20)\d\d$/.test(value);out.push({raw:m[0].trim(),value,significant:!year&&(unit||num>=21)})}return out}function report(results){
-let passed=results.filter(r=>r.ok).length;return{passed,total:results.length,ok:passed===results.length,results}}function slotCatalogue(bp){return bp.slots.map(s=>{let opts=s.options?` options=[${s.options.map(o=>`${o.value} (${o.label.en})`).join(", ")}]`:"",kind=s.kind==="exact"?"exact (cop\
+en"){if(!gate.when.every(c2=>{let v=slotValue(c2.slot),wanted=c2.equals===void 0?[]:Array.isArray(c2.equals)?c2.equals:[c2.equals];return Array.isArray(v)?v.some(x=>wanted.includes(
+x)):typeof v=="string"&&wanted.includes(v)}))continue;let text=strings(out,[gate.field]).join(" ").toLowerCase(),hit=gate.anyOf.some(term=>text.includes(term.toLowerCase()));results.
+push({id:gate.id,ok:hit,message,detail:hit?void 0:`missing any of: ${gate.anyOf.join(" / ")}`})}else if(gate.kind==="filled-when"){if(!gate.whenAny.some(c2=>{let v=slotValue(c2.slot),
+wanted=c2.equals===void 0?[]:Array.isArray(c2.equals)?c2.equals:[c2.equals];return Array.isArray(v)?v.some(x=>wanted.includes(x)):typeof v=="string"&&wanted.includes(v)}))continue;
+let found=readPath(out,gate.field)[0],ok=Array.isArray(found)&&found.filter(x=>typeof x=="string"&&x.trim()).length>=2;results.push({id:gate.id,ok,message,detail:ok?void 0:`${gate.
+field} must list the steps`})}else if(gate.kind==="coverage"){let given=gate.slots.filter(id=>{let v=session.values[id];return v&&v.source!=="default"&&v.value!==NONE&&(Array.isArray(
+v.value)?v.value.length>0:v.value.trim().length>0)});if(!given.length)continue;let flat=x=>x.toLowerCase().replace(/\s+/g," ").trim(),text=flat(strings(out,[gate.field]).join(" ")),
+map=readPath(out,gate.map)[0]??{},missing=given.filter(id=>{let phrase=typeof map[id]=="string"?flat(map[id]):"";return phrase.length<3||!text.includes(phrase)});results.push({id:gate.
+id,ok:missing.length===0,message,detail:missing.length?`not realised in ${gate.field} (give each a phrase copied from it): ${missing.join(", ")}`:void 0})}else if(gate.kind==="lati\
+n-ratio"){let text=strings(out,[gate.field]).join(" ");for(let id of gate.exceptSlots){let v=slotValue(id);typeof v=="string"&&v!==NONE&&(text=text.split(v).join(" "))}let letters=[
+...text].filter(c2=>/\p{L}/u.test(c2)),latin=letters.filter(c2=>/\p{Script=Latin}/u.test(c2)).length,ratio=letters.length?latin/letters.length:1;results.push({id:gate.id,ok:ratio>=
+gate.min,message,detail:ratio>=gate.min?void 0:`latin ratio ${ratio.toFixed(2)}`})}}return report(results)}function numbersIn(text){let clean=text.replace(/[٠-٩]/g,d=>String("٠١٢\
+٣٤٥٦٧٨٩".indexOf(d))).replace(/\d+\s*:\s*\d+/g," ").replace(/\[[^\]]*\]/g," "),out=[];for(let m of clean.matchAll(/([$€£]\s?)?(\d[\d,]*(?:\.\d+)?)\s*(%|٪|[kKmMbB](?![a-zA-Z])|ألف|مليون|مليار)?/g)){
+let value=m[2].replace(/,/g,""),num=Number(value),unit=!!(m[1]||m[3]),year=!unit&&/^(19|20)\d\d$/.test(value);out.push({raw:m[0].trim(),value,significant:!year&&(unit||num>=21)})}return out}
+function report(results){let passed=results.filter(r=>r.ok).length;return{passed,total:results.length,ok:passed===results.length,results}}function slotCatalogue(bp){return bp.slots.map(s=>{let opts=s.options?` options=[${s.options.map(o=>`${o.value} (${o.label.en})`).join(", ")}]`:"",kind=s.kind==="exact"?"exact (cop\
 y verbatim from the text, keep case)":s.kind;return`- ${s.id}: ${kind}; ${LAYERS[s.layer].name.en}; ${s.question.en}${opts}`}).join(`
 `)}async function extract(model,bp,text,signal){let system=[`You extract facts for a "${bp.title.en}" brief from the user's message. Arabic or English.`,'Return JSON: {"candidates"\
 :[{"slot":"<id>","value":"<value or option id or array of option ids>","evidence":"<exact words copied from the message>"}]}',"Only include a slot when the message clearly states i\
 t. evidence must be a verbatim span of the message. Never guess, never infer brand names, never translate exact values.","Slots:",slotCatalogue(bp)].join(`
-`),{json,modelId}=await model.complete({system,user:text,maxTokens:800,signal}),list=json?.candidates,served=modelId??model.id;return Array.isArray(list)?{candidates:list.filter(c=>!!c&&
-typeof c=="object"&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,20).filter(c=>applyCandidates({id:"x",blueprintId:bp.
-id,blueprintVersion:bp.version,lang:"en",phase:"questions",values:{},asked:[],revision:0},bp,text,[c]).values[c.slot]),model:served}:{candidates:[],model:served}}async function ideas(model,bp,slotId,typed,context,lang,signal){
+`),{json,modelId}=await model.complete({system,user:text,maxTokens:800,signal}),list=json?.candidates,served=modelId??model.id;return Array.isArray(list)?{candidates:list.filter(c2=>!!c2&&
+typeof c2=="object"&&typeof c2.slot=="string"&&typeof c2.evidence=="string"&&(typeof c2.value=="string"||Array.isArray(c2.value))).slice(0,20).filter(c2=>applyCandidates({id:"x",blueprintId:bp.
+id,blueprintVersion:bp.version,lang:"en",phase:"questions",values:{},asked:[],revision:0},bp,text,[c2]).values[c2.slot]),model:served}:{candidates:[],model:served}}async function ideas(model,bp,slotId,typed,context,lang,signal){
 let slot=bp.slots.find(s=>s.id===slotId);if(!slot||slot.kind==="single"||slot.kind==="multi"||slot.kind==="exact")return[];let system=[`You suggest short continuations for a field \
 in a "${bp.title.en}" brief. Field: ${slot.question.en}`,`Reply in ${lang==="ar"?"Egyptian Arabic":"English"}. Return JSON {"ideas":["…"]} with up to 6 ideas, each 1–5 words, speci\
 fic to what the user already wrote, no brand names, no numbers, no repetition of their words.`].join(`
@@ -195,8 +195,8 @@ ed from your description>"}]}.',`description: 2–4 factual sentences in ${lang=
  read. Slots:",slots].join(`
 `),answer=await vision2.describe({prompt,image,signal}),out=answer.output,description=typeof out?.description=="string"?out.description.slice(0,1500):"";if(!description)return{description:"",
 candidates:[],model:answer.modelId};let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},
-asked:[],revision:0},candidates=list.filter(c=>c&&typeof c.slot=="string"&&typeof c.evidence=="string"&&(typeof c.value=="string"||Array.isArray(c.value))).slice(0,12).filter(c=>applyCandidates(
-empty,bp,description,[c]).values[c.slot]);return{description,candidates,model:answer.modelId}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
+asked:[],revision:0},candidates=list.filter(c2=>c2&&typeof c2.slot=="string"&&typeof c2.evidence=="string"&&(typeof c2.value=="string"||Array.isArray(c2.value))).slice(0,12).filter(
+c2=>applyCandidates(empty,bp,description,[c2]).values[c2.slot]);return{description,candidates,model:answer.modelId}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
 ANY_VERCEL_PREVIEW=/^https:\/\/[a-z0-9-]+\.vercel\.app$/,MAX_BODY=6e4,RATE_LIMITS={compose:10,describe:10,intake:30,ideas:60},RATE_WINDOW_SECONDS=60,MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function withinRate(transport,url,serviceKey,owner,op){if(!serviceKey)return!0;try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/rpc/engine_rate_c\
 heck",{method:"POST",signal,redirect:"error",headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_owner:owner,p_op:op,
@@ -241,11 +241,70 @@ function routeFromEnv(env2,transport){let gem=geminiKey(env2),deepseekKey=env2("
 E_MODEL")||"deepseek-flash",extraBody:{thinking:{type:"disabled"}},transport}):null,pinned=env2("ENGINE_PROVIDER")?.trim().toLowerCase(),overrides=parseRoute(env2("ENGINE_ROUTE")),
 plan={},pick=op=>{let want=pinned==="gemini"||pinned==="deepseek"?pinned:overrides[op]??DEFAULT_ROUTE[op],primary=want==="gemini"?gemini??deepseek:deepseek??gemini,backup=want==="g\
 emini"?deepseek:gemini;if(!primary)return plan[op]="none",null;let model=withBackup(primary,backup===primary?null:backup);return plan[op]=model.id,model},models={intake:pick("intak\
-e"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan,geminiKeyName:gem.name}}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
+e"),ideas:pick("ideas"),compose:pick("compose")};return{for:op=>models[op],plan,geminiKeyName:gem.name}}var c=(en,ar)=>({en,ar});var EXISTING=["existing","edit"],basis=fixed=>({id:"basis",kind:"single",layer:"understanding",importance:fixed?"nice":"important",label:c("Built on","مبني على"),question:c(
+"Is this something new, or does it build on something you already have?","ده حاجة جديدة، ولا مربوط بحاجة عندك فعلاً؟"),why:c("If something alread\
+y exists, the result has to match it — so I ask what stays and use your reference.","لو في حاجة موجودة، النتيجة لازم تمشي معاها، فهسألك إيه اللي يفضل وهستخدم المرجع بتاعك."),
+example:c("It is for my existing brand — same colours and logo.","لبراندي الموجود، نفس الألوان واللوجو."),options:[{value:"new",label:c("Something\
+ new · free direction","حاجة جديدة · اتجاه حر"),keywords:["from scratch","brand new","new idea","من الصفر","فكرة جديدة","حاجة جديدة"]},{value:"\
+existing",label:c("Linked to something I have · brand, product, past design, a series","مربوط بحاجة عندي · براند، منتج، تصميم قديم، سلسلة"),
+keywords:["my brand","our brand","brand identity","same style","same colors","same colours","series","matching","براندي","هويتي","الهوية بتاعتي","نفس الستايل",
+"نفس الألوان","نفس الالوان","سلسلة","يمشي مع","زي اللي قبل"]},{value:"edit",label:c("Edit or redo something I already have","تعديل أو إعادة \
+لحاجة عندي"),keywords:["edit","redo","remake","update my","change my","fix my","عدّل","عدل","تعديل","اعدل","أعدل","أغير","اغير","أظبط","اظب\
+ط"]}],defaults:[fixed?{value:"edit",reason:c("You are editing a photo you have.","انت بتعدّل صورة عندك.")}:{value:"new",reason:c("Treated as a new piece with free\
+ direction.","اعتبرناها حاجة جديدة باتجاه حر.")}]}),keep={id:"keep",kind:"longtext",layer:"control",importance:"important",maxLength:600,when:[{slot:"basi\
+s",equals:EXISTING}],label:c("Must stay the same","لازم يفضل زي ما هو"),question:c("What must stay exactly as it is? (logo, colours, font, the character, the product \
+look…)","إيه اللي لازم يفضل زي ما هو بالظبط؟ (اللوجو، الألوان، الخط، الشخصية، شكل المنتج…)"),why:c("AI tools re\
+draw everything unless told what to keep. Each item becomes a hard rule.","أدوات الـ AI بتعيد رسم كل حاجة لو محدش قالها تحافظ على إيه. كل حاجة هتكتبها هتبقى قاعدة ثابتة."),
+example:c("The gold logo, the dark green colour and the round bottle shape.","اللوجو الدهبي، واللون الأخضر الغامق، وشكل الزجاجة المدوّر."),
+vocabulary:{en:["logo","brand colours","font","character","product shape","label","layout","face","packaging"],ar:["اللوجو","ألوان البراند","الخط","الشخصية",
+"شكل المنتج","الليبل","التوزيع","الوش","العبوة"]}},change={id:"change",kind:"longtext",layer:"intelligence",importance:"important",maxLength:600,when:[
+{slot:"basis",equals:"edit"}],label:c("What changes","التغيير المطلوب"),question:c("What exactly should change?","إيه بالظبط اللي يتغيّر؟"),why:c(
+"Only this changes — everything else stays.","ده بس اللي هيتغيّر، والباقي يفضل زي ما هو."),example:c("Swap the background for a sunny beach and m\
+ake the colours warmer.","غيّر الخلفية لشط مشمس وخلّي الألوان أدفى."),vocabulary:{en:["background","colours","lighting","text","season","add an el\
+ement","remove an element","style"],ar:["الخلفية","الألوان","الإضاءة","الكلام","الموسم","إضافة عنصر","شيل عنصر","الستايل"]}},
+referenceFor=(slot,fixed)=>({...slot,importance:fixed?"important":"nice",raise:fixed?void 0:{when:[{slot:"basis",equals:EXISTING}],importance:"important"},question:c("Do you have a\
+ photo to upload? If it builds on something you have, upload that thing itself (logo, product, past design).","معاك صورة ترفعها؟ لو مربوط بحاجة عندك، ارفع الحاجة نفسها (اللوجو، الم\
+نتج، التصميم القديم)."),why:c("With the real thing in front of it, the tool copies what exists instead of guessing. I read the photo and use what I see.","لما الأد\
+اة تشوف الحاجة الحقيقية بتنقلها بدل ما تخمّن. وأنا هقرا الصورة وأستخدم اللي فيها في البرومبت."),example:c(
+"One clear photo on a plain background beats several busy ones.","صورة واحدة واضحة على خلفية سادة أحسن من كذا صورة زحمة."),options:[{value:"\
+yes",label:c("Yes — I will upload it now","أيوه، هرفعها دلوقتي"),keywords:["reference","my photo","عندي صورة","معايا صورة","مرجع"]},{value:"\
+no",label:c("No, I will describe it in words","لأ، هوصفه بالكلام")}],defaults:fixed?[]:[{when:[{slot:"basis",equals:"new"}],value:"no",reason:c("New piece — describe\
+d in words. Upload one any time with the photo button.","حاجة جديدة، هنوصفها بالكلام. وتقدر ترفع صورة في أي وقت من زرار الصورة.")}]}),
+REF_NOTES={universal:"Reference: upload the image in the same message as the prompt and say how to use it (style only / keep this subject / edit this image).",midjourney:"Reference\
+: style inspiration = drag the image into the prompt bar and choose Style Reference (--sref); the existing product/character/logo = Omni Reference (--oref) with --ow 100–400; edit \
+= open the image in the Editor and repaint only the area to change.",chatgpt:'Reference: attach the image with the + button in the same message; start the prompt with "Using the at\
+tached image as…"; for edits say "keep everything else exactly the same".',flux:"Reference: use Flux Kontext for anything built on an existing image — upload it and describe only\
+ the change; plain Flux takes it as an image prompt for style.",firefly:"Reference: Style reference for look and colours, Composition reference for layout; edits go through Generat\
+ive Fill on the uploaded image.",ideogram:"Reference: upload under Remix (keeps layout/subject, set image weight high to stay close) or as a Style reference.",gemini:'Reference: up\
+load the image in the Gemini app with the prompt; for edits say "edit this image: change only …, keep everything else".',veo:"Reference: use Ingredients/Frames to video — upload \
+the image as the first frame or as an ingredient so the subject stays identical.",sora:"Reference: upload the image to start the video from it (image-to-video); describe only motio\
+n and camera.",kling:"Reference: Image to Video — upload the image as the start frame; Elements keeps a product/character consistent.",runway:"Reference: upload the image as the \
+first frame (Gen-4 image to video) or as a References image to keep the subject identical.",hailuo:"Reference: Image to Video — upload the image as the first frame; describe only m\
+otion."},withRefNotes=tools=>tools.map(t2=>({...t2,notes:REF_NOTES[t2.id]?`${t2.notes} ${REF_NOTES[t2.id]}`:t2.notes})),RULES={understanding:["basis says what this builds on: new =\
+ free direction; existing = it must belong to something the user already has (their brand, product, a past design, a series); edit = a change to an image the user has.","brief.refe\
+rences are what we read in the photos the user uploaded: treat them as ground truth for how the existing thing looks (shape, colours, materials, label, character) and reuse those c\
+oncrete details."],intelligence:["basis = existing: create only what is new (the subject of this piece) inside the existing identity; reuse its colours, type, shapes and look descr\
+ibed in keep and references instead of inventing a new style.",'basis = edit: write the prompt as an edit of the provided original: open with "Using the provided image as the base"\
+, state change as the only change, then "keep everything else exactly the same".'],control:['Every item in keep is a hard rule: restate it explicitly in the prompt as something to \
+preserve exactly (e.g. "keep the exact logo, colours and bottle shape from the reference").'],delivery:["referenceGuide: when reference = yes or basis is existing/edit, 3–5 short n\
+umbered steps in the user language (Egyptian Arabic for ar): which image to upload and how clear it should be, where to attach it in the chosen tool (or the two main tools when uni\
+versal) following the tool notes, which reference mode to pick (style inspiration for new, keep the subject for existing, edit for edit), and the opening line the prompt already us\
+es for it. Otherwise return [].",'When reference = yes or basis is existing/edit, every variant opens with how to use the reference (e.g. "Using the attached image as the product r\
+eference, …").']};function withBasis(bp){let ref=bp.slots.find(s=>s.id==="reference");if(!ref||bp.slots.some(s=>s.id==="basis"))return bp;let fixed=bp.id==="photo-retouch",slots=bp.
+slots.filter(s=>s.id!=="reference"),first=slots.findIndex(s=>s.importance==="critical"),insertAt=first>=0?first+1:0,added=fixed?[basis("edit"),keep]:[basis(),keep,change];slots.splice(
+insertAt,0,...added),slots.push(referenceFor(ref,fixed));let gates=[...bp.gates,{id:"reference-guide",kind:"filled-when",field:"referenceGuide",whenAny:[{slot:"reference",equals:"y\
+es"},{slot:"basis",equals:EXISTING}],message:c("Steps to attach your reference in the tool","خطوات تحط المرجع في الأداة")}];return{...bp,version:bp.version+1,
+questionBudget:bp.questionBudget+1,slots,output:{...bp.output,fields:[...bp.output.fields,{path:"referenceGuide",type:"string[]",required:!1,description:"How to attach the referenc\
+e in the tool, user language; [] when none."}]},gates,tools:withRefNotes(bp.tools),strategy:{understanding:[...bp.strategy.understanding,...RULES.understanding],intelligence:[...bp.
+strategy.intelligence,...RULES.intelligence],control:[...bp.strategy.control,...RULES.control],delivery:[...bp.strategy.delivery,...RULES.delivery]}}}function withCoverage(bp){if(!bp.
+output.fields.find(f=>f.path==="prompt"&&f.type==="string")||bp.gates.some(g=>g.kind==="coverage"))return bp;let slots=bp.slots.filter(s=>s.kind!=="exact"&&!s.role&&s.layer!=="deli\
+very"&&!["reference","basis","avoid","tool"].includes(s.id)).map(s=>s.id);return slots.length?{...bp,output:{...bp.output,fields:[...bp.output.fields,{path:"coverage",type:"record",
+required:!1,description:"slot id → the exact phrase copied from prompt that realises what the user gave for it (only user-given slots)."}]},gates:[...bp.gates,{id:"coverage",kind:"\
+coverage",slots,field:"prompt",map:"coverage",message:c("Every detail you gave is in the prompt","كل تفصيلة قلتها موجودة في البرومبت")}]}:bp}var usable=bp=>!!bp&&typeof bp=="object"&&typeof bp.id=="string"&&typeof bp.role=="string"&&!!bp.strategy&&Array.isArray(bp.gates);function privateBlueprints(supabaseUrl,serviceKey,transport=fetch,ttlMs=5*
 6e4,now=()=>Date.now()){let cache=null,inflight=null,load=async()=>{if(!supabaseUrl||!serviceKey)throw new Error("blueprints_unconfigured");return await bounded(async signal=>{let res=await transport(
 `${supabaseUrl}/rest/v1/lookers_engine_blueprints?id=eq.current&select=payload,count`,{headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,Accept:"application/json"},signal,
 redirect:"error"});if(!res.ok)throw new Error("blueprints_unavailable");let rows=await res.json(),row=Array.isArray(rows)?rows[0]:void 0;if(!row||!Array.isArray(row.payload)||row.payload.
-length===0)throw new Error("blueprints_missing");if(!row.payload.every(usable))throw new Error("blueprints_malformed");let list=row.payload;return new Map(list.map(bp=>[bp.id,bp]))},
-8e3)};return async id=>{if(cache&&now()-cache.at<ttlMs)return cache.byId.get(id);inflight||(inflight=load().then(byId=>(cache={at:now(),byId},byId)).finally(()=>{inflight=null}));try{
-return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??""),route=routeFromEnv(env),vision=visionFromEnv(env);console.
+length===0)throw new Error("blueprints_missing");if(!row.payload.every(usable))throw new Error("blueprints_malformed");let list=row.payload.map(withBasis).map(withCoverage);return new Map(
+list.map(bp=>[bp.id,bp]))},8e3)};return async id=>{if(cache&&now()-cache.at<ttlMs)return cache.byId.get(id);inflight||(inflight=load().then(byId=>(cache={at:now(),byId},byId)).finally(
+()=>{inflight=null}));try{return(await inflight).get(id)}catch(error){if(cache)return cache.byId.get(id);throw error}}}var env=name=>Deno.env.get(name),blueprints=privateBlueprints(env("SUPABASE_URL")??"",env("SUPABASE_SERVICE_ROLE_KEY")??""),route=routeFromEnv(env),vision=visionFromEnv(env);console.
 log("engine route",{...route.plan,describe:vision?.id??"none",geminiKeyName:route.geminiKeyName});Deno.serve(createEngineHandler({env,model:route,vision,blueprints}));
