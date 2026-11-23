@@ -69,6 +69,8 @@ export interface Slot {
   defaults?: SlotDefault[];
   /** Slot only exists when these hold. */
   when?: Condition[];
+  /** Importance rises to this when the conditions hold (e.g. a reference becomes needed for an edit). */
+  raise?: { when: Condition[]; importance: Importance };
   /** Vocabulary for live suggestion chips while typing. */
   vocabulary?: { en: string[]; ar: string[] };
   maxLength?: number;
@@ -100,7 +102,11 @@ export type Gate =
   /** Every number (≥ 21, or with %, $, K, M…) must come from what the user wrote. */
   | { id: string; kind: 'no-invented-numbers'; fields: string[]; message: Copy }
   | { id: string; kind: 'array-length'; slot: string; field: string; message: Copy }
-  | { id: string; kind: 'includes-when'; when: Condition[]; field: string; anyOf: string[]; message: Copy };
+  | { id: string; kind: 'includes-when'; when: Condition[]; field: string; anyOf: string[]; message: Copy }
+  /** Field must be a non-empty list when any of the conditions holds. */
+  | { id: string; kind: 'filled-when'; whenAny: Condition[]; field: string; message: Copy }
+  /** Every detail the user gave for these slots is realised in `field`: `map[slot]` is a phrase copied from it. */
+  | { id: string; kind: 'coverage'; slots: string[]; field: string; map: string; message: Copy };
 
 export interface ToolTarget { id: string; label: string; notes: string }
 
@@ -146,6 +152,8 @@ export interface Session {
   phase: Phase;
   idea?: string;
   values: Record<string, SlotValue>;
+  /** What we read in the reference photos the user uploaded (max 3). Ground truth for compose. */
+  references?: string[];
   asked: string[];
   revision: number;
 }

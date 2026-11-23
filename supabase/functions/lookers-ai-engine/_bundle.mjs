@@ -51,10 +51,17 @@ ceptance checks.",ar:"شكل الناتج، والأداة المستهدفة، 
 en:"A ready-to-paste result that fits the tool and passes the checks.",ar:"نتيجة جاهزة للنسخ، مناسبة للأداة، وعدّت الفحوصات."},heading:"4 \
 · DELIVERY — what to return"}},LAYER_ORDER=["understanding","intelligence","control","delivery"],GLOBAL={understanding:['The brief arrives as JSON. "values" holds slot values; e\
 ach has verbatim (copy exactly), assumed (an accepted default, not a user fact) and label (readable meaning).',"Use only the brief. Never invent names, prices, numbers, claims, tes\
-timonials, statistics or text."],intelligence:["Make the expert choices the user did not make, guided by the strategy below. Prefer concrete, sensory, specific wording over generic\
- adjectives."],control:["Verbatim values must be copied character for character, including letter case. Never translate, respell or shorten them.","Where a fact is missing, write a\
- clear placeholder in square brackets (e.g. [revenue]) instead of inventing it.","Execution metadata (target tool, aspect ratio, duration, model settings) goes in params/variants, \
-never inside a scene description."],delivery:["Return one JSON object that matches the contract exactly. No markdown fences, no extra keys."]};function compileSystemPrompt(blueprint,session){
+timonials, statistics or text.",`A value the user gave (assumed = false) carries "asked": the question it answers. Read the answer in that context; it is the user's own decision an\
+d outranks any default or house style.`,"brief.references, when present, describe photos the user uploaded: real facts about what exists (shapes, colours, materials, text on it). U\
+se their concrete details and never contradict them."],intelligence:["Make the expert choices the user did not make, guided by the strategy below. Prefer concrete, sensory, specifi\
+c wording over generic adjectives.","Every detail the user gave must visibly shape the result: turn it into specific decisions (what is seen, where, in which colour, material, ligh\
+t, order or tone), never a passing mention or a vague echo of their words.","Expand each chosen option into 3–5 concrete craft decisions a specialist would write (for visuals: subj\
+ect details, composition and framing, camera/lens, light, named colour palette, materials and textures, mood; for text: structure, sections, tone devices, examples, length).",'No f\
+iller: words like "stunning", "high quality", "beautiful", "professional", "amazing", "8k" add nothing — replace each with the specific thing that makes it so.'],control:["Verbat\
+im values must be copied character for character, including letter case. Never translate, respell or shorten them.","Where a fact is missing, write a clear placeholder in square br\
+ackets (e.g. [revenue]) instead of inventing it.","Execution metadata (target tool, aspect ratio, duration, model settings) goes in params/variants, never inside a scene descriptio\
+n."],delivery:["Return one JSON object that matches the contract exactly. No markdown fences, no extra keys.","If the contract has coverage: for every value with assumed = false th\
+at is not verbatim, coverage[slotId] = a short phrase (3–12 words) copied character for character from prompt that carries that detail. Do not list assumed values."]};function compileSystemPrompt(blueprint,session){
 let empty=session?blueprint.slots.filter(s=>session.values[s.id]?.value===NONE).map(s=>s.id):[],parts=[`ROLE: ${blueprint.role}`];for(let layer of LAYER_ORDER){let rules=[...GLOBAL[layer],
 ...blueprint.strategy[layer]];layer==="control"&&empty.length&&rules.push(`These were deliberately left empty, do not fill them: ${empty.join(", ")}.`),layer==="delivery"&&(rules.push(
 "Contract fields: "+blueprint.output.fields.map(f=>`${f.path} (${f.type}${f.required?", required":""}${f.maxLength?`, ≤${f.maxLength} chars`:""}): ${f.description}`).join(" | ")),
@@ -69,9 +76,10 @@ Bad: ${ex.bad}
 Why: ${ex.why}`);return parts.join(`
 `)}function buildComposeRequest(blueprint,session){if(session.phase!=="confirmed")throw new Error("brief_not_confirmed");let values={};for(let[id,v]of Object.entries(session.values)){
 if(v.value===NONE)continue;let slot=blueprint.slots.find(s=>s.id===id);if(!slot)continue;let labelOf=x=>slot.options?.find(o=>o.value===x)?.label.en??x;values[id]={value:v.value,label:slot.
-options?Array.isArray(v.value)?v.value.map(labelOf):labelOf(v.value):void 0,verbatim:slot.kind==="exact",assumed:v.source==="default"}}let system=compileSystemPrompt(blueprint,session);
-return{blueprintId:blueprint.id,blueprintVersion:blueprint.version,language:session.lang,system,brief:{idea:session.idea??"",values},contract:blueprint.output.fields,tools:blueprint.
-tools}}function repairInstruction(report2){let failed=report2.results.filter(r=>!r.ok);return failed.length?`Fix only these problems and return the full JSON again:
+options?Array.isArray(v.value)?v.value.map(labelOf):labelOf(v.value):void 0,asked:v.source==="default"?void 0:slot.question.en,verbatim:slot.kind==="exact",assumed:v.source==="defa\
+ult"}}let system=compileSystemPrompt(blueprint,session);return{blueprintId:blueprint.id,blueprintVersion:blueprint.version,language:session.lang,system,brief:{idea:session.idea??"",
+...session.references?.length?{references:session.references}:{},values},contract:blueprint.output.fields,tools:blueprint.tools}}function repairInstruction(report2){let failed=report2.
+results.filter(r=>!r.ok);return failed.length?`Fix only these problems and return the full JSON again:
 `+failed.map(r=>`- ${r.id}: ${r.detail??r.message}`).join(`
 `):null}function readPath(output,path){let parts=path.split("."),current=[output];for(let part of parts)current=current.flatMap(node=>!node||typeof node!="object"?[]:part==="*"?Object.values(
 node):part in node?[node[part]]:[]);return current}var strings=(output,paths)=>paths.flatMap(p=>readPath(output,p)).flatMap(v=>Array.isArray(v)?v:[v]).filter(v=>typeof v=="string");
@@ -99,13 +107,19 @@ numbersIn).filter(n=>n.significant&&!known.has(n.value)).map(n=>n.raw);results.p
 field)[0],n=Array.isArray(found)?found.length:-1;results.push({id:gate.id,ok:n===want,message,detail:n===want?void 0:`expected ${want}, got ${n}`})}else if(gate.kind==="includes-wh\
 en"){if(!gate.when.every(c=>{let v=slotValue(c.slot),wanted=c.equals===void 0?[]:Array.isArray(c.equals)?c.equals:[c.equals];return Array.isArray(v)?v.some(x=>wanted.includes(x)):typeof v==
 "string"&&wanted.includes(v)}))continue;let text=strings(out,[gate.field]).join(" ").toLowerCase(),hit=gate.anyOf.some(term=>text.includes(term.toLowerCase()));results.push({id:gate.
-id,ok:hit,message,detail:hit?void 0:`missing any of: ${gate.anyOf.join(" / ")}`})}else if(gate.kind==="latin-ratio"){let text=strings(out,[gate.field]).join(" ");for(let id of gate.
-exceptSlots){let v=slotValue(id);typeof v=="string"&&v!==NONE&&(text=text.split(v).join(" "))}let letters=[...text].filter(c=>/\p{L}/u.test(c)),latin=letters.filter(c=>/\p{Script=Latin}/u.
-test(c)).length,ratio=letters.length?latin/letters.length:1;results.push({id:gate.id,ok:ratio>=gate.min,message,detail:ratio>=gate.min?void 0:`latin ratio ${ratio.toFixed(2)}`})}}return report(
-results)}function numbersIn(text){let clean=text.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/\d+\s*:\s*\d+/g," ").replace(/\[[^\]]*\]/g," "),out=[];for(let m of clean.
-matchAll(/([$€£]\s?)?(\d[\d,]*(?:\.\d+)?)\s*(%|٪|[kKmMbB](?![a-zA-Z])|ألف|مليون|مليار)?/g)){let value=m[2].replace(/,/g,""),num=Number(value),unit=!!(m[1]||m[3]),year=!unit&&
-/^(19|20)\d\d$/.test(value);out.push({raw:m[0].trim(),value,significant:!year&&(unit||num>=21)})}return out}function report(results){let passed=results.filter(r=>r.ok).length;return{
-passed,total:results.length,ok:passed===results.length,results}}function slotCatalogue(bp){return bp.slots.map(s=>{let opts=s.options?` options=[${s.options.map(o=>`${o.value} (${o.label.en})`).join(", ")}]`:"",kind=s.kind==="exact"?"exact (cop\
+id,ok:hit,message,detail:hit?void 0:`missing any of: ${gate.anyOf.join(" / ")}`})}else if(gate.kind==="filled-when"){if(!gate.whenAny.some(c=>{let v=slotValue(c.slot),wanted=c.equals===
+void 0?[]:Array.isArray(c.equals)?c.equals:[c.equals];return Array.isArray(v)?v.some(x=>wanted.includes(x)):typeof v=="string"&&wanted.includes(v)}))continue;let found=readPath(out,
+gate.field)[0],ok=Array.isArray(found)&&found.filter(x=>typeof x=="string"&&x.trim()).length>=2;results.push({id:gate.id,ok,message,detail:ok?void 0:`${gate.field} must list the st\
+eps`})}else if(gate.kind==="coverage"){let given=gate.slots.filter(id=>{let v=session.values[id];return v&&v.source!=="default"&&v.value!==NONE&&(Array.isArray(v.value)?v.value.length>
+0:v.value.trim().length>0)});if(!given.length)continue;let flat=x=>x.toLowerCase().replace(/\s+/g," ").trim(),text=flat(strings(out,[gate.field]).join(" ")),map=readPath(out,gate.map)[0]??
+{},missing=given.filter(id=>{let phrase=typeof map[id]=="string"?flat(map[id]):"";return phrase.length<3||!text.includes(phrase)});results.push({id:gate.id,ok:missing.length===0,message,
+detail:missing.length?`not realised in ${gate.field} (give each a phrase copied from it): ${missing.join(", ")}`:void 0})}else if(gate.kind==="latin-ratio"){let text=strings(out,[gate.
+field]).join(" ");for(let id of gate.exceptSlots){let v=slotValue(id);typeof v=="string"&&v!==NONE&&(text=text.split(v).join(" "))}let letters=[...text].filter(c=>/\p{L}/u.test(c)),
+latin=letters.filter(c=>/\p{Script=Latin}/u.test(c)).length,ratio=letters.length?latin/letters.length:1;results.push({id:gate.id,ok:ratio>=gate.min,message,detail:ratio>=gate.min?void 0:
+`latin ratio ${ratio.toFixed(2)}`})}}return report(results)}function numbersIn(text){let clean=text.replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/\d+\s*:\s*\d+/g,
+" ").replace(/\[[^\]]*\]/g," "),out=[];for(let m of clean.matchAll(/([$€£]\s?)?(\d[\d,]*(?:\.\d+)?)\s*(%|٪|[kKmMbB](?![a-zA-Z])|ألف|مليون|مليار)?/g)){let value=m[2].
+replace(/,/g,""),num=Number(value),unit=!!(m[1]||m[3]),year=!unit&&/^(19|20)\d\d$/.test(value);out.push({raw:m[0].trim(),value,significant:!year&&(unit||num>=21)})}return out}function report(results){
+let passed=results.filter(r=>r.ok).length;return{passed,total:results.length,ok:passed===results.length,results}}function slotCatalogue(bp){return bp.slots.map(s=>{let opts=s.options?` options=[${s.options.map(o=>`${o.value} (${o.label.en})`).join(", ")}]`:"",kind=s.kind==="exact"?"exact (cop\
 y verbatim from the text, keep case)":s.kind;return`- ${s.id}: ${kind}; ${LAYERS[s.layer].name.en}; ${s.question.en}${opts}`}).join(`
 `)}async function extract(model,bp,text,signal){let system=[`You extract facts for a "${bp.title.en}" brief from the user's message. Arabic or English.`,'Return JSON: {"candidates"\
 :[{"slot":"<id>","value":"<value or option id or array of option ids>","evidence":"<exact words copied from the message>"}]}',"Only include a slot when the message clearly states i\
@@ -123,10 +137,11 @@ s.blueprintId):void 0;if(!bp)return{error:"unknown_blueprint"};if(s.blueprintVer
 med"};if(s.lang!=="ar"&&s.lang!=="en")return{error:"invalid_session"};if(!s.values||typeof s.values!="object")return{error:"invalid_session"};let values={};for(let slot of bp.slots){
 let v=s.values[slot.id];if(!v)continue;let value=v.value===NONE?NONE:validValue2(slot,v.value);if(value===null)return{error:"invalid_session"};values[slot.id]={value,source:v.source===
 "default"?"default":v.source==="extracted"?"extracted":"user"}}if(bp.slots.some(slot=>slot.importance==="critical"&&!values[slot.id]))return{error:"invalid_session"};let idea=typeof s.
-idea=="string"?s.idea.slice(0,4e3):"";return{bp,session:{id:String(s.id??"").slice(0,64),blueprintId:bp.id,blueprintVersion:bp.version,lang:s.lang,phase:"confirmed",idea,values,asked:[],
-revision:Number(s.revision)||0}}}async function compose(model,bp,session,signal){let request=buildComposeRequest(bp,session),user=JSON.stringify({brief:request.brief,tools:request.
-tools.map(t2=>t2.id)}),{json,modelId}=await model.complete({system:request.system,user,maxTokens:4e3,signal}),report2=runGates(bp,session,json),attempts=1,fix=repairInstruction(report2);
-if(fix){let repaired=await model.complete({system:request.system,user:`${user}
+idea=="string"?s.idea.slice(0,4e3):"",references=Array.isArray(s.references)?s.references.filter(r=>typeof r=="string"&&r.trim().length>0).slice(0,3).map(r=>r.slice(0,1500)):[];return{
+bp,session:{id:String(s.id??"").slice(0,64),blueprintId:bp.id,blueprintVersion:bp.version,lang:s.lang,phase:"confirmed",idea,values,...references.length?{references}:{},asked:[],revision:Number(
+s.revision)||0}}}async function compose(model,bp,session,signal){let request=buildComposeRequest(bp,session),user=JSON.stringify({brief:request.brief,tools:request.tools.map(t2=>t2.
+id)}),{json,modelId}=await model.complete({system:request.system,user,maxTokens:4e3,signal}),report2=runGates(bp,session,json),attempts=1,fix=repairInstruction(report2);if(fix){let repaired=await model.
+complete({system:request.system,user:`${user}
 
 Your previous answer:
 ${JSON.stringify(json).slice(0,12e3)}

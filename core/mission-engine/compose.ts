@@ -7,7 +7,7 @@ export interface ComposeRequest {
   blueprintVersion: number;
   language: Session['lang'];
   system: string;
-  brief: { idea: string; values: Record<string, { value: string | string[]; label?: string | string[]; verbatim: boolean; assumed: boolean }> };
+  brief: { idea: string; references?: string[]; values: Record<string, { value: string | string[]; label?: string | string[]; asked?: string; verbatim: boolean; assumed: boolean }> };
   contract: Blueprint['output']['fields'];
   tools: Blueprint['tools'];
 }
@@ -24,12 +24,13 @@ export function buildComposeRequest(blueprint: Blueprint, session: Session): Com
     values[id] = {
       value: v.value,
       label: slot.options ? (Array.isArray(v.value) ? v.value.map(labelOf) : labelOf(v.value)) : undefined,
+      asked: v.source === 'default' ? undefined : slot.question.en,
       verbatim: slot.kind === 'exact',
       assumed: v.source === 'default',
     };
   }
   const system = compileSystemPrompt(blueprint, session);
-  return { blueprintId: blueprint.id, blueprintVersion: blueprint.version, language: session.lang, system, brief: { idea: session.idea ?? '', values }, contract: blueprint.output.fields, tools: blueprint.tools };
+  return { blueprintId: blueprint.id, blueprintVersion: blueprint.version, language: session.lang, system, brief: { idea: session.idea ?? '', ...(session.references?.length ? { references: session.references } : {}), values }, contract: blueprint.output.fields, tools: blueprint.tools };
 }
 
 /** One targeted repair instruction from failed gates (the server retries once). */

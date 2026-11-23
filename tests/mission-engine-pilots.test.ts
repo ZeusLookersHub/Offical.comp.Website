@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   answer, blueprintById, blueprintForTopic, blueprints, compileSystemPrompt, confirmBrief, createSession, listResources,
-  nextStep, plannedQuestions, runGates, submitIntake, type Blueprint, type Session,
+  buildComposeRequest, nextStep, plannedQuestions, runGates, submitIntake, type Blueprint, type Session,
 } from '../core/mission-engine/index.ts';
 
 const ok = <T>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
@@ -44,7 +44,8 @@ test('business strategy: few questions, phased plan, invented numbers caught', (
   assert.equal(s.values.horizon?.value, '90-day');
   const base = {
     title: 'استراتيجية نمو Smile', sections: { goal: 'g', approach: 'a', rules: 'r', output: 'o' },
-    prompt: 'Objective for "Smile": lift bookings in 90 days. Right-to-left layout. Fix booking funnel first.',
+    prompt: 'Objective for "Smile", a dental clinic in Cairo earning from check-ups and treatment: lift bookings in 90 days. Right-to-left layout. Fix booking funnel first.',
+    coverage: { company: 'a dental clinic in Cairo', goal: 'lift bookings in 90 days', horizon: 'in 90 days' },
     planOutline: ['المرحلة 1: تحسين صفحة الحجز — معدل التحويل'], missingData: ['عدد الحجوزات الحالي'],
     variants: { universal: 'Growth plan for "Smile"' }, checklist: ['a', 'b', 'c', 'd'], summary: 's',
   };
@@ -83,8 +84,8 @@ test('video: one rich Arabic sentence → one question; defaults follow usage an
   assert.equal(s.values.style?.value, 'clean-turntable');
   assert.equal(s.values.usage?.value, 'reel');
   assert.equal(s.values.brandName?.value, 'NIKE');
-  const { session, asked } = walk(v, s, { product: 'كوتشي جري أبيض بنعل برتقاني' });
-  assert.deepEqual(asked, ['product']);
+  const { session, asked } = walk(v, s, { product: 'كوتشي جري أبيض بنعل برتقاني', basis: 'new' });
+  assert.deepEqual(asked, ['product', 'basis'], 'the subject, then whether it builds on something that exists');
   assert.equal(session.values.ratio?.value, '9:16');
   assert.equal(session.values.camera?.value, 'static', 'turntable keeps the camera still');
   s = ok(answer(session, v, 'audio', 'voiceover'));
@@ -104,7 +105,8 @@ test('pitch deck: invented numbers and wrong slide count are caught', () => {
   const outline = Array.from({ length: 12 }, (_, i) => `Slide ${i + 1}`);
   const good = {
     title: 'عرض Shefaa', sections: { goal: 'g', approach: 'a', rules: 'r', output: 'o' },
-    prompt: 'Goal: pitch "Shefaa" to VC funds. Proof: 40 paying clinics, 18% monthly growth. Market size: [market size + source]. Layout right-to-left.',
+    prompt: 'Goal: pitch "Shefaa", a SaaS clinic management system sold as a monthly subscription, at seed stage to VC funds. Proof: 40 paying clinics, 18% monthly growth. Market size: [market size + source]. Layout right-to-left.',
+    coverage: { company: 'a SaaS clinic management system', traction: '40 paying clinics, 18% monthly growth', stage: 'at seed stage' },
     slideOutline: outline, missingData: ['حجم السوق ومصدره'], variants: { universal: 'Pitch for "Shefaa", 40 paying clinics.' },
     checklist: ['a', 'b', 'c', 'd'], summary: 's',
   };
@@ -126,7 +128,8 @@ test('landing page: asks offer, action, visitors, brand — and wires WhatsApp p
   s = ok(confirmBrief(walked.session, l));
   const out = {
     title: 't', sections: { goal: 'g', approach: 'a', rules: 'r', output: 'o' },
-    prompt: 'Build a mobile-first page for "Smile Lab". Button opens https://wa.me/[clinic phone].',
+    prompt: 'Build a mobile-first page for "Smile Lab" selling teeth whitening in one session to adults in Cairo, in a clean, trustworthy look. Button opens https://wa.me/[clinic phone].',
+    coverage: { offer: 'teeth whitening in one session', audience: 'adults in Cairo', cta: 'https://wa.me/[clinic phone]', pageStyle: 'a clean, trustworthy look' },
     pageOutline: ['Hero — a whiter smile in one visit'], missingData: ['clinic phone'], variants: { universal: 'Page for "Smile Lab"' }, checklist: ['a', 'b', 'c', 'd'], summary: 's',
   };
   assert.equal(runGates(l, s, out).ok, true, JSON.stringify(runGates(l, s, out).results.filter(r => !r.ok)));
@@ -184,4 +187,45 @@ test('every built mission is reachable from the planets page', async () => {
   for (const world of worlds) for (const task of world.tasks) reachable.add(String(missionSelection(world.id, task[0]).answers.topicId));
   const orphans = blueprints.filter(bp => !bp.topics.some(topic => reachable.has(topic))).map(bp => bp.id);
   assert.deepEqual(orphans, [], 'missions with no door on the planets page');
+});
+
+test('built on something existing: asks what stays, needs the reference, and the result must say how to attach it', () => {
+  const d = blueprintById('social-post-design')!;
+  let s = ok(submitIntake(createSession(d, 'ar', 'b1'), d, 'بوست خصم ٢٠٪ على الجواكت لبراندي، نفس الستايل بتاعنا'));
+  assert.equal(s.values.basis?.value, 'existing', 'the user words select "existing"');
+  const { session, asked } = walk(d, s, { subject: 'خصم ٢٠٪ على كل الجواكت', keep: 'اللوجو الدهبي واللون الأخضر الغامق', reference: 'yes', style: 'bold-type', usage: 'ig-post', brandName: 'GREENLEAF', exactText: 'NONE' });
+  assert.ok(asked.includes('keep') && asked.includes('reference'), asked.join(','));
+  assert.ok(!asked.includes('change'), 'change is only for edits');
+  s = ok(confirmBrief({ ...session, references: ['Dark green square logo with a gold leaf mark.'] }, d));
+  const req = buildComposeRequest(d, s);
+  assert.deepEqual(req.brief.references, ['Dark green square logo with a gold leaf mark.']);
+  assert.match(String(req.brief.values.keep?.asked), /stay exactly/);
+  assert.match(req.system, /basis = existing/);
+  const out = {
+    title: 't', prompt: 'Using the attached image as the brand reference, bold typographic post: keep the exact gold logo and the dark green colour, huge headline, clean grid, "GREENLEAF" lockup in a corner.',
+    negative: 'other brands, watermark, text, letters', params: { aspectRatio: '4:5' }, textOverlay: { mode: 'none' }, variants: { universal: 'Post for "GREENLEAF"' }, checklist: ['a', 'b', 'c', 'd'], summary: 's',
+    coverage: { keep: 'keep the exact gold logo and the dark green colour', subject: 'huge headline', style: 'bold typographic post', usage: 'clean grid' },
+  };
+  const missingGuide = runGates(d, s, out);
+  assert.equal(missingGuide.results.find(r => r.id === 'reference-guide')!.ok, false);
+  const withGuide = runGates(d, s, { ...out, referenceGuide: ['ارفع اللوجو', 'في ChatGPT دوس + وارفعها مع البرومبت'] });
+  assert.equal(withGuide.results.find(r => r.id === 'reference-guide')!.ok, true);
+  const vague = runGates(d, s, { ...out, referenceGuide: ['a', 'b'], coverage: { ...out.coverage, keep: 'brand colours preserved' } });
+  const cov = vague.results.find(r => r.id === 'coverage')!;
+  assert.equal(cov.ok, false);
+  assert.match(cov.detail!, /keep/);
+});
+
+test('a new piece skips the reference question and the guide', () => {
+  const d = blueprintById('poster-design')!;
+  const s = ok(submitIntake(createSession(d, 'en', 'b2'), d, 'A brand new poster for a jazz night'));
+  assert.equal(plannedQuestions(s, d).some(q => q.id === 'reference' || q.id === 'keep'), false);
+});
+
+test('edits ask what changes and cannot skip what the edit is built on', () => {
+  const d = blueprintById('illustration')!;
+  const s = ok(submitIntake(createSession(d, 'en', 'b3'), d, 'I want to edit my illustration of a fox'));
+  assert.equal(s.values.basis?.value, 'edit');
+  const ids = plannedQuestions(s, d).map(q => q.id);
+  assert.ok(ids.includes('keep') && ids.includes('change') && ids.includes('reference'), ids.join(','));
 });

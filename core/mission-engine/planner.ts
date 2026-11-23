@@ -37,6 +37,11 @@ export function effectiveValues(session: Session, blueprint: Blueprint): Record<
   return values;
 }
 
+/** The slot's importance given the current values (see Slot.raise). */
+export function importanceOf(slot: Slot, values: Record<string, SlotValue>) {
+  return slot.raise && allMatch(slot.raise.when, values) ? slot.raise.importance : slot.importance;
+}
+
 export function relevantSlots(blueprint: Blueprint, values: Record<string, SlotValue>): Slot[] {
   return blueprint.slots.filter(slot => allMatch(slot.when, values));
 }
@@ -48,10 +53,11 @@ export function plannedQuestions(session: Session, blueprint: Blueprint): Slot[]
   for (const slot of relevantSlots(blueprint, values)) {
     if (filled(session.values[slot.id])) continue;
     const hasDefault = !!resolveDefault(slot, values);
-    const askedOptional = session.asked.filter(id => blueprint.slots.find(s => s.id === id)?.importance !== 'critical').length;
-    const budgetLeft = blueprint.questionBudget - askedOptional - queue.filter(s => s.importance !== 'critical').length;
-    if (slot.importance === 'critical' && !hasDefault) queue.push(slot);
-    else if (slot.importance === 'important' && (!hasDefault || budgetLeft > 0)) queue.push(slot);
+    const level = (x: Slot) => importanceOf(x, values);
+    const askedOptional = session.asked.filter(id => { const x = blueprint.slots.find(s => s.id === id); return x && level(x) !== 'critical'; }).length;
+    const budgetLeft = blueprint.questionBudget - askedOptional - queue.filter(s => level(s) !== 'critical').length;
+    if (level(slot) === 'critical' && !hasDefault) queue.push(slot);
+    else if (level(slot) === 'important' && (!hasDefault || budgetLeft > 0)) queue.push(slot);
   }
   return queue;
 }
@@ -112,8 +118,8 @@ export function answer(session: Session, blueprint: Blueprint, slotId: string, r
 export function skip(session: Session, blueprint: Blueprint, slotId: string): EngineResult<Session> {
   const slot = blueprint.slots.find(s => s.id === slotId);
   if (!slot || session.phase !== 'questions') return { ok: false, error: 'unknown_slot' };
-  if (slot.importance === 'critical') return { ok: false, error: 'required' };
   const values = effectiveValues(session, blueprint);
+  if (importanceOf(slot, values) === 'critical') return { ok: false, error: 'required' };
   const d = resolveDefault(slot, values);
   const assumed: SlotValue = d ? { value: d.value === '@lang' ? session.lang : d.value, source: 'default', reason: d.reason }
     : { value: NONE, source: 'default', reason: { en: 'You skipped this.', ar: 'اتخطيت السؤال ده.' } };
@@ -140,8 +146,8 @@ export function nextStep(session: Session, blueprint: Blueprint): Step {
       why: t(slot.why, lang),
       example: t(slot.example, lang),
       options: slot.options?.map(o => ({ value: o.value, label: t(o.label, lang), description: o.visual ? t(o.visual.description, lang) : undefined, media: o.visual?.media, asset: o.visual?.asset })),
-      canSkip: slot.importance !== 'critical',
-      skipLabel: slot.importance !== 'critical' ? t({ en: 'Skip · use the best default', ar: 'تخطّى · اختارلي الأنسب' }, lang) : undefined,
+      canSkip: importanceOf(slot, effectiveValues(session, blueprint)) !== 'critical',
+      skipLabel: importanceOf(slot, effectiveValues(session, blueprint)) !== 'critical' ? t({ en: 'Skip · use the best default', ar: 'تخطّى · اختارلي الأنسب' }, lang) : undefined,
       suggestions: suggest(blueprint, slot.id, '', session),
     },
   };

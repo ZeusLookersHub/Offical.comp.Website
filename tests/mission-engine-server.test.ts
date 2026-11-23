@@ -20,8 +20,10 @@ function scripted(replies: unknown[]): JsonModel & { calls: { system: string; us
 
 function confirmedPerfume(): Session {
   let s = (submitIntake(createSession(photo, 'ar', 'p'), photo, 'إعلان ممول لبرفان DAVIDOFF فخم') as { value: Session }).value;
-  const step = nextStep(s, photo);
-  if (step.type === 'question') s = (answer(s, photo, 'product', 'زجاجة برفان زرقا بغطا فضي') as { value: Session }).value;
+  const replies: Record<string, string> = { product: 'زجاجة برفان زرقا بغطا فضي', basis: 'new' };
+  for (let step = nextStep(s, photo); step.type === 'question'; step = nextStep(s, photo)) {
+    s = (answer(s, photo, step.question.slot, replies[step.question.slot]) as { value: Session }).value;
+  }
   return (confirmBrief(s, photo) as { value: Session }).value;
 }
 
@@ -29,6 +31,7 @@ const good = {
   title: 'إعلان DAVIDOFF', prompt: 'Luxury product photo of a deep blue perfume bottle, label reads "DAVIDOFF", black marble, rim light, clean space at the top.',
   negative: 'text, letters, watermark, extra logos', params: { aspectRatio: '4:5' }, textOverlay: { mode: 'add-later' },
   variants: { universal: 'Deep blue perfume bottle, label reads "DAVIDOFF", black marble.' }, checklist: ['a', 'b', 'c', 'd'], summary: 's',
+  coverage: { product: 'deep blue perfume bottle', style: 'Luxury product photo', usage: 'clean space at the top' },
 };
 
 test('compose: gate failure triggers exactly one targeted repair', async () => {

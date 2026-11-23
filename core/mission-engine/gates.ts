@@ -111,6 +111,31 @@ export function runGates(blueprint: Blueprint, session: Session, output: unknown
       const text = strings(out, [gate.field]).join(' ').toLowerCase();
       const hit = gate.anyOf.some(term => text.includes(term.toLowerCase()));
       results.push({ id: gate.id, ok: hit, message, detail: hit ? undefined : `missing any of: ${gate.anyOf.join(' / ')}` });
+    } else if (gate.kind === 'filled-when') {
+      const applies = gate.whenAny.some(c => {
+        const v = slotValue(c.slot);
+        const wanted = c.equals === undefined ? [] : Array.isArray(c.equals) ? c.equals : [c.equals];
+        return Array.isArray(v) ? v.some(x => wanted.includes(x)) : typeof v === 'string' && wanted.includes(v);
+      });
+      if (!applies) continue;
+      const found = readPath(out, gate.field)[0];
+      const ok = Array.isArray(found) && found.filter(x => typeof x === 'string' && x.trim()).length >= 2;
+      results.push({ id: gate.id, ok, message, detail: ok ? undefined : `${gate.field} must list the steps` });
+    } else if (gate.kind === 'coverage') {
+      const given = gate.slots.filter(id => {
+        const v = session.values[id];
+        return v && v.source !== 'default' && v.value !== NONE && (Array.isArray(v.value) ? v.value.length > 0 : v.value.trim().length > 0);
+      });
+      if (!given.length) continue;
+      const flat = (x: string) => x.toLowerCase().replace(/\s+/g, ' ').trim();
+      const text = flat(strings(out, [gate.field]).join(' '));
+      const map = (readPath(out, gate.map)[0] ?? {}) as Record<string, unknown>;
+      const missing = given.filter(id => {
+        const phrase = typeof map[id] === 'string' ? flat(map[id] as string) : '';
+        return phrase.length < 3 || !text.includes(phrase);
+      });
+      results.push({ id: gate.id, ok: missing.length === 0, message,
+        detail: missing.length ? `not realised in ${gate.field} (give each a phrase copied from it): ${missing.join(', ')}` : undefined });
     } else if (gate.kind === 'latin-ratio') {
       let text = strings(out, [gate.field]).join(' ');
       for (const id of gate.exceptSlots) { const v = slotValue(id); if (typeof v === 'string' && v !== NONE) text = text.split(v).join(' '); }

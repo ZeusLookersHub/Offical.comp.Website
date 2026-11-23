@@ -108,3 +108,8 @@
   background: rgba(255, 255, 255, .13); font-size: .72rem; font-weight: 700; line-height: 1;
 }
 .lmc-tool__mark img { position: absolute; inset: 0; width: 22px; height: 22px; border-radius: 6px; background: inherit; }
+
+/* Reference guide: how to attach the reference in the tool */
+.lmc-refguide{border:1px solid #c9a05b40;border-radius:14px;padding:12px 14px;background:#c9a05b0a}
+.lmc-refguide h3{display:flex;align-items:center;gap:6px;color:#e3b967}
+.lmc-refguide ol{margin:6px 0 0;padding-inline-start:20px;display:grid;gap:5px;color:#e8e4dc;font-size:13px;line-height:1.55}

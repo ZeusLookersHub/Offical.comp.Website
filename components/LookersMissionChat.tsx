@@ -130,7 +130,8 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
         if (!r.ok) throw new Error('intake');
         next = r.value;
       } else next = applyCandidates(session, bp, description, candidates);
-      const withRef = answer(next, bp, 'reference', 'yes');
+      next = { ...next, references: [...(next.references ?? []), description.slice(0, 1500)].slice(-3) };
+      const withRef = next.values.reference?.value === 'yes' ? { ok: false as const } : answer(next, bp, 'reference', 'yes');
       setSession(withRef.ok ? withRef.value : next);
       void engine.track('intake', bp.id, { sessionId: sessionId.current, meta: { photo: true, extracted: candidates.length } });
     } catch {
@@ -158,6 +159,15 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
     if (!r.ok) { setError(t('That answer does not fit — try again.', 'الإجابة دي مش مناسبة، جرّب تاني.')); return; }
     setError(''); setEditing(null); setResult(undefined);
     if (!wasEditing) say({ role: 'assistant', text: bp.slots.find(s => s.id === slotId)!.question[lang] }, { role: 'user', text: shown });
+    if (slotId === 'reference' && value === 'yes' && !session.references?.length) {
+      const basis = r.value.values.basis?.value;
+      say({ role: 'assistant', text: basis === 'edit'
+        ? t('Upload the image you want changed, at the best quality you have. I will read it and build the edit on it.', 'ارفع الصورة اللي عايز تعدّلها نفسها، بأعلى جودة عندك. هقراها وأبني التعديل عليها.')
+        : basis === 'existing'
+          ? t('Upload the thing itself — your logo, the product, or a past design. One clear photo on a plain background is best. I will read it and keep what is in it.', 'ارفع الحاجة نفسها: اللوجو، أو المنتج، أو تصميم قديم. صورة واحدة واضحة على خلفية سادة أحسن حاجة. هقراها وأحافظ على اللي فيها.')
+          : t('Upload a picture whose look you like — I will use it as style inspiration, not copy it.', 'ارفع صورة عاجبك شكلها، هستخدمها كإلهام للستايل مش هنسخها.') });
+      fileInput.current?.click();
+    }
     setSession(r.value);
     void engine.track(wasEditing ? 'brief_edited' : 'answered', bp.id, { sessionId: sessionId.current, slot: slotId });
   };
@@ -398,6 +408,7 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             <div className="lmc-prompt" dir="ltr"><pre>{shownPrompt}</pre>
               <button type="button" className="lai-chat__generate" onClick={() => void copy(shownPrompt, 'prompt')}><Copy size={15} aria-hidden="true" /> {copied === 'prompt' ? t('Copied', 'اتنسخ') : t('Copy prompt', 'انسخ البرومبت')}</button>
             </div>
+            {list(out.referenceGuide).length > 0 && <section className="lmc-refguide"><h3><ImagePlus size={15} aria-hidden="true" /> {t('Attach your reference with the prompt', 'إزاي تحط المرجع مع البرومبت')}</h3><ol>{list(out.referenceGuide).map((s, i) => <li key={i}>{s}</li>)}</ol></section>}
             {launchTools.length > 0 && (
               <section className="lmc-launch">
                 <h3>{t('Open it in the tool', 'افتحه في الأداة')}</h3>
@@ -477,7 +488,7 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
           <form className="lai-composer" onSubmit={e => { e.preventDefault(); submit(); }}>
             {canAttach && !editing && <>
               <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden onChange={e => void attach(e.target.files?.[0])} data-testid="photo-input" />
-              <button type="button" className="lai-attach" aria-label={t('Attach a product photo', 'ارفع صورة المنتج')} title={t('Attach a product photo', 'ارفع صورة المنتج')} onClick={() => fileInput.current?.click()}><ImagePlus size={19} /></button>
+              <button type="button" className="lai-attach" aria-label={t('Attach a reference photo', 'ارفع صورة مرجع')} title={t('Attach a reference photo', 'ارفع صورة مرجع')} onClick={() => fileInput.current?.click()}><ImagePlus size={19} /></button>
             </>}
             {freeText ? (
               <textarea className="lmc-input" rows={1} value={typed} maxLength={slotDef?.maxLength ?? 4000}

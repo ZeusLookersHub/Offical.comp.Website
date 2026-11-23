@@ -77,7 +77,8 @@ export async function sanitizeSession(raw: unknown, lookup: BlueprintLookup): Pr
   }
   if (bp.slots.some(slot => slot.importance === 'critical' && !values[slot.id])) return { error: 'invalid_session' };
   const idea = typeof s.idea === 'string' ? s.idea.slice(0, 4000) : '';
-  return { bp, session: { id: String(s.id ?? '').slice(0, 64), blueprintId: bp.id, blueprintVersion: bp.version, lang: s.lang, phase: 'confirmed', idea, values, asked: [], revision: Number(s.revision) || 0 } };
+  const references = Array.isArray(s.references) ? s.references.filter((r): r is string => typeof r === 'string' && r.trim().length > 0).slice(0, 3).map(r => r.slice(0, 1500)) : [];
+  return { bp, session: { id: String(s.id ?? '').slice(0, 64), blueprintId: bp.id, blueprintVersion: bp.version, lang: s.lang, phase: 'confirmed', idea, values, ...(references.length ? { references } : {}), asked: [], revision: Number(s.revision) || 0 } };
 }
 
 export interface ComposeResult { output: unknown; report: GateReport; attempts: number; model: string }

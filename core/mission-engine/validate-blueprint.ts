@@ -39,7 +39,8 @@ export function validateBlueprint(bp: Blueprint): string[] {
   if (!bp.slots.some(s => s.importance === 'critical')) err('needs at least one critical slot');
   for (const g of bp.gates) {
     const refs = 'slot' in g ? [g.slot] : g.kind === 'no-invented-text' ? g.whenEmpty : g.kind === 'no-leak' ? g.slotTerms ?? []
-      : g.kind === 'latin-ratio' ? g.exceptSlots : g.kind === 'includes-when' ? g.when.map(c => c.slot) : [];
+      : g.kind === 'latin-ratio' ? g.exceptSlots : g.kind === 'includes-when' ? g.when.map(c => c.slot)
+      : g.kind === 'filled-when' ? g.whenAny.map(c => c.slot) : g.kind === 'coverage' ? g.slots : [];
     refs.forEach(r => { if (!ids.has(r)) err(`gate ${g.id}: unknown slot ${r}`); });
     if (!copyOk(g.message)) err(`gate ${g.id}: message missing`);
   }
