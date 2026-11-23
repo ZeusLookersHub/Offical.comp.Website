@@ -42,6 +42,11 @@ async function mockEngine(context) {
     const reply = body.op === 'intake'
       ? { candidates: [{ slot: 'brandName', value: 'DAVIDOFF', evidence: 'DAVIDOFF' }, { slot: 'style', value: 'luxury-dark', evidence: 'فخمة' }] }
       : body.op === 'ideas' ? { ideas: ['زجاج مطفي', 'غطا معدن لامع'] }
+      : body.op === 'turn' ? (/مش فاهم/.test(body.text)
+          ? { intent: 'confused', reply: 'يعني الصورة دي هتتنشر فين؟ ستوري ولا بوست ولا إعلان ممول؟', chips: ['ستوري', 'بوست'] }
+          : { intent: 'answer', value: body.text, others: [] })
+      : body.op === 'options' ? { recommend: body.slot === 'usage' ? 'story' : undefined, why: body.slot === 'usage' ? 'لأنك قلت ستوري إنستجرام' : '', answers: [] }
+      : body.op === 'deepen' ? { questions: [{ q: 'عايز الناس تحس بإيه أول ما تشوف الصورة؟', why: 'بيحدد الإضاءة والجو', chips: ['فخامة وغموض', 'دفا', 'انتعاش'] }] }
       : body.op === 'next' ? { done: ['الصورة الأساسية'], received: 'طلّع وصف للصورة بدل ما يولّدها.', issues: ['وصف بدل ما ينفّذ'], next: 'نسخة الستوري', finished: false,
           message: 'Approved: the DAVIDOFF bottle on wet black marble. Now generate the image itself, final quality — no description, no questions.', model: 'mock' }
       : composed;
@@ -115,12 +120,27 @@ try {
 
     // "إعلان … لستوري" is ambiguous between ad and story, so the engine asks instead of guessing.
     await page.getByTestId('question-content').and(page.locator('[data-slot=usage]')).waitFor();
+    // "Not clear?" is explained in simple words with quick answers, and the question stays open.
+    await page.getByRole('button', { name: 'مش واضح؟' }).click();
+    await page.getByText('يعني الصورة دي هتتنشر فين', { exact: false }).waitFor();
+    assert.ok(await page.locator('[data-slot=usage]').count(), 'the same question stays open');
+    checks.push(`${label}: "not clear" is explained and re-asked, not rejected`);
+    await page.screenshot({ path: `${output}/${label}-2b-explained.png` });
     await page.locator('.lmc-option', { hasText: 'ستوري' }).click();
     await page.getByRole('button', { name: 'إرسال' }).click();
     checks.push(`${label}: ambiguous placement is asked, not guessed`);
+
+    // Before the brief: a specialist's extra questions make the prompt stronger.
+    await page.getByTestId('deepen-offer').waitFor();
+    await page.getByRole('button', { name: /أيوه، ٣ أسئلة كمان/ }).click();
+    await page.getByTestId('extra-question').waitFor();
+    await page.screenshot({ path: `${output}/${label}-2c-extra.png` });
+    await page.getByRole('button', { name: 'فخامة وغموض' }).click();
+    checks.push(`${label}: extra "make it stronger" questions feed the brief`);
     const brief = page.getByTestId('brief');
     await brief.waitFor();
     const briefText = await brief.innerText();
+    assert.match(briefText, /فخامة وغموض/, 'the extra answer is in the brief');
     assert.match(briefText, /9:16/);
     assert.match(briefText, /مفترض/, 'assumptions are marked as assumed');
     checks.push(`${label}: brief shows facts and visible assumptions with reasons`);

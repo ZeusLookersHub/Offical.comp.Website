@@ -52,24 +52,25 @@ en:"A ready-to-paste result that fits the tool and passes the checks.",ar:"نت�
 · DELIVERY — what to return"}},LAYER_ORDER=["understanding","intelligence","control","delivery"],GLOBAL={understanding:['The brief arrives as JSON. "values" holds slot values; e\
 ach has verbatim (copy exactly), assumed (an accepted default, not a user fact) and label (readable meaning).',"Use only the brief. Never invent names, prices, numbers, claims, tes\
 timonials, statistics or text.",`A value the user gave (assumed = false) carries "asked": the question it answers. Read the answer in that context; it is the user's own decision an\
-d outranks any default or house style.`,"brief.references, when present, describe photos the user uploaded: real facts about what exists (shapes, colours, materials, text on it). U\
-se their concrete details and never contradict them."],intelligence:["Make the expert choices the user did not make, guided by the strategy below. Prefer concrete, sensory, specifi\
-c wording over generic adjectives.","Every detail the user gave must visibly shape the result: turn it into specific decisions (what is seen, where, in which colour, material, ligh\
-t, order or tone), never a passing mention or a vague echo of their words.","Expand each chosen option into 3–5 concrete craft decisions a specialist would write (for visuals: subj\
-ect details, composition and framing, camera/lens, light, named colour palette, materials and textures, mood; for text: structure, sections, tone devices, examples, length).",'No f\
-iller: words like "stunning", "high quality", "beautiful", "professional", "amazing", "8k" add nothing — replace each with the specific thing that makes it so.'],control:["Verbat\
-im values must be copied character for character, including letter case. Never translate, respell or shorten them.","Where a fact is missing, write a clear placeholder in square br\
-ackets (e.g. [revenue]) instead of inventing it.","Execution metadata (target tool, aspect ratio, duration, model settings) goes in params/variants, never inside a scene descriptio\
-n."],delivery:["Return one JSON object that matches the contract exactly. No markdown fences, no extra keys.",'When the deliverable prompt is for a chat assistant (writing, plans, \
-strategy, identity, decks, code), it must order execution, not a conversation: produce the complete, final, ready-to-use result in this reply; deliver every part in order without p\
-ausing to ask "shall I continue" or "ready for the next part"; no preamble about what it will do; where it can generate images, files or tables, produce them instead of describing \
-them; only if the answer is too long for one reply, finish the current part completely and end with one line naming the next part.',"If the contract has coverage: for every value w\
-ith assumed = false that is not verbatim, coverage[slotId] = a short phrase (3–12 words) copied character for character from prompt that carries that detail. Do not list assumed va\
-lues."]};function compileSystemPrompt(blueprint,session){let empty=session?blueprint.slots.filter(s=>session.values[s.id]?.value===NONE).map(s=>s.id):[],parts=[`ROLE: ${blueprint.role}`];
-for(let layer of LAYER_ORDER){let rules=[...GLOBAL[layer],...blueprint.strategy[layer]];layer==="control"&&empty.length&&rules.push(`These were deliberately left empty, do not fill\
- them: ${empty.join(", ")}.`),layer==="delivery"&&(rules.push("Contract fields: "+blueprint.output.fields.map(f=>`${f.path} (${f.type}${f.required?", required":""}${f.maxLength?`, \
-≤${f.maxLength} chars`:""}): ${f.description}`).join(" | ")),rules.push("Tool notes: "+blueprint.tools.map(t2=>`${t2.id} = ${t2.notes}`).join(" | ")),rules.push("Before answering\
-, verify: "+blueprint.gates.map(g=>g.message.en).join("; ")+".")),parts.push(`
+d outranks any default or house style.`,"brief.details, when present, are extra questions the user answered (q → a): first-hand detail about what they want. Every one must shape th\
+e result concretely, like any other user value.","brief.references, when present, describe photos the user uploaded: real facts about what exists (shapes, colours, materials, text \
+on it). Use their concrete details and never contradict them."],intelligence:["Make the expert choices the user did not make, guided by the strategy below. Prefer concrete, sensory\
+, specific wording over generic adjectives.","Every detail the user gave must visibly shape the result: turn it into specific decisions (what is seen, where, in which colour, mater\
+ial, light, order or tone), never a passing mention or a vague echo of their words.","Expand each chosen option into 3–5 concrete craft decisions a specialist would write (for visu\
+als: subject details, composition and framing, camera/lens, light, named colour palette, materials and textures, mood; for text: structure, sections, tone devices, examples, length\
+).",'No filler: words like "stunning", "high quality", "beautiful", "professional", "amazing", "8k" add nothing — replace each with the specific thing that makes it so.'],control:[
+"Verbatim values must be copied character for character, including letter case. Never translate, respell or shorten them.","Where a fact is missing, write a clear placeholder in sq\
+uare brackets (e.g. [revenue]) instead of inventing it.","Execution metadata (target tool, aspect ratio, duration, model settings) goes in params/variants, never inside a scene des\
+cription."],delivery:["Return one JSON object that matches the contract exactly. No markdown fences, no extra keys.",'When the deliverable prompt is for a chat assistant (writing, \
+plans, strategy, identity, decks, code), it must order execution, not a conversation: produce the complete, final, ready-to-use result in this reply; deliver every part in order wi\
+thout pausing to ask "shall I continue" or "ready for the next part"; no preamble about what it will do; where it can generate images, files or tables, produce them instead of desc\
+ribing them; only if the answer is too long for one reply, finish the current part completely and end with one line naming the next part.',"If the contract has coverage: for every \
+value with assumed = false that is not verbatim, coverage[slotId] = a short phrase (3–12 words) copied character for character from prompt that carries that detail. Do not list ass\
+umed values."]};function compileSystemPrompt(blueprint,session){let empty=session?blueprint.slots.filter(s=>session.values[s.id]?.value===NONE).map(s=>s.id):[],parts=[`ROLE: ${blueprint.
+role}`];for(let layer of LAYER_ORDER){let rules=[...GLOBAL[layer],...blueprint.strategy[layer]];layer==="control"&&empty.length&&rules.push(`These were deliberately left empty, do \
+not fill them: ${empty.join(", ")}.`),layer==="delivery"&&(rules.push("Contract fields: "+blueprint.output.fields.map(f=>`${f.path} (${f.type}${f.required?", required":""}${f.maxLength?
+`, ≤${f.maxLength} chars`:""}): ${f.description}`).join(" | ")),rules.push("Tool notes: "+blueprint.tools.map(t2=>`${t2.id} = ${t2.notes}`).join(" | ")),rules.push("Before answer\
+ing, verify: "+blueprint.gates.map(g=>g.message.en).join("; ")+".")),parts.push(`
 ${LAYERS[layer].heading}
 `+rules.map(r=>`- ${r}`).join(`
 `))}for(let ex of blueprint.examples??[])parts.push(`
@@ -81,8 +82,8 @@ Why: ${ex.why}`);return parts.join(`
 if(v.value===NONE)continue;let slot=blueprint.slots.find(s=>s.id===id);if(!slot)continue;let labelOf=x=>slot.options?.find(o=>o.value===x)?.label.en??x;values[id]={value:v.value,label:slot.
 options?Array.isArray(v.value)?v.value.map(labelOf):labelOf(v.value):void 0,asked:v.source==="default"?void 0:slot.question.en,verbatim:slot.kind==="exact",assumed:v.source==="defa\
 ult"}}let system=compileSystemPrompt(blueprint,session);return{blueprintId:blueprint.id,blueprintVersion:blueprint.version,language:session.lang,system,brief:{idea:session.idea??"",
-...session.references?.length?{references:session.references}:{},values},contract:blueprint.output.fields,tools:blueprint.tools}}function repairInstruction(report2){let failed=report2.
-results.filter(r=>!r.ok);return failed.length?`Fix only these problems and return the full JSON again:
+...session.references?.length?{references:session.references}:{},...session.notes?.length?{details:session.notes}:{},values},contract:blueprint.output.fields,tools:blueprint.tools}}
+function repairInstruction(report2){let failed=report2.results.filter(r=>!r.ok);return failed.length?`Fix only these problems and return the full JSON again:
 `+failed.map(r=>`- ${r.id}: ${r.detail??r.message}`).join(`
 `):null}function readPath(output,path){let parts=path.split("."),current=[output];for(let part of parts)current=current.flatMap(node=>!node||typeof node!="object"?[]:part==="*"?Object.values(
 node):part in node?[node[part]]:[]);return current}var strings=(output,paths)=>paths.flatMap(p=>readPath(output,p)).flatMap(v=>Array.isArray(v)?v:[v]).filter(v=>typeof v=="string");
@@ -161,11 +162,12 @@ s.blueprintId):void 0;if(!bp)return{error:"unknown_blueprint"};if(s.blueprintVer
 med"};if(s.lang!=="ar"&&s.lang!=="en")return{error:"invalid_session"};if(!s.values||typeof s.values!="object")return{error:"invalid_session"};let values={};for(let slot of bp.slots){
 let v=s.values[slot.id];if(!v)continue;let value=v.value===NONE?NONE:validValue2(slot,v.value);if(value===null)return{error:"invalid_session"};values[slot.id]={value,source:v.source===
 "default"?"default":v.source==="extracted"?"extracted":"user"}}if(bp.slots.some(slot=>slot.importance==="critical"&&!values[slot.id]))return{error:"invalid_session"};let idea=typeof s.
-idea=="string"?s.idea.slice(0,4e3):"",references=Array.isArray(s.references)?s.references.filter(r=>typeof r=="string"&&r.trim().length>0).slice(0,3).map(r=>r.slice(0,1500)):[];return{
-bp,session:{id:String(s.id??"").slice(0,64),blueprintId:bp.id,blueprintVersion:bp.version,lang:s.lang,phase:"confirmed",idea,values,...references.length?{references}:{},asked:[],revision:Number(
-s.revision)||0}}}async function compose(model,bp,session,signal){let request=buildComposeRequest(bp,session),user=JSON.stringify({brief:request.brief,tools:request.tools.map(t2=>t2.
-id)}),{json,modelId}=await model.complete({system:request.system,user,maxTokens:8e3,signal}),report2=runGates(bp,session,json),attempts=1,fix=repairInstruction(report2);if(fix){let repaired=await model.
-complete({system:request.system,user:`${user}
+idea=="string"?s.idea.slice(0,4e3):"",notes=Array.isArray(s.notes)?s.notes.filter(n=>!!n&&typeof n.q=="string"&&typeof n.a=="string"&&n.a.trim().length>0).slice(0,8).map(n=>({q:n.q.
+slice(0,240),a:n.a.slice(0,600)})):[],references=Array.isArray(s.references)?s.references.filter(r=>typeof r=="string"&&r.trim().length>0).slice(0,3).map(r=>r.slice(0,1500)):[];return{
+bp,session:{id:String(s.id??"").slice(0,64),blueprintId:bp.id,blueprintVersion:bp.version,lang:s.lang,phase:"confirmed",idea,values,...references.length?{references}:{},...notes.length?
+{notes}:{},asked:[],revision:Number(s.revision)||0}}}async function compose(model,bp,session,signal){let request=buildComposeRequest(bp,session),user=JSON.stringify({brief:request.
+brief,tools:request.tools.map(t2=>t2.id)}),{json,modelId}=await model.complete({system:request.system,user,maxTokens:8e3,signal}),report2=runGates(bp,session,json),attempts=1,fix=repairInstruction(
+report2);if(fix){let repaired=await model.complete({system:request.system,user:`${user}
 
 Your previous answer:
 ${JSON.stringify(json).slice(0,12e3)}
@@ -196,7 +198,48 @@ ${JSON.stringify(json).slice(0,6e3)}
 
 Fix: ${why}`,maxTokens:3e3,signal});json=again.json,modelId=again.modelId??modelId}if(!valid(json))throw new ModelError("model_bad_output");let list=v=>v.filter(x=>typeof x=="strin\
 g"&&x.trim().length>0).map(x=>x.trim().slice(0,200)).slice(0,20);return{done:list(json.done),received:String(json.received).slice(0,400),issues:list(json.issues).slice(0,6),next:String(
-json.next).slice(0,120),message:json.message.trim().slice(0,6e3),finished:json.finished===!0,model:modelId??model.id}}var GEMINI_KEY_NAMES=["GEMINI_API_KEY","gemini_Free_API_Key","GEMINI_FREE_API_KEY"];function geminiKey(env2){for(let name of GEMINI_KEY_NAMES){let key=env2(name)?.trim();if(key)return{
+json.next).slice(0,120),message:json.message.trim().slice(0,6e3),finished:json.finished===!0,model:modelId??model.id}}var INTENTS=["answer","confused","ask","delegate","skip","offt\
+opic"],voice=lang=>lang==="ar"?"Write every user-facing text in warm, simple Egyptian Arabic (عامية مصرية), like a helpful friend who is an expert. Short sentences, no jargon; if a\
+ technical word is needed, explain it in a few words.":"Write every user-facing text in warm, simple English, like a helpful friend who is an expert. Short sentences, no jargon.",strs=(v,max,len=80)=>Array.
+isArray(v)?v.filter(x=>typeof x=="string"&&x.trim().length>0).map(x=>x.trim().slice(0,len)).slice(0,max):[];function describeSlot(bp,slotId){let slot=bp.slots.find(s=>s.id===slotId),
+opts=slot.options?`
+Options (value: label | what it means):
+${slot.options.map(o=>`- ${o.value}: ${o.label.en} / ${o.label.ar}${o.visual?` | ${o.visual.description.en}`:""}`).join(`
+`)}`:"";return`Current question (slot "${slot.id}", kind ${slot.kind}${slot.kind==="multi"?", several allowed":""}): ${slot.question.en}
+Why we ask: ${slot.why.en}
+Example answer: ${slot.example.en}${opts}`}async function turn(model,bp,input,signal){let slot=bp.slots.find(s=>s.id===input.slot);if(!slot)throw new ModelError("model_bad_output");
+let system=[`You are the conversation brain of Lookers AI. You help people, often non-experts, build a "${bp.title.en}" brief by chat, one question at a time, so that the final AI \
+prompt is complete and strong.`,describeSlot(bp,slot.id),"What we know so far:",input.context||"(nothing yet)","Read the user message (any dialect, typos, Franco-Arabic, English mi\
+x) and decide what they meant:","- answer: it answers the question, even loosely. value = for choice slots the option value(s) that match the MEANING (not the words); for text slot\
+s their answer cleaned up (fix typos, keep every detail, add nothing). For exact slots copy the text verbatim.","- confused: they do not understand the question. reply = explain it\
+ again in very simple words with one concrete example tied to THEIR idea, then re-ask it in a simpler way. chips = 3–4 short ready answers they can tap (for choice slots, the most \
+fitting option labels in their language).","- ask: they ask something (the difference, which is better, what you advise). reply = a short practical answer that recommends one when \
+sensible, then re-asks. chips as above.","- delegate: they hand the choice to you (you choose, I do not know, whatever fits). value = the best answer for their idea; reply = one sh\
+ort line saying what you picked and why.","- skip: they want to skip this question.","- offtopic: unrelated. reply = one kind line that brings them back to the question; chips as a\
+bove.","others: facts in the message that answer OTHER fields (catalogue below); evidence = exact words copied from the message. [] when none.",`probe: only for intent answer on a \
+descriptive (text/longtext) question when the answer is valid but too thin for a strong prompt (one vague word, generic adjectives). One short follow-up that digs for the single mo\
+st useful missing detail, with 3 concrete chips. null otherwise${input.probesLeft>0?"":" (no probes left: always null)"}.`,voice(input.lang),"Fields catalogue:",slotCatalogue(bp),'\
+Return JSON only: {"intent":"answer","value":null,"others":[],"reply":"","chips":[],"probe":null}'].join(`
+`),{json}=await model.complete({system,user:input.text.slice(0,2e3),maxTokens:700,signal}),j=json??{},intent=INTENTS.includes(j.intent)?j.intent:"confused",value;if(intent==="answe\
+r"||intent==="delegate"){let raw=j.value,checked=raw==null?null:validValue2(slot,raw,slot.kind==="exact"?input.text:void 0);checked===null&&intent==="answer"&&(slot.kind==="text"||
+slot.kind==="longtext")&&(checked=input.text.trim().slice(0,slot.maxLength??400)),checked===null?intent="confused":value=checked}let others=(Array.isArray(j.others)?j.others:[]).filter(
+c2=>!!c2&&typeof c2=="object"&&typeof c2.slot=="string"&&c2.slot!==slot.id&&typeof c2.evidence=="string").slice(0,8),probeRaw=j.probe,probe=intent==="answer"&&input.probesLeft>0&&(slot.
+kind==="text"||slot.kind==="longtext")&&probeRaw&&typeof probeRaw.q=="string"&&probeRaw.q.trim().length>5?{q:probeRaw.q.trim().slice(0,240),chips:strs(probeRaw.chips,4)}:void 0;return{
+intent,...value!==void 0?{value}:{},others,reply:typeof j.reply=="string"?j.reply.trim().slice(0,700):"",chips:strs(j.chips,4),...probe?{probe}:{}}}async function options(model,bp,input,signal){
+let slot=bp.slots.find(s=>s.id===input.slot);if(!slot||slot.kind==="exact")return{answers:[]};let choice=slot.kind==="single"||slot.kind==="multi",system=[`You help a user answer o\
+ne question of a "${bp.title.en}" brief, as a senior specialist who knows their idea.`,describeSlot(bp,slot.id),"What we know so far:",input.context||"(nothing yet)",choice?"recomm\
+end = the single option value that best fits THIS idea (or null if nothing stands out); why = one short line why, tied to their idea. answers = [].":"answers = 3 complete, concrete\
+ answers this person could give, each a different strong direction built on their idea (each 4–14 words, specific details, no invented brand names, prices or numbers). recommend = \
+null.",voice(input.lang),'Return JSON only: {"recommend":null,"why":"","answers":[]}'].join(`
+`),{json}=await model.complete({system,user:"Suggest.",maxTokens:400,signal}),j=json??{},recommend=choice&&typeof j.recommend=="string"&&slot.options?.some(o=>o.value===j.recommend)?
+j.recommend:void 0;return{...recommend?{recommend,why:typeof j.why=="string"?j.why.trim().slice(0,200):""}:{},answers:choice?[]:strs(j.answers,3,140).filter(a=>!/\d/.test(a))}}async function deepen(model,bp,input,signal){
+let system=[`You are a senior specialist preparing a "${bp.title.en}". The brief below is enough for a basic prompt.`,"Ask the 3 questions that would make the final result markedly\
+ stronger and more personal — what a top professional would still ask: the feeling or reaction wanted, specific scenes/details/elements, who it is really for, what must be avoided,\
+ references, where and how it will be used, what success looks like. Never ask what the brief already answers; never ask for prices, numbers or legal claims.","Each question is sho\
+rt and simple, with why (one line: what it improves) and 3 concrete chips (possible answers, 1–6 words) tailored to their idea.","Brief so far:",input.context||"(nothing yet)",voice(
+input.lang),'Return JSON only: {"questions":[{"q":"","why":"","chips":[]}]}'].join(`
+`),{json}=await model.complete({system,user:"Ask.",maxTokens:700,signal}),list=json?.questions;return(Array.isArray(list)?list:[]).filter(q=>!!q&&typeof q.q=="string"&&q.q.trim().length>
+5).slice(0,3).map(q=>({q:q.q.trim().slice(0,240),why:typeof q.why=="string"?q.why.trim().slice(0,160):void 0,chips:strs(q.chips,4)}))}var GEMINI_KEY_NAMES=["GEMINI_API_KEY","gemini_Free_API_Key","GEMINI_FREE_API_KEY"];function geminiKey(env2){for(let name of GEMINI_KEY_NAMES){let key=env2(name)?.trim();if(key)return{
 key,name}}return{name:"none"}}var MIME=new Set(["image/jpeg","image/png","image/webp"]),validImage=v=>!!v&&typeof v=="object"&&MIME.has(v.mimeType)&&typeof v.data=="string"&&v.data.length>100&&v.data.length<4e6&&
 /^[A-Za-z0-9+/=]+$/.test(v.data);async function explain(provider,model,res,key){let body=(await res.text().catch(()=>"")).split(key).join("[key]").slice(0,300);throw console.warn("\
 vision call failed",{provider,model,status:res.status,body}),res.status===401||res.status===403?new ModelError("model_auth_failed"):res.status===429?new ModelError("model_rate_limi\
@@ -228,44 +271,51 @@ ed from your description>"}]}.',`description: 2–4 factual sentences in ${lang=
 candidates:[],model:answer.modelId};let list=Array.isArray(out.candidates)?out.candidates:[],empty={id:"v",blueprintId:bp.id,blueprintVersion:bp.version,lang,phase:"questions",values:{},
 asked:[],revision:0},candidates=list.filter(c2=>c2&&typeof c2.slot=="string"&&typeof c2.evidence=="string"&&(typeof c2.value=="string"||Array.isArray(c2.value))).slice(0,12).filter(
 c2=>applyCandidates(empty,bp,description,[c2]).values[c2.slot]);return{description,candidates,model:answer.modelId}}var DEFAULT_ORIGINS=["https://lookershub.com","https://www.lookershub.com","http://localhost:3000","http://localhost:5173"],PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.app$/,
-ANY_VERCEL_PREVIEW=/^https:\/\/[a-z0-9-]+\.vercel\.app$/,MAX_BODY=6e4,RATE_LIMITS={compose:10,next:10,describe:10,intake:30,ideas:60},RATE_WINDOW_SECONDS=60,MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-async function withinRate(transport,url,serviceKey,owner,op){if(!serviceKey)return!0;try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/rpc/engine_rate_c\
-heck",{method:"POST",signal,redirect:"error",headers:{apikey:serviceKey,Authorization:"Bearer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_owner:owner,p_op:op,
-p_limit:RATE_LIMITS[op]??30,p_window_seconds:RATE_WINDOW_SECONDS})});return res.ok?await res.json()!==!1:!0},3e3)}catch{return!0}}async function saveResult(transport,url,key,token,row){
-try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/lookers_engine_results",{method:"POST",signal,redirect:"error",headers:{apikey:key,Authorization:"Bear\
-er "+token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(row)});if(!res.ok)return null;let rows=await res.json();return Array.isArray(rows)&&
-rows[0]&&typeof rows[0].id=="string"?rows[0].id:null},4e3)}catch{return null}}function createEngineHandler(options){let transport=options.transport??fetch,blueprintById=options.blueprints,
-route2=options.model&&"for"in options.model?options.model:null,modelFor=op=>route2?route2.for(op):options.model,allowed=new Set([...DEFAULT_ORIGINS,...(options.env("ENGINE_ALLOWED_\
-ORIGINS")??"").split(",").map(s=>s.trim()).filter(Boolean)]),previewsOpen=options.env("ENGINE_ALLOW_VERCEL_PREVIEWS")==="1",isAllowed=origin=>allowed.has(origin)||PREVIEW_ORIGIN.test(
-origin)||previewsOpen&&ANY_VERCEL_PREVIEW.test(origin),cors=origin=>({...origin&&isAllowed(origin)?{"Access-Control-Allow-Origin":origin}:{},"Access-Control-Allow-Headers":"authori\
-zation, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS",Vary:"Origin"}),json=(body,status,origin)=>new Response(JSON.stringify(body),{status,headers:{
-...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store"}});return async req=>{let origin=req.headers.get("Origin");if(origin&&!isAllowed(origin))return json({error:"\
-origin_not_allowed"},403,null);if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(origin)});if(req.method!=="POST")return json({error:"method_not_allowed"},
-405,origin);if(Number(req.headers.get("content-length")||0)>MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);let token=req.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1],
-url=options.env("SUPABASE_URL"),key=options.env("SUPABASE_ANON_KEY");if(!token)return json({error:"unauthorized"},401,origin);if(!url||!key)return json({error:"server_configuration\
-_error"},503,origin);let owner="";try{await bounded(async signal=>{let auth=await transport(url+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token},signal,redirect:"\
-error"});if(!auth.ok)throw new Error("unauthorized");let user=await auth.json();if(!record(user)||typeof user.id!="string"||user.is_anonymous!==!0)throw new Error("unauthorized");owner=
-user.id},8e3,req.signal)}catch{return json({error:"identity_verification_failed"},401,origin)}let body;try{let raw=await req.text();if(raw.length>MAX_IMAGE_BODY)return json({error:"\
-request_too_large"},413,origin);if(body=JSON.parse(raw),raw.length>MAX_BODY&&!(record(body)&&body.op==="describe"))return json({error:"request_too_large"},413,origin)}catch{return json(
-{error:"invalid_json"},400,origin)}if(!dataOnly(body)||!record(body))return json({error:"invalid_request"},400,origin);let op=typeof body.op=="string"?body.op:"";if(!(op in RATE_LIMITS))
-return json({error:"unknown_op"},400,origin);if(!await withinRate(transport,url,options.env("SUPABASE_SERVICE_ROLE_KEY"),owner,op))return new Response(JSON.stringify({error:"rate_l\
-imited"}),{status:429,headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store","Retry-After":String(RATE_WINDOW_SECONDS)}});try{if(body.op==="describe"){
-if(!options.vision)return json({error:"vision_unavailable"},503,origin);let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;return!bp||!validImage(
-body.image)?json({error:"invalid_request"},400,origin):json(await describeReference(options.vision,bp,body.image,body.lang==="ar"?"ar":"en",req.signal),200,origin)}let model=modelFor(
-body.op==="intake"?"intake":body.op==="ideas"?"ideas":"compose");if(!model)return json({error:"model_unavailable"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId==
-"string"?await blueprintById(body.blueprintId):void 0;return!bp||typeof body.text!="string"||body.text.trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):
-json(await extract(model,bp,body.text,req.signal),200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;if(!bp||typeof body.
-slot!="string"||typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json({ideas:await ideas(
-model,bp,body.slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(body.session,blueprintById);
-if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId=="string"&&UUID.test(
-body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.version,output:result.
-output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,resultId},200,origin)}
-if(body.op==="next"){let clean=await sanitizeSession(body.session,blueprintById);if("error"in clean)return json({error:clean.error},400,origin);let str=(v,max)=>typeof v=="string"?
-v.trim().slice(0,max):"",reply=str(body.reply,1e4),sent=str(body.sent,8e3);if(reply.length<10||!sent)return json({error:"invalid_request"},400,origin);let done=Array.isArray(body.done)?
-body.done.filter(d=>typeof d=="string").slice(0,20).map(d=>d.slice(0,300)):[];return json(await nextMove(model,clean.bp,clean.session,{sent,reply,note:str(body.note,1e3),done},req.
-signal),200,origin)}return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith("blue\
-prints_")?"blueprints_unavailable":"engine_failed";return code==="engine_failed"&&console.warn("engine failed",{op,error:error instanceof Error?error.message.slice(0,200):"unknown"}),
-json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_auth_failed"||code==="blueprints_unavailable"?503:502,origin)}}}var DEFAULT_ROUTE={compose:"deepseek",intake:"gemini",ideas:"gemini"},COVERABLE=new Set(["model_rate_limited","model_unavailable","model_timeout","model_bad_output"]);function withBackup(primary,backup){
+ANY_VERCEL_PREVIEW=/^https:\/\/[a-z0-9-]+\.vercel\.app$/,MAX_BODY=6e4,RATE_LIMITS={compose:10,next:10,describe:10,intake:30,ideas:60,turn:40,options:40,deepen:10},RATE_WINDOW_SECONDS=60,
+MAX_IMAGE_BODY=42e5,UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;async function withinRate(transport,url,serviceKey,owner,op){if(!serviceKey)return!0;try{
+return await bounded(async signal=>{let res=await transport(url+"/rest/v1/rpc/engine_rate_check",{method:"POST",signal,redirect:"error",headers:{apikey:serviceKey,Authorization:"Be\
+arer "+serviceKey,"Content-Type":"application/json"},body:JSON.stringify({p_owner:owner,p_op:op,p_limit:RATE_LIMITS[op]??30,p_window_seconds:RATE_WINDOW_SECONDS})});return res.ok?await res.
+json()!==!1:!0},3e3)}catch{return!0}}async function saveResult(transport,url,key,token,row){try{return await bounded(async signal=>{let res=await transport(url+"/rest/v1/lookers_en\
+gine_results",{method:"POST",signal,redirect:"error",headers:{apikey:key,Authorization:"Bearer "+token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(
+row)});if(!res.ok)return null;let rows=await res.json();return Array.isArray(rows)&&rows[0]&&typeof rows[0].id=="string"?rows[0].id:null},4e3)}catch{return null}}function createEngineHandler(options2){
+let transport=options2.transport??fetch,blueprintById=options2.blueprints,route2=options2.model&&"for"in options2.model?options2.model:null,modelFor=op=>route2?route2.for(op):options2.
+model,allowed=new Set([...DEFAULT_ORIGINS,...(options2.env("ENGINE_ALLOWED_ORIGINS")??"").split(",").map(s=>s.trim()).filter(Boolean)]),previewsOpen=options2.env("ENGINE_ALLOW_VERC\
+EL_PREVIEWS")==="1",isAllowed=origin=>allowed.has(origin)||PREVIEW_ORIGIN.test(origin)||previewsOpen&&ANY_VERCEL_PREVIEW.test(origin),cors=origin=>({...origin&&isAllowed(origin)?{"\
+Access-Control-Allow-Origin":origin}:{},"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS",Vary:"Ori\
+gin"}),json=(body,status,origin)=>new Response(JSON.stringify(body),{status,headers:{...cors(origin),"Content-Type":"application/json","Cache-Control":"no-store"}});return async req=>{
+let origin=req.headers.get("Origin");if(origin&&!isAllowed(origin))return json({error:"origin_not_allowed"},403,null);if(req.method==="OPTIONS")return new Response(null,{status:204,
+headers:cors(origin)});if(req.method!=="POST")return json({error:"method_not_allowed"},405,origin);if(Number(req.headers.get("content-length")||0)>MAX_IMAGE_BODY)return json({error:"\
+request_too_large"},413,origin);let token=req.headers.get("Authorization")?.match(/^Bearer\s+(.+)$/i)?.[1],url=options2.env("SUPABASE_URL"),key=options2.env("SUPABASE_ANON_KEY");if(!token)
+return json({error:"unauthorized"},401,origin);if(!url||!key)return json({error:"server_configuration_error"},503,origin);let owner="";try{await bounded(async signal=>{let auth=await transport(
+url+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token},signal,redirect:"error"});if(!auth.ok)throw new Error("unauthorized");let user=await auth.json();if(!record(
+user)||typeof user.id!="string"||user.is_anonymous!==!0)throw new Error("unauthorized");owner=user.id},8e3,req.signal)}catch{return json({error:"identity_verification_failed"},401,
+origin)}let body;try{let raw=await req.text();if(raw.length>MAX_IMAGE_BODY)return json({error:"request_too_large"},413,origin);if(body=JSON.parse(raw),raw.length>MAX_BODY&&!(record(
+body)&&body.op==="describe"))return json({error:"request_too_large"},413,origin)}catch{return json({error:"invalid_json"},400,origin)}if(!dataOnly(body)||!record(body))return json(
+{error:"invalid_request"},400,origin);let op=typeof body.op=="string"?body.op:"";if(!(op in RATE_LIMITS))return json({error:"unknown_op"},400,origin);if(!await withinRate(transport,
+url,options2.env("SUPABASE_SERVICE_ROLE_KEY"),owner,op))return new Response(JSON.stringify({error:"rate_limited"}),{status:429,headers:{...cors(origin),"Content-Type":"application/\
+json","Cache-Control":"no-store","Retry-After":String(RATE_WINDOW_SECONDS)}});try{if(body.op==="describe"){if(!options2.vision)return json({error:"vision_unavailable"},503,origin);
+let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;return!bp||!validImage(body.image)?json({error:"invalid_request"},400,origin):json(await describeReference(
+options2.vision,bp,body.image,body.lang==="ar"?"ar":"en",req.signal),200,origin)}let model=modelFor(body.op==="intake"||body.op==="turn"||body.op==="deepen"?"intake":body.op==="ide\
+as"||body.op==="options"?"ideas":"compose");if(!model)return json({error:"model_unavailable"},503,origin);if(body.op==="intake"){let bp=typeof body.blueprintId=="string"?await blueprintById(
+body.blueprintId):void 0;return!bp||typeof body.text!="string"||body.text.trim().length<2||body.text.length>4e3?json({error:"invalid_request"},400,origin):json(await extract(model,
+bp,body.text,req.signal),200,origin)}if(body.op==="ideas"){let bp=typeof body.blueprintId=="string"?await blueprintById(body.blueprintId):void 0;if(!bp||typeof body.slot!="string"||
+typeof body.typed!="string"||body.typed.length>400)return json({error:"invalid_request"},400,origin);let lang=body.lang==="ar"?"ar":"en";return json({ideas:await ideas(model,bp,body.
+slot,body.typed,typeof body.context=="string"?body.context:"",lang,req.signal)},200,origin)}if(body.op==="turn"||body.op==="options"||body.op==="deepen"){let bp=typeof body.blueprintId==
+"string"?await blueprintById(body.blueprintId):void 0;if(!bp)return json({error:"unknown_blueprint"},400,origin);let lang=body.lang==="ar"?"ar":"en",context=typeof body.context=="s\
+tring"?body.context.slice(0,3e3):"";if(body.op==="deepen")return json({questions:await deepen(model,bp,{context,lang},req.signal)},200,origin);if(typeof body.slot!="string"||!bp.slots.
+some(s=>s.id===body.slot))return json({error:"invalid_request"},400,origin);if(body.op==="options")return json(await options(model,bp,{slot:body.slot,context,lang},req.signal),200,
+origin);if(typeof body.text!="string"||!body.text.trim()||body.text.length>2e3)return json({error:"invalid_request"},400,origin);let probesLeft=Math.max(0,Math.min(3,Number(body.probesLeft)||
+0));return json(await turn(model,bp,{slot:body.slot,text:body.text,context,lang,probesLeft},req.signal),200,origin)}if(body.op==="compose"){let clean=await sanitizeSession(body.session,
+blueprintById);if("error"in clean)return json({error:clean.error},400,origin);let result=await compose(model,clean.bp,clean.session,req.signal),sessionId=typeof body.sessionId=="st\
+ring"&&UUID.test(body.sessionId)?body.sessionId:null,resultId=await saveResult(transport,url,key,token,{session_id:sessionId,blueprint_id:clean.bp.id,blueprint_version:clean.bp.version,
+output:result.output,report:result.report,gates_passed:result.report.passed,gates_total:result.report.total,attempts:result.attempts,model:result.model});return json({...result,resultId},
+200,origin)}if(body.op==="next"){let clean=await sanitizeSession(body.session,blueprintById);if("error"in clean)return json({error:clean.error},400,origin);let str=(v,max)=>typeof v==
+"string"?v.trim().slice(0,max):"",reply=str(body.reply,1e4),sent=str(body.sent,8e3);if(reply.length<10||!sent)return json({error:"invalid_request"},400,origin);let done=Array.isArray(
+body.done)?body.done.filter(d=>typeof d=="string").slice(0,20).map(d=>d.slice(0,300)):[];return json(await nextMove(model,clean.bp,clean.session,{sent,reply,note:str(body.note,1e3),
+done},req.signal),200,origin)}return json({error:"unknown_op"},400,origin)}catch(error){let code=error instanceof ModelError?error.code:error instanceof Error&&error.message.startsWith(
+"blueprints_")?"blueprints_unavailable":"engine_failed";return code==="engine_failed"&&console.warn("engine failed",{op,error:error instanceof Error?error.message.slice(0,200):"unk\
+nown"}),json({error:code},code==="model_timeout"?504:code==="model_rate_limited"?429:code==="model_unavailable"||code==="model_auth_failed"||code==="blueprints_unavailable"?503:502,
+origin)}}}var DEFAULT_ROUTE={compose:"deepseek",intake:"gemini",ideas:"gemini"},COVERABLE=new Set(["model_rate_limited","model_unavailable","model_timeout","model_bad_output"]);function withBackup(primary,backup){
 return backup?{id:`${primary.id}→${backup.id}`,async complete(input){try{let result=await primary.complete(input);return{...result,modelId:result.modelId??primary.id}}catch(error){
 if(!(error instanceof ModelError)||!COVERABLE.has(error.code))throw error;console.warn("model failover",{from:primary.id,to:backup.id,code:error.code,detail:error.message.slice(0,200)});
 let result=await backup.complete(input);return{...result,modelId:result.modelId??backup.id}}}}:primary}function parseRoute(raw){let out={};for(let pair of(raw??"").split(",")){let[

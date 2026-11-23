@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Candidate, ComposeRequest, GateReport, Session } from '../core/mission-engine/client';
+import type { Candidate, ComposeRequest, DeepQuestion, GateReport, Session, SmartOptions, TurnResult } from '../core/mission-engine/client';
 
 /**
  * Browser client for the lookers-ai-engine function and the learning events table.
@@ -33,6 +33,15 @@ export function createEngineClient(getClient: () => Promise<Client>) {
     intake: (blueprintId: string, text: string) => call<{ candidates: Candidate[] }>({ op: 'intake', blueprintId, text }).then(r => r.candidates ?? []),
     ideas: (blueprintId: string, slot: string, typed: string, context: string, lang: Session['lang']) =>
       call<{ ideas: string[] }>({ op: 'ideas', blueprintId, slot, typed, context, lang }).then(r => r.ideas ?? []),
+    /** A typed reply to an open question: what the person meant (answer, confused, asking, you-choose…). */
+    turn: (blueprintId: string, slot: string, text: string, context: string, lang: Session['lang'], probesLeft: number) =>
+      call<TurnResult>({ op: 'turn', blueprintId, slot, text, context, lang, probesLeft }),
+    /** Smart options for the question on screen. */
+    options: (blueprintId: string, slot: string, context: string, lang: Session['lang']) =>
+      call<SmartOptions>({ op: 'options', blueprintId, slot, context, lang }),
+    /** The questions that would make the prompt stronger. */
+    deepen: (blueprintId: string, context: string, lang: Session['lang']) =>
+      call<{ questions: DeepQuestion[] }>({ op: 'deepen', blueprintId, context, lang }).then(r => r.questions ?? []),
     compose: (session: Session, sessionId?: string) =>
       call<{ output: Record<string, unknown>; report: GateReport; attempts: number; model: string; resultId: string | null }>({ op: 'compose', session, sessionId }),
     /** Follow-up: the user pasted the tool's reply; get what is done and the next message to paste. */

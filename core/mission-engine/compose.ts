@@ -7,7 +7,7 @@ export interface ComposeRequest {
   blueprintVersion: number;
   language: Session['lang'];
   system: string;
-  brief: { idea: string; references?: string[]; values: Record<string, { value: string | string[]; label?: string | string[]; asked?: string; verbatim: boolean; assumed: boolean }> };
+  brief: { idea: string; references?: string[]; details?: { q: string; a: string }[]; values: Record<string, { value: string | string[]; label?: string | string[]; asked?: string; verbatim: boolean; assumed: boolean }> };
   contract: Blueprint['output']['fields'];
   tools: Blueprint['tools'];
 }
@@ -30,7 +30,7 @@ export function buildComposeRequest(blueprint: Blueprint, session: Session): Com
     };
   }
   const system = compileSystemPrompt(blueprint, session);
-  return { blueprintId: blueprint.id, blueprintVersion: blueprint.version, language: session.lang, system, brief: { idea: session.idea ?? '', ...(session.references?.length ? { references: session.references } : {}), values }, contract: blueprint.output.fields, tools: blueprint.tools };
+  return { blueprintId: blueprint.id, blueprintVersion: blueprint.version, language: session.lang, system, brief: { idea: session.idea ?? '', ...(session.references?.length ? { references: session.references } : {}), ...(session.notes?.length ? { details: session.notes } : {}), values }, contract: blueprint.output.fields, tools: blueprint.tools };
 }
 
 /** One targeted repair instruction from failed gates (the server retries once). */

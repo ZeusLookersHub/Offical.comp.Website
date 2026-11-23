@@ -11,3 +11,5 @@ export { LAYERS, LAYER_ORDER, compileSystemPrompt } from './layers.ts';
 export { listResources, type ResourceNeed } from './resources.ts';
 export { TOOL_LAUNCH, planLaunch, launchableTools, type LaunchMode, type LaunchPlan, type ToolLaunch } from './launch.ts';
 export * as modules from './modules.ts';
+
+export * from './converse.ts';

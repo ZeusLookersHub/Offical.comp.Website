@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, Copy, ExternalLink, ImagePlus, MessageSquarePlus, Send, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Copy, ExternalLink, HelpCircle, ImagePlus, Lightbulb, MessageSquarePlus, Send, Sparkles } from 'lucide-react';
 import {
-  answer, applyCandidates, buildBrief, confirmBrief, createSession, nextStep, normalize, planLaunch, skip, submitIntake, suggest,
-  type Blueprint, type GateReport, type Lang, type Session, type SlotValueRaw,
+  answer, applyCandidates, buildBrief, confirmBrief, conversationContext, createSession, explainLocally, MAX_NOTES, MAX_PROBES, nextStep, normalize, planLaunch, readLocally, skip, submitIntake, suggest,
+  type Blueprint, type DeepQuestion, type GateReport, type Lang, type Session, type SlotValueRaw, type SmartOptions, type TurnResult,
 } from '../core/mission-engine/client';
 import { lookersEngine } from '../services/lookersAiEngineClient';
 import './LookersAdaptiveChat.css';
@@ -13,7 +13,9 @@ type Move = { received: string; issues: string[]; next: string; message: string;
 /** The follow-up trail after the prompt went to the tool: what is finished and the last message we wrote. */
 type Follow = { done: string[]; moves: Move[] };
 type Result = { output: Record<string, unknown>; report: GateReport; attempts: number; follow?: Follow };
-type Saved = { session: Session; thread: Line[]; result?: Result };
+/** An extra question outside the blueprint: a follow-up on a thin answer, or a "make it stronger" question. */
+type Extra = DeepQuestion & { kind: 'probe' | 'deep' };
+type Saved = { session: Session; thread: Line[]; result?: Result; extras?: Extra[] };
 type Engine = typeof lookersEngine;
 
 interface Props {
@@ -63,7 +65,11 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   const [typed, setTyped] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
   const [ideas, setIdeas] = useState<string[]>([]);
-  const [busy, setBusy] = useState<'' | 'reading' | 'writing'>('');
+  const [busy, setBusy] = useState<'' | 'reading' | 'writing' | 'thinking'>('');
+  const [extras, setExtras] = useState<Extra[]>(initial.extras ?? []);
+  const [assist, setAssist] = useState<{ slot: string; chips: string[] } | null>(null);
+  const [smart, setSmart] = useState<Record<string, SmartOptions>>({});
+  const probesUsed = useRef(0);
   const [error, setError] = useState('');
   const [why, setWhy] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -78,12 +84,27 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   const sessionId = useRef<string>(initial.session.id);
 
   useEffect(() => {
-    try { localStorage.setItem(storeKey(bp), JSON.stringify({ session, thread, result })); } catch { /* ignore */ }
-  }, [bp, session, thread, result]);
+    try { localStorage.setItem(storeKey(bp), JSON.stringify({ session, thread, result, extras })); } catch { /* ignore */ }
+  }, [bp, session, thread, result, extras]);
   useEffect(() => { body.current?.scrollTo({ top: body.current.scrollHeight, behavior: 'smooth' }); }, [thread.length, step.type, result, busy]);
-  useEffect(() => { setPicked([]); setWhy(false); setTyped(''); setIdeas([]); }, [step.type === 'question' ? step.question.slot : step.type]);
+  useEffect(() => { setPicked([]); setWhy(false); setTyped(''); setIdeas([]); setAssist(null); }, [step.type === 'question' ? step.question.slot : step.type, extras.length]);
 
-  const activeSlot = editing ?? (step.type === 'question' ? step.question.slot : step.type === 'intake' ? 'intake' : null);
+  // Smart options: once per question, the model looks at this person's idea and marks the choice
+  // that fits it best (with why), or drafts ready answers for a descriptive question.
+  const openSlot = !editing && !extras.length && step.type === 'question' ? step.question.slot : null;
+  useEffect(() => {
+    if (!openSlot || smart[openSlot] || bp.slots.find(sl => sl.id === openSlot)?.kind === 'exact') return;
+    let live = true;
+    const timer = setTimeout(() => {
+      engine.options(bp.id, openSlot, conversationContext(session, bp), lang)
+        .then(r => { if (live) setSmart(prev => ({ ...prev, [openSlot]: r })); })
+        .catch(() => { if (live) setSmart(prev => ({ ...prev, [openSlot]: { answers: [] } })); });
+    }, 250);
+    return () => { live = false; clearTimeout(timer); };
+  }, [openSlot]);
+
+  const extra = !editing && extras.length ? extras[0] : null;
+  const activeSlot = editing ?? (extra ? null : step.type === 'question' ? step.question.slot : step.type === 'intake' ? 'intake' : null);
   const slotDef = activeSlot && activeSlot !== 'intake' ? bp.slots.find(s => s.id === activeSlot) : undefined;
   const freeText = activeSlot === 'intake' || (slotDef && (slotDef.kind === 'text' || slotDef.kind === 'longtext' || slotDef.kind === 'exact'));
 
@@ -156,13 +177,13 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
     void engine.track('intake', bp.id, { sessionId: sessionId.current, meta: { extracted: understood.length } });
   };
 
-  const sendAnswer = (slotId: string, value: SlotValueRaw, shown: string) => {
+  const sendAnswer = (slotId: string, value: SlotValueRaw, shown: string, base: Session = session) => {
     const wasEditing = editing;
-    const r = answer(session, bp, slotId, value);
+    const r = answer(base, bp, slotId, value);
     if (!r.ok) { setError(t('That answer does not fit — try again.', 'الإجابة دي مش مناسبة، جرّب تاني.')); return; }
     setError(''); setEditing(null); setResult(undefined);
     if (!wasEditing) say({ role: 'assistant', text: bp.slots.find(s => s.id === slotId)!.question[lang] }, { role: 'user', text: shown });
-    if (slotId === 'reference' && value === 'yes' && !session.references?.length) {
+    if (slotId === 'reference' && value === 'yes' && !base.references?.length) {
       const basis = r.value.values.basis?.value;
       say({ role: 'assistant', text: basis === 'edit'
         ? t('Upload the image you want changed, at the best quality you have. I will read it and build the edit on it.', 'ارفع الصورة اللي عايز تعدّلها نفسها، بأعلى جودة عندك. هقراها وأبني التعديل عليها.')
@@ -172,22 +193,115 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
       fileInput.current?.click();
     }
     setSession(r.value);
+    setAssist(null);
     void engine.track(wasEditing ? 'brief_edited' : 'answered', bp.id, { sessionId: sessionId.current, slot: slotId });
+    return true;
+  };
+
+  /**
+   * Whatever the person typed while a question is open: an answer, "I don't get it", a question
+   * back, "you choose", or a skip. The model reads it; if it is away, a local reading covers the
+   * common cases so the chat never answers "that does not fit".
+   */
+  const sendTyped = async (slotId: string, text: string) => {
+    const slot = bp.slots.find(sl => sl.id === slotId)!;
+    const local = readLocally(text);
+    const words = normalize(text).split(' ').filter(Boolean).length;
+    const descriptive = slot.kind === 'text' || slot.kind === 'longtext';
+    setTyped(''); setPicked([]); setError('');
+    // Brand names and exact text never go to the model; long descriptive answers are taken as they are.
+    const quick = !local && (slot.kind === 'exact' || (descriptive && words >= 6));
+    let r: TurnResult;
+    if (quick) r = { intent: 'answer', value: text };
+    else {
+      setBusy('thinking');
+      try {
+        if (slot.kind === 'exact') throw new Error('local');
+        r = await engine.turn(bp.id, slotId, text, conversationContext(session, bp), lang, MAX_PROBES - probesUsed.current);
+      } catch {
+        // Offline reading: meta phrases, or a choice whose label/keywords appear in the text.
+        const plain = normalize(text);
+        const hits = slot.options?.filter(o => [o.label.ar, o.label.en, ...(o.keywords ?? [])].some(k => normalize(k).length > 1 && plain.includes(normalize(k)))) ?? [];
+        const value = !slot.options ? text : hits.length === 1 ? (slot.kind === 'multi' ? [hits[0].value] : hits[0].value) : slot.kind === 'multi' && hits.length ? hits.map(o => o.value) : undefined;
+        r = local === 'skip' ? { intent: 'skip' } : local === 'delegate' ? { intent: 'delegate' } : local === 'confused' || value === undefined ? { intent: 'confused' } : { intent: 'answer', value };
+      } finally { setBusy(''); }
+    }
+    const q = slot.question[lang];
+    if (r.intent === 'skip') { doSkip(slotId, text); return; }
+    if (r.intent === 'answer' || r.intent === 'delegate') {
+      const withOthers = r.others?.length ? applyCandidates(session, bp, text, r.others) : session;
+      if (r.value === undefined) { doSkip(slotId, text); if (r.reply) say({ role: 'assistant', text: r.reply }); return; }
+      const shown = slot.options ? valueText(bp, slotId, r.value, lang) : String(r.value);
+      const ok = sendAnswer(slotId, r.value, r.intent === 'delegate' ? `${text} → ${shown}` : shown, withOthers);
+      if (!ok) { r = { intent: 'confused' }; }
+      else {
+        if (r.intent === 'delegate' && r.reply) say({ role: 'assistant', text: r.reply });
+        if (r.probe && probesUsed.current < MAX_PROBES) {
+          probesUsed.current += 1;
+          setExtras(prev => [{ q: r.probe!.q, chips: r.probe!.chips, kind: 'probe' }, ...prev]);
+        }
+        return;
+      }
+    }
+    // confused / ask / offtopic: explain, re-ask, offer ready answers. Stay on the same question.
+    setError('');
+    const fallback = explainLocally(bp, slotId, lang);
+    say({ role: 'assistant', text: q }, { role: 'user', text }, { role: 'assistant', text: r.reply || fallback.reply });
+    setAssist({ slot: slotId, chips: r.chips?.length ? r.chips : fallback.chips });
+    void engine.track('answered', bp.id, { sessionId: sessionId.current, slot: slotId, meta: { intent: r.intent } });
+  };
+
+  /** Ready answers (smart or after an explanation): a choice label picks it, anything else goes through sendTyped. */
+  const pickChip = (slotId: string, chip: string) => {
+    const slot = bp.slots.find(sl => sl.id === slotId);
+    const option = slot?.options?.find(o => normalize(o.label[lang]) === normalize(chip) || normalize(o.label.en) === normalize(chip) || normalize(o.label.ar) === normalize(chip));
+    if (option) { sendAnswer(slotId, slot!.kind === 'multi' ? [option.value] : option.value, option.label[lang]); return; }
+    void sendTyped(slotId, chip);
+  };
+
+  /** An extra question (follow-up or "make it stronger") was answered or skipped. */
+  const answerExtra = (text: string | null) => {
+    if (!extra) return;
+    const value = text?.trim() ?? '';
+    if (value && readLocally(value) === 'confused') {
+      say({ role: 'assistant', text: extra.q }, { role: 'user', text: value }, { role: 'assistant', text: (extra.why ? extra.why + '\n' : '') + t('Tap an example below or say it your way.', 'دوس على مثال من تحت أو قولها بطريقتك.') });
+      setTyped(''); return;
+    }
+    if (value && readLocally(value) !== 'skip' && readLocally(value) !== 'delegate') {
+      const notes = [...(session.notes ?? []), { q: extra.q, a: value.slice(0, 600) }].slice(-MAX_NOTES);
+      setSession({ ...session, notes });
+      say({ role: 'assistant', text: extra.q }, { role: 'user', text: value });
+    } else say({ role: 'assistant', text: extra.q }, { role: 'user', text: value || t('Skip', 'تخطّى') });
+    setExtras(prev => prev.slice(1)); setTyped(''); setResult(undefined);
+  };
+
+  /** "Make it stronger": a specialist's extra questions before the brief. */
+  const deepenBrief = async (take: boolean) => {
+    if (!take) { setSession({ ...session, deepened: 'declined' }); return; }
+    setBusy('thinking');
+    try {
+      const questions = await engine.deepen(bp.id, conversationContext(session, bp), lang);
+      setExtras(questions.map(q => ({ ...q, kind: 'deep' as const })));
+      setSession({ ...session, deepened: questions.length ? 'done' : 'declined' });
+    } catch { setSession({ ...session, deepened: 'declined' }); }
+    finally { setBusy(''); }
   };
 
   const submit = () => {
     const text = typed.trim();
     if (activeSlot === 'intake') { if (text) void sendIntake(text); return; }
+    if (extra) { if (text) answerExtra(text); return; }
     if (!slotDef) return;
     if (slotDef.kind === 'single' && picked[0]) sendAnswer(slotDef.id, picked[0], valueText(bp, slotDef.id, picked[0], lang));
     else if (slotDef.kind === 'multi' && picked.length) sendAnswer(slotDef.id, picked, valueText(bp, slotDef.id, picked, lang));
-    else if (text) sendAnswer(slotDef.id, text, text);
+    else if (text && editing) { const ok = answer(session, bp, slotDef.id, text); if (ok.ok) sendAnswer(slotDef.id, text, text); else void sendTyped(slotDef.id, text); }
+    else if (text) void sendTyped(slotDef.id, text);
   };
 
-  const doSkip = (slotId: string) => {
+  const doSkip = (slotId: string, shown?: string) => {
     const r = skip(session, bp, slotId);
-    if (!r.ok) return;
-    say({ role: 'assistant', text: bp.slots.find(s => s.id === slotId)!.question[lang] }, { role: 'user', text: t('Skip — pick the best for me', 'تخطّى · اختارلي الأنسب') });
+    if (!r.ok) { setError(t('I need this one to write a good prompt — tell me in your own words.', 'محتاج دي عشان أكتب برومبت كويس، قولها بكلامك العادي.')); return; }
+    say({ role: 'assistant', text: bp.slots.find(s => s.id === slotId)!.question[lang] }, { role: 'user', text: shown ?? t('Skip — pick the best for me', 'تخطّى · اختارلي الأنسب') });
     setSession(r.value);
     void engine.track('skipped', bp.id, { sessionId: sessionId.current, slot: slotId });
   };
@@ -258,11 +372,14 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
   const restart = () => {
     const fresh = createSession(bp, lang);
     sessionId.current = fresh.id;
-    setSession(fresh); setThread([]); setResult(undefined); setEditing(null); setError('');
+    setSession(fresh); setThread([]); setResult(undefined); setEditing(null); setError(''); setExtras([]); setAssist(null); probesUsed.current = 0;
   };
 
-  const brief = step.type === 'brief' || session.phase === 'confirmed' ? buildBrief(session, bp) : null;
-  const question = editing ? null : step.type === 'question' ? step.question : null;
+  const briefReady = (step.type === 'brief' || session.phase === 'confirmed') && !extras.length;
+  const offerDeepen = briefReady && session.phase === 'brief' && !session.deepened && !result;
+  const brief = briefReady && !offerDeepen ? buildBrief(session, bp) : null;
+  const tip = openSlot ? smart[openSlot] : undefined;
+  const question = editing || extra ? null : step.type === 'question' ? step.question : null;
   const options = slotDef?.options?.map(o => ({ value: o.value, label: o.label[lang], description: o.visual?.description[lang], asset: o.visual?.asset, media: o.visual?.media }));
   const out = result?.output;
   const variants = (out?.variants ?? {}) as Record<string, string>;
@@ -302,6 +419,7 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             )}
             {o.asset && o.media === 'video' && <video src={o.asset} muted loop autoPlay playsInline onError={e => { e.currentTarget.style.display = 'none'; }} />}
             <strong>{o.label}</strong>
+            {tip?.recommend === o.value && !editing && <em className="lmc-reco">{t('Suggested for you', 'مقترح لك')}</em>}
             {o.description && <small>{o.description}</small>}
           </button>
         );
@@ -336,15 +454,58 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             </div>
             <div className="lmc-row">
               <button type="button" className="lai-explain" aria-expanded={why} onClick={() => setWhy(v => !v)}>{t('Why this question?', 'ليه بنسأل؟')}</button>
+              <button type="button" className="lai-explain" onClick={() => void sendTyped(question.slot, t('I do not understand the question', 'مش فاهم السؤال'))}><HelpCircle size={13} aria-hidden="true" /> {t('Not clear?', 'مش واضح؟')}</button>
               {question.canSkip && <button type="button" className="lai-explain" onClick={() => doSkip(question.slot)}>{question.skipLabel}</button>}
               <span className="lmc-progress">{t(`${step.type === 'question' ? step.progress.remaining : 0} left`, `فاضل ${step.type === 'question' ? step.progress.remaining : 0}`)}</span>
             </div>
             {why && <p className="lai-adaptive-help" role="note">{question.why}</p>}
             {optionGrid}
+            {tip?.recommend && tip.why && <p className="lmc-tip"><Lightbulb size={14} aria-hidden="true" /> {tip.why}</p>}
+            {(assist?.slot === question.slot ? assist.chips : []).length > 0 && (
+              <div className="lmc-ready" aria-label={t('Quick answers', 'إجابات سريعة')}>
+                {assist!.chips.map(chip => <button type="button" key={chip} onClick={() => pickChip(question.slot, chip)}>{chip}</button>)}
+              </div>
+            )}
+            {!!tip?.answers.length && assist?.slot !== question.slot && (
+              <div className="lmc-ready" aria-label={t('Ready answers built on your idea', 'إجابات جاهزة على فكرتك')}>
+                <span><Lightbulb size={13} aria-hidden="true" /> {t('Ideas for you — tap to use or edit:', 'أفكار ليك، دوس عشان تستخدمها أو تعدّلها:')}</span>
+                {tip.answers.map(a => <button type="button" key={a} onClick={() => setTyped(a)}>{a}</button>)}
+              </div>
+            )}
           </div>
         )}
 
-        {busy && <p className="lai-message lai-message--assistant lmc-thinking" role="status">{busy === 'reading' ? t('Reading…', 'بقرا…') : t('Writing and checking your prompt…', 'بكتب البرومبت وبراجعه…')}</p>}
+        {extra && !busy && (
+          <div className="lai-current-message" data-testid="extra-question">
+            <div className="lai-message lai-message--assistant">
+              <small className="lmc-extra-tag">{extra.kind === 'deep' ? t(`To make it stronger · ${extras.length} left`, `عشان البرومبت يبقى أقوى · فاضل ${extras.length}`) : t('One more detail', 'تفصيلة كمان')}</small>
+              <h2>{extra.q}</h2>
+              {extra.why && <p className="lai-adaptive-example">{extra.why}</p>}
+            </div>
+            {extra.chips.length > 0 && (
+              <div className="lmc-ready">{extra.chips.map(chip => <button type="button" key={chip} onClick={() => answerExtra(chip)}>{chip}</button>)}</div>
+            )}
+            <div className="lmc-row">
+              <button type="button" className="lai-explain" onClick={() => answerExtra(null)}>{t('Skip', 'تخطّى')}</button>
+              {extra.kind === 'deep' && extras.length > 1 && <button type="button" className="lai-explain" onClick={() => { say({ role: 'user', text: t('That is enough — show the brief', 'كفاية كده، وريني البريف') }); setExtras([]); }}>{t('Enough — show the brief', 'كفاية · وريني البريف')}</button>}
+            </div>
+          </div>
+        )}
+
+        {offerDeepen && !busy && (
+          <div className="lai-current-message lmc-deepen" data-testid="deepen-offer">
+            <div className="lai-message lai-message--assistant">
+              <h2>{t('Your brief is ready. Want a stronger prompt?', 'البريف جاهز. عايز البرومبت يطلع أقوى؟')}</h2>
+              <p className="lai-adaptive-example">{t('3 quick questions a specialist would ask — they make the result more precise and more yours.', '٣ أسئلة سريعة زي ما خبير هيسألك، بيخلّوا النتيجة أدق وشبهك أكتر.')}</p>
+            </div>
+            <div className="lmc-next__actions">
+              <button type="button" className="lmc-next__primary" onClick={() => void deepenBrief(true)}><Sparkles size={15} aria-hidden="true" /> {t('Yes — 3 more questions (recommended)', 'أيوه، ٣ أسئلة كمان (أنصح بيها)')}</button>
+              <button type="button" className="lai-explain" onClick={() => void deepenBrief(false)}>{t('No, show the brief', 'لأ، وريني البريف')}</button>
+            </div>
+          </div>
+        )}
+
+        {busy && <p className="lai-message lai-message--assistant lmc-thinking" role="status">{busy === 'reading' ? t('Reading…', 'بقرا…') : busy === 'thinking' ? t('Thinking…', 'بفكّر…') : t('Writing and checking your prompt…', 'بكتب البرومبت وبراجعه…')}</p>}
 
         {brief && !busy && !result && (
           <article className="lmc-brief lmc-brief--compact" data-testid="brief">
@@ -368,7 +529,13 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
                   <b>✗ {item.label}:</b> {item.value}
                 </li>
               ))}
+              {(session.notes ?? []).map((n, i) => (
+                <li key={`note-${i}`} className="is-note"><b>{n.q}</b> {n.a}
+                  <button type="button" className="lmc-note-remove" aria-label={t('Remove', 'شيل')} onClick={e => { e.stopPropagation(); setSession({ ...session, notes: (session.notes ?? []).filter((_, k) => k !== i) }); }}>×</button>
+                </li>
+              ))}
             </ul>
+            {!editing && session.phase === 'brief' && <button type="button" className="lai-explain lmc-more" onClick={() => void deepenBrief(true)}><Sparkles size={13} aria-hidden="true" /> {t('Add more details', 'زوّد تفاصيل')}</button>}
             <p className="lmc-bullets-hint">{t('Tap any point to change it', 'اضغط على أي نقطة عشان تغيّرها')}</p>
             {editing && slotDef && (
               <div className="lmc-edit" data-slot={editing}>
@@ -484,7 +651,7 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
         )}
       </div>
 
-      {(step.type === 'intake' || question || editing) && !busy && (
+      {(step.type === 'intake' || question || editing || extra) && !busy && (
         <footer className="lai-adaptive-footer">
           {error && <p className="lai-adaptive-notice" role="alert">{error}</p>}
           {chips.length > 0 && (
@@ -497,16 +664,17 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
               <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden onChange={e => void attach(e.target.files?.[0])} data-testid="photo-input" />
               <button type="button" className="lai-attach" aria-label={t('Attach a reference photo', 'ارفع صورة مرجع')} title={t('Attach a reference photo', 'ارفع صورة مرجع')} onClick={() => fileInput.current?.click()}><ImagePlus size={19} /></button>
             </>}
-            {freeText ? (
-              <textarea className="lmc-input" rows={1} value={typed} maxLength={slotDef?.maxLength ?? 4000}
-                placeholder={activeSlot === 'intake' ? t('I want…', 'أنا عايز…') : slotDef?.example[lang]}
-                aria-label={activeSlot === 'intake' ? (step.type === 'intake' ? step.question : '') : slotDef?.question[lang]}
+            {picked.length > 0 && !freeText && !extra ? (
+              <p className="lai-composer-hint">{valueText(bp, slotDef!.id, slotDef!.kind === 'multi' ? picked : picked[0], lang)}</p>
+            ) : (
+              <textarea className="lmc-input" rows={1} value={typed} maxLength={extra ? 600 : slotDef?.maxLength ?? 4000}
+                placeholder={extra ? t('Your answer…', 'إجابتك…') : activeSlot === 'intake' ? t('I want…', 'أنا عايز…') : freeText ? slotDef?.example[lang]
+                  : t('Pick above, or say it in your words / ask me…', 'اختار من فوق، أو اكتب بكلامك أو اسألني…')}
+                aria-label={extra ? extra.q : activeSlot === 'intake' ? (step.type === 'intake' ? step.question : '') : slotDef?.question[lang]}
                 onChange={e => setTyped(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }} />
-            ) : (
-              <p className="lai-composer-hint">{picked.length ? valueText(bp, slotDef!.id, slotDef!.kind === 'multi' ? picked : picked[0], lang) : t('Choose an option above', 'اختار من فوق')}</p>
             )}
-            <button type="submit" className="lai-send" aria-label={t('Send', 'إرسال')} disabled={freeText ? !typed.trim() : !picked.length}><span><Send size={20} /></span></button>
+            <button type="submit" className="lai-send" aria-label={t('Send', 'إرسال')} disabled={!typed.trim() && !(picked.length && !freeText && !extra)}><span><Send size={20} /></span></button>
           </form>
         </footer>
       )}

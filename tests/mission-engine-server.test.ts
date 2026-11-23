@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { answer, blueprintById, confirmBrief, createSession, submitIntake, nextStep, type Blueprint, type Session } from '../core/mission-engine/index.ts';
-import { compose, extract, nextMove, sanitizeSession } from '../server/engine/engine.ts';
+import { compose, deepen, extract, nextMove, options, sanitizeSession, turn } from '../server/engine/engine.ts';
+import { readLocally, explainLocally } from '../core/mission-engine/converse.ts';
+import { buildComposeRequest } from '../core/mission-engine/compose.ts';
 import { createEngineHandler } from '../server/engine/handler.ts';
 import { serverShape } from '../scripts/build-engine-blueprints.ts';
 import { privateBlueprints } from '../server/engine/private-blueprints.ts';
@@ -417,4 +419,50 @@ test('follow-up: tracks what is done and writes the next message; a misspelt bra
   assert.deepEqual(out.done, ['Logo direction']);
   assert.equal(out.next, 'Colour palette');
   assert.match(model.calls[0].system, /no "shall I continue"/);
+});
+
+test('conversation: "I do not get it" is explained, not rejected; "you choose" picks a valid option; bad values never pass', async () => {
+  const confused = await turn(scripted([{ intent: 'confused', reply: 'يعني الصورة هتتنشر فين…', chips: ['ستوري', 'بوست'] }]), photo, { slot: 'usage', text: 'مش فاهم', context: '', lang: 'ar', probesLeft: 3 });
+  assert.equal(confused.intent, 'confused');
+  assert.ok(confused.reply && confused.chips?.length === 2);
+
+  const usage = photo.slots.find(s => s.id === 'usage')!;
+  const pick = usage.options![0].value;
+  const delegated = await turn(scripted([{ intent: 'delegate', value: pick, reply: 'اخترتلك ده عشان…' }]), photo, { slot: 'usage', text: 'اختار انت', context: '', lang: 'ar', probesLeft: 3 });
+  assert.equal(delegated.intent, 'delegate');
+  assert.equal(delegated.value, pick);
+
+  const invented = await turn(scripted([{ intent: 'answer', value: 'billboard-on-the-moon' }]), photo, { slot: 'usage', text: 'على القمر', context: '', lang: 'ar', probesLeft: 3 });
+  assert.equal(invented.intent, 'confused', 'an option that does not exist turns into an explanation');
+
+  const thin = await turn(scripted([{ intent: 'answer', value: 'برفان', probe: { q: 'شكل الزجاجة إيه ولونها؟', chips: ['زجاجة كحلي', 'زجاجة شفافة', 'مربعة دهبي'] } }]), photo, { slot: 'product', text: 'برفان', context: '', lang: 'ar', probesLeft: 3 });
+  assert.equal(thin.value, 'برفان');
+  assert.equal(thin.probe?.chips.length, 3);
+  const noProbe = await turn(scripted([{ intent: 'answer', value: 'برفان', probe: { q: 'شكل الزجاجة إيه ولونها؟', chips: [] } }]), photo, { slot: 'product', text: 'برفان', context: '', lang: 'ar', probesLeft: 0 });
+  assert.equal(noProbe.probe, undefined, 'no probes left, none asked');
+});
+
+test('conversation: local reading and explanation work without the model', () => {
+  assert.equal(readLocally('مش فاهم السؤال'), 'confused');
+  assert.equal(readLocally('يعني ايه؟'), 'confused');
+  assert.equal(readLocally('اختار انت اللي تشوفه'), 'delegate');
+  assert.equal(readLocally('تخطى'), 'skip');
+  assert.equal(readLocally('زجاجة كحلي بغطا فضي'), null);
+  const e = explainLocally(photo, 'usage', 'ar');
+  assert.match(e.reply, /مثلاً/);
+  assert.ok(e.chips.length > 0);
+});
+
+test('smart options keep only real options; deepen questions and notes reach compose', async () => {
+  const usage = photo.slots.find(s => s.id === 'usage')!;
+  const ok = await options(scripted([{ recommend: usage.options![1].value, why: 'عشان…' }]), photo, { slot: 'usage', context: 'x', lang: 'ar' });
+  assert.equal(ok.recommend, usage.options![1].value);
+  const fake = await options(scripted([{ recommend: 'nope' }]), photo, { slot: 'usage', context: 'x', lang: 'ar' });
+  assert.equal(fake.recommend, undefined);
+  const qs = await deepen(scripted([{ questions: [{ q: 'عايز الناس تحس بإيه أول ما تشوفها؟', why: 'بيحدد الإضاءة', chips: ['فخامة', 'دفا', 'غموض'] }, { q: 'x' }] }]), photo, { context: 'x', lang: 'ar' });
+  assert.equal(qs.length, 1, 'too-short questions are dropped');
+  const s = { ...confirmedPerfume(), notes: [{ q: qs[0].q, a: 'غموض وفخامة' }] };
+  assert.deepEqual(buildComposeRequest(photo, s).brief.details, [{ q: qs[0].q, a: 'غموض وفخامة' }]);
+  const clean = await sanitizeSession(s, async id => (id === photo.id ? photo : undefined));
+  assert.ok(!('error' in clean) && clean.session.notes?.length === 1, 'notes survive the server check');
 });

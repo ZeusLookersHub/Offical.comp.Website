@@ -13,6 +13,7 @@ export { extractDeterministic, applyCandidates } from './intake.ts';
 export { buildBrief, displayValue } from './brief.ts';
 export { suggest } from './suggest.ts';
 export { normalize } from './text.ts';
+export { readLocally, explainLocally, conversationContext, MAX_NOTES, MAX_PROBES, type TurnIntent, type TurnResult, type SmartOptions, type DeepQuestion, type Note } from './converse.ts';
 export { planLaunch, launchableTools, type LaunchMode, type LaunchPlan } from './launch.ts';
 // Type only: erased at compile time, so compose.ts never reaches the bundle.
 export type { ComposeRequest } from './compose.ts';

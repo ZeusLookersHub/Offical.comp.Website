@@ -1,5 +1,6 @@
 // Server imports core modules directly (not index.ts) so the UI copy of the blueprints is not bundled.
-import type { Blueprint, Candidate, GateReport, Lang, Session, SlotValue } from '../../core/mission-engine/types.ts';
+import type { Blueprint, Candidate, GateReport, Lang, Session, SlotValue, SlotValueRaw } from '../../core/mission-engine/types.ts';
+import type { TurnResult, TurnIntent, SmartOptions, DeepQuestion } from '../../core/mission-engine/converse.ts';
 import { applyCandidates, validValue } from '../../core/mission-engine/intake.ts';
 import { buildComposeRequest, repairInstruction } from '../../core/mission-engine/compose.ts';
 import { runGates } from '../../core/mission-engine/gates.ts';
@@ -78,8 +79,9 @@ export async function sanitizeSession(raw: unknown, lookup: BlueprintLookup): Pr
   }
   if (bp.slots.some(slot => slot.importance === 'critical' && !values[slot.id])) return { error: 'invalid_session' };
   const idea = typeof s.idea === 'string' ? s.idea.slice(0, 4000) : '';
+  const notes = Array.isArray(s.notes) ? s.notes.filter((n): n is { q: string; a: string } => !!n && typeof n.q === 'string' && typeof n.a === 'string' && n.a.trim().length > 0).slice(0, 8).map(n => ({ q: n.q.slice(0, 240), a: n.a.slice(0, 600) })) : [];
   const references = Array.isArray(s.references) ? s.references.filter((r): r is string => typeof r === 'string' && r.trim().length > 0).slice(0, 3).map(r => r.slice(0, 1500)) : [];
-  return { bp, session: { id: String(s.id ?? '').slice(0, 64), blueprintId: bp.id, blueprintVersion: bp.version, lang: s.lang, phase: 'confirmed', idea, values, ...(references.length ? { references } : {}), asked: [], revision: Number(s.revision) || 0 } };
+  return { bp, session: { id: String(s.id ?? '').slice(0, 64), blueprintId: bp.id, blueprintVersion: bp.version, lang: s.lang, phase: 'confirmed', idea, values, ...(references.length ? { references } : {}), ...(notes.length ? { notes } : {}), asked: [], revision: Number(s.revision) || 0 } };
 }
 
 export interface ComposeResult { output: unknown; report: GateReport; attempts: number; model: string }
@@ -152,4 +154,110 @@ export async function nextMove(model: JsonModel, bp: Blueprint, session: Session
     next: String(json.next).slice(0, 120), message: json.message.trim().slice(0, 6000), finished: json.finished === true,
     model: modelId ?? model.id,
   };
+}
+
+// ---------- 5. Conversation: understand whatever the user typed ----------
+
+
+const INTENTS: TurnIntent[] = ['answer', 'confused', 'ask', 'delegate', 'skip', 'offtopic'];
+const voice = (lang: Lang) => lang === 'ar'
+  ? 'Write every user-facing text in warm, simple Egyptian Arabic (عامية مصرية), like a helpful friend who is an expert. Short sentences, no jargon; if a technical word is needed, explain it in a few words.'
+  : 'Write every user-facing text in warm, simple English, like a helpful friend who is an expert. Short sentences, no jargon.';
+const strs = (v: unknown, max: number, len = 80) => Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0).map(x => x.trim().slice(0, len)).slice(0, max) : [];
+
+function describeSlot(bp: Blueprint, slotId: string): string {
+  const slot = bp.slots.find(s => s.id === slotId)!;
+  const opts = slot.options ? `\nOptions (value: label | what it means):\n${slot.options.map(o => `- ${o.value}: ${o.label.en} / ${o.label.ar}${o.visual ? ` | ${o.visual.description.en}` : ''}`).join('\n')}` : '';
+  return `Current question (slot "${slot.id}", kind ${slot.kind}${slot.kind === 'multi' ? ', several allowed' : ''}): ${slot.question.en}\nWhy we ask: ${slot.why.en}\nExample answer: ${slot.example.en}${opts}`;
+}
+
+export interface TurnInput { slot: string; text: string; context: string; lang: Lang; probesLeft: number }
+
+/**
+ * One typed message while a question is open. The model says what the person meant; every
+ * value is then checked against the blueprint here, so a wrong guess can never enter the brief.
+ */
+export async function turn(model: JsonModel, bp: Blueprint, input: TurnInput, signal?: AbortSignal): Promise<TurnResult> {
+  const slot = bp.slots.find(s => s.id === input.slot);
+  if (!slot) throw new ModelError('model_bad_output');
+  const system = [
+    `You are the conversation brain of Lookers AI. You help people, often non-experts, build a "${bp.title.en}" brief by chat, one question at a time, so that the final AI prompt is complete and strong.`,
+    describeSlot(bp, slot.id),
+    'What we know so far:', input.context || '(nothing yet)',
+    'Read the user message (any dialect, typos, Franco-Arabic, English mix) and decide what they meant:',
+    '- answer: it answers the question, even loosely. value = for choice slots the option value(s) that match the MEANING (not the words); for text slots their answer cleaned up (fix typos, keep every detail, add nothing). For exact slots copy the text verbatim.',
+    '- confused: they do not understand the question. reply = explain it again in very simple words with one concrete example tied to THEIR idea, then re-ask it in a simpler way. chips = 3–4 short ready answers they can tap (for choice slots, the most fitting option labels in their language).',
+    '- ask: they ask something (the difference, which is better, what you advise). reply = a short practical answer that recommends one when sensible, then re-asks. chips as above.',
+    '- delegate: they hand the choice to you (you choose, I do not know, whatever fits). value = the best answer for their idea; reply = one short line saying what you picked and why.',
+    '- skip: they want to skip this question.',
+    '- offtopic: unrelated. reply = one kind line that brings them back to the question; chips as above.',
+    'others: facts in the message that answer OTHER fields (catalogue below); evidence = exact words copied from the message. [] when none.',
+    `probe: only for intent answer on a descriptive (text/longtext) question when the answer is valid but too thin for a strong prompt (one vague word, generic adjectives). One short follow-up that digs for the single most useful missing detail, with 3 concrete chips. null otherwise${input.probesLeft > 0 ? '' : ' (no probes left: always null)'}.`,
+    voice(input.lang),
+    'Fields catalogue:', slotCatalogue(bp),
+    'Return JSON only: {"intent":"answer","value":null,"others":[],"reply":"","chips":[],"probe":null}',
+  ].join('\n');
+  const { json } = await model.complete({ system, user: input.text.slice(0, 2000), maxTokens: 700, signal });
+  const j = (json ?? {}) as Record<string, unknown>;
+  let intent = INTENTS.includes(j.intent as TurnIntent) ? j.intent as TurnIntent : 'confused';
+  let value: SlotValueRaw | undefined;
+  if (intent === 'answer' || intent === 'delegate') {
+    const raw = j.value as SlotValueRaw | null | undefined;
+    // Exact text must come from the user words themselves.
+    let checked = raw === null || raw === undefined ? null : validValue(slot, raw, slot.kind === 'exact' ? input.text : undefined);
+    if (checked === null && intent === 'answer' && (slot.kind === 'text' || slot.kind === 'longtext')) checked = input.text.trim().slice(0, slot.maxLength ?? 400);
+    if (checked === null) intent = 'confused'; else value = checked;
+  }
+  const others = (Array.isArray(j.others) ? j.others : []).filter((c): c is { slot: string; value: SlotValueRaw; evidence: string } =>
+    !!c && typeof c === 'object' && typeof (c as { slot?: unknown }).slot === 'string' && (c as { slot: string }).slot !== slot.id
+    && typeof (c as { evidence?: unknown }).evidence === 'string').slice(0, 8);
+  const probeRaw = j.probe as { q?: unknown; chips?: unknown } | null;
+  const probe = intent === 'answer' && input.probesLeft > 0 && (slot.kind === 'text' || slot.kind === 'longtext') && probeRaw && typeof probeRaw.q === 'string' && probeRaw.q.trim().length > 5
+    ? { q: probeRaw.q.trim().slice(0, 240), chips: strs(probeRaw.chips, 4) } : undefined;
+  return {
+    intent, ...(value !== undefined ? { value } : {}), others,
+    reply: typeof j.reply === 'string' ? j.reply.trim().slice(0, 700) : '',
+    chips: strs(j.chips, 4),
+    ...(probe ? { probe } : {}),
+  };
+}
+
+/** Smart options for the question on screen: which choice fits this idea best, and ready answers. */
+export async function options(model: JsonModel, bp: Blueprint, input: { slot: string; context: string; lang: Lang }, signal?: AbortSignal): Promise<SmartOptions> {
+  const slot = bp.slots.find(s => s.id === input.slot);
+  if (!slot || slot.kind === 'exact') return { answers: [] };
+  const choice = slot.kind === 'single' || slot.kind === 'multi';
+  const system = [
+    `You help a user answer one question of a "${bp.title.en}" brief, as a senior specialist who knows their idea.`,
+    describeSlot(bp, slot.id),
+    'What we know so far:', input.context || '(nothing yet)',
+    choice
+      ? 'recommend = the single option value that best fits THIS idea (or null if nothing stands out); why = one short line why, tied to their idea. answers = [].'
+      : 'answers = 3 complete, concrete answers this person could give, each a different strong direction built on their idea (each 4–14 words, specific details, no invented brand names, prices or numbers). recommend = null.',
+    voice(input.lang),
+    'Return JSON only: {"recommend":null,"why":"","answers":[]}',
+  ].join('\n');
+  const { json } = await model.complete({ system, user: 'Suggest.', maxTokens: 400, signal });
+  const j = (json ?? {}) as Record<string, unknown>;
+  const recommend = choice && typeof j.recommend === 'string' && slot.options?.some(o => o.value === j.recommend) ? j.recommend : undefined;
+  return {
+    ...(recommend ? { recommend, why: typeof j.why === 'string' ? j.why.trim().slice(0, 200) : '' } : {}),
+    answers: choice ? [] : strs(j.answers, 3, 140).filter(a => !/\d/.test(a)),
+  };
+}
+
+/** "Make it stronger": the questions a senior specialist would still ask before writing. */
+export async function deepen(model: JsonModel, bp: Blueprint, input: { context: string; lang: Lang }, signal?: AbortSignal): Promise<DeepQuestion[]> {
+  const system = [
+    `You are a senior specialist preparing a "${bp.title.en}". The brief below is enough for a basic prompt.`,
+    'Ask the 3 questions that would make the final result markedly stronger and more personal — what a top professional would still ask: the feeling or reaction wanted, specific scenes/details/elements, who it is really for, what must be avoided, references, where and how it will be used, what success looks like. Never ask what the brief already answers; never ask for prices, numbers or legal claims.',
+    'Each question is short and simple, with why (one line: what it improves) and 3 concrete chips (possible answers, 1–6 words) tailored to their idea.',
+    'Brief so far:', input.context || '(nothing yet)',
+    voice(input.lang),
+    'Return JSON only: {"questions":[{"q":"","why":"","chips":[]}]}',
+  ].join('\n');
+  const { json } = await model.complete({ system, user: 'Ask.', maxTokens: 700, signal });
+  const list = (json as { questions?: unknown })?.questions;
+  return (Array.isArray(list) ? list : []).filter((q): q is { q: string; why?: string; chips?: unknown } => !!q && typeof (q as { q?: unknown }).q === 'string' && (q as { q: string }).q.trim().length > 5)
+    .slice(0, 3).map(q => ({ q: q.q.trim().slice(0, 240), why: typeof q.why === 'string' ? q.why.trim().slice(0, 160) : undefined, chips: strs(q.chips, 4) }));
 }

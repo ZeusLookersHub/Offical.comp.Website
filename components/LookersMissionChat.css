@@ -127,3 +127,19 @@
 .lmc-move__got{margin:0;font-size:13px;color:#b5bcc5;line-height:1.6}
 .lmc-move__issues{margin:0;padding:8px 12px 8px 28px;border-radius:10px;background:#e3b9670d;border:1px dashed #c9a05b45;font-size:12.5px;color:#e8d4a4;line-height:1.6}
 [dir=rtl] .lmc-move__issues{padding:8px 28px 8px 12px}
+
+/* Smart conversation: recommendation, tips, ready answers, extra questions */
+.lmc-reco{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#c9a05b22;border:1px solid #c9a05b66;color:#f0d79e;font-size:11px;font-style:normal;font-weight:600}
+.lmc-tip{display:flex;gap:6px;align-items:flex-start;margin:8px 2px 0;font-size:13px;line-height:1.55;color:#e8d4a4}
+.lmc-tip svg{flex:none;margin-top:3px;color:#e3b967}
+.lmc-ready{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.lmc-ready>span{display:flex;align-items:center;gap:5px;width:100%;font-size:12px;color:#a0a8b2}
+.lmc-ready button{border:1px solid #6bc5d940;background:#6bc5d90d;color:#d7eef3;border-radius:14px;padding:7px 12px;font-size:13px;line-height:1.45;text-align:start;cursor:pointer;transition:border-color .15s,background .15s}
+.lmc-ready button:hover{border-color:#6bc5d9aa;background:#6bc5d91a}
+.lmc-extra-tag{display:inline-block;margin-bottom:4px;color:#79cdd3;font-size:11px;letter-spacing:.04em}
+.lmc-deepen .lmc-next__actions{margin-top:10px}
+.lmc-bullets .is-note{display:flex;gap:6px;align-items:flex-start}
+.lmc-bullets .is-note b{font-weight:500;color:#a9b3bd}
+.lmc-note-remove{margin-inline-start:auto;border:0;background:none;color:#7d8791;font-size:16px;line-height:1;cursor:pointer;padding:0 4px}
+.lmc-note-remove:hover{color:#e3b967}
+.lmc-more{margin:6px 0 2px}

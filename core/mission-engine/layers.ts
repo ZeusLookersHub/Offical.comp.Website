@@ -40,6 +40,7 @@ const GLOBAL: Record<LayerId, string[]> = {
     'The brief arrives as JSON. "values" holds slot values; each has verbatim (copy exactly), assumed (an accepted default, not a user fact) and label (readable meaning).',
     'Use only the brief. Never invent names, prices, numbers, claims, testimonials, statistics or text.',
     'A value the user gave (assumed = false) carries "asked": the question it answers. Read the answer in that context; it is the user\'s own decision and outranks any default or house style.',
+    'brief.details, when present, are extra questions the user answered (q → a): first-hand detail about what they want. Every one must shape the result concretely, like any other user value.',
     'brief.references, when present, describe photos the user uploaded: real facts about what exists (shapes, colours, materials, text on it). Use their concrete details and never contradict them.',
   ],
   intelligence: [

@@ -154,6 +154,10 @@ export interface Session {
   values: Record<string, SlotValue>;
   /** What we read in the reference photos the user uploaded (max 3). Ground truth for compose. */
   references?: string[];
+  /** Extra details from follow-up and "make it stronger" questions: the question asked and the user answer. */
+  notes?: { q: string; a: string }[];
+  /** Whether the "make it stronger" round was offered and taken or declined. */
+  deepened?: 'done' | 'declined';
   asked: string[];
   revision: number;
 }

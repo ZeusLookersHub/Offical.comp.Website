@@ -1,6 +1,6 @@
 import { bounded } from '../../core/agent/bounded.ts';
 import { dataOnly, record } from '../../core/agent/validation.ts';
-import { compose, extract, ideas, nextMove, sanitizeSession, type BlueprintLookup } from './engine.ts';
+import { compose, deepen, extract, ideas, nextMove, options as smartOptions, sanitizeSession, turn, type BlueprintLookup } from './engine.ts';
 import { ModelError, type JsonModel } from './model.ts';
 import type { EngineOp, ModelRoute } from './router.ts';
 import { describeReference, validImage, type VisionModel } from './vision.ts';
@@ -13,7 +13,7 @@ const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.
 const ANY_VERCEL_PREVIEW = /^https:\/\/[a-z0-9-]+\.vercel\.app$/;
 const MAX_BODY = 60000;
 /** Calls one anonymous user may make per minute, per operation. Compose costs money; typing does not. */
-const RATE_LIMITS: Record<string, number> = { compose: 10, next: 10, describe: 10, intake: 30, ideas: 60 };
+const RATE_LIMITS: Record<string, number> = { compose: 10, next: 10, describe: 10, intake: 30, ideas: 60, turn: 40, options: 40, deepen: 10 };
 const RATE_WINDOW_SECONDS = 60;
 const MAX_IMAGE_BODY = 4_200_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -129,7 +129,7 @@ export function createEngineHandler(options: {
         if (!bp || !validImage(body.image)) return json({ error: 'invalid_request' }, 400, origin);
         return json(await describeReference(options.vision, bp, body.image, body.lang === 'ar' ? 'ar' : 'en', req.signal), 200, origin);
       }
-      const model = modelFor(body.op === 'intake' ? 'intake' : body.op === 'ideas' ? 'ideas' : 'compose');
+      const model = modelFor(body.op === 'intake' || body.op === 'turn' || body.op === 'deepen' ? 'intake' : body.op === 'ideas' || body.op === 'options' ? 'ideas' : 'compose');
       if (!model) return json({ error: 'model_unavailable' }, 503, origin);
       if (body.op === 'intake') {
         const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
@@ -141,6 +141,18 @@ export function createEngineHandler(options: {
         if (!bp || typeof body.slot !== 'string' || typeof body.typed !== 'string' || body.typed.length > 400) return json({ error: 'invalid_request' }, 400, origin);
         const lang = body.lang === 'ar' ? 'ar' : 'en';
         return json({ ideas: await ideas(model, bp, body.slot, body.typed, typeof body.context === 'string' ? body.context : '', lang, req.signal) }, 200, origin);
+      }
+      if (body.op === 'turn' || body.op === 'options' || body.op === 'deepen') {
+        const bp = typeof body.blueprintId === 'string' ? await blueprintById(body.blueprintId) : undefined;
+        if (!bp) return json({ error: 'unknown_blueprint' }, 400, origin);
+        const lang = body.lang === 'ar' ? 'ar' : 'en';
+        const context = typeof body.context === 'string' ? body.context.slice(0, 3000) : '';
+        if (body.op === 'deepen') return json({ questions: await deepen(model, bp, { context, lang }, req.signal) }, 200, origin);
+        if (typeof body.slot !== 'string' || !bp.slots.some(s => s.id === body.slot)) return json({ error: 'invalid_request' }, 400, origin);
+        if (body.op === 'options') return json(await smartOptions(model, bp, { slot: body.slot, context, lang }, req.signal), 200, origin);
+        if (typeof body.text !== 'string' || !body.text.trim() || body.text.length > 2000) return json({ error: 'invalid_request' }, 400, origin);
+        const probesLeft = Math.max(0, Math.min(3, Number(body.probesLeft) || 0));
+        return json(await turn(model, bp, { slot: body.slot, text: body.text, context, lang, probesLeft }, req.signal), 200, origin);
       }
       if (body.op === 'compose') {
         const clean = await sanitizeSession(body.session, blueprintById);
