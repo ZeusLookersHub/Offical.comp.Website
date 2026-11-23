@@ -9,7 +9,10 @@ import './LookersAdaptiveChat.css';
 import './LookersMissionChat.css';
 
 type Line = { role: 'assistant' | 'user'; text: string };
-type Result = { output: Record<string, unknown>; report: GateReport; attempts: number };
+type Move = { received: string; issues: string[]; next: string; message: string; finished: boolean };
+/** The follow-up trail after the prompt went to the tool: what is finished and the last message we wrote. */
+type Follow = { done: string[]; moves: Move[] };
+type Result = { output: Record<string, unknown>; report: GateReport; attempts: number; follow?: Follow };
 type Saved = { session: Session; thread: Line[]; result?: Result };
 type Engine = typeof lookersEngine;
 
@@ -221,36 +224,22 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
     void engine.track('copied', bp.id, { sessionId: sessionId.current, meta: { part: key } });
   };
 
-  /** Continue after the AI tool responded: append the revision context and re-compose. */
-  const handleContinuation = async () => {
-    if (!revisionRequest.trim() || busy) return;
-    setContinuationError('');
-    const responsePart = aiResponse.trim()
-      ? `${t('External AI response (reference only):', 'رد الأداة الخارجية (مرجع فقط):')}\n${aiResponse.trim().slice(0, 3000)}`
-      : '';
-    const revisionPart = `${t('User revision request:', 'تعديل المستخدم:')}\n${revisionRequest.trim().slice(0, 1000)}`;
-    const appendedIdea = [session.idea ?? '', responsePart, revisionPart].filter(Boolean).join('\n\n');
-    if (new TextEncoder().encode(appendedIdea).length > 16000) {
-      setContinuationError(t('The combined text is too long — shorten the AI response or revision.', 'النص كله طويل أوي — قصّر رد الـ AI أو التعديل.'));
-      return;
-    }
-    const revisedSession: Session = { ...session, idea: appendedIdea, phase: 'confirmed', revision: session.revision + 1 };
-    setSession(revisedSession);
-    setResult(undefined);
-    setContinuing(false);
-    setAiResponse('');
-    setRevisionRequest('');
-    setBusy('writing'); setError('');
-    void engine.track('brief_confirmed', bp.id, { sessionId: sessionId.current, meta: { revision: true } });
+  /** The user brings back the tool's reply: we track what is done and write the next message to paste. */
+  const followUp = async () => {
+    if (!result || aiResponse.trim().length < 10 || busy) return;
+    const follow = result.follow ?? { done: [], moves: [] };
+    const last = follow.moves[follow.moves.length - 1];
+    setContinuationError(''); setBusy('writing');
     try {
-      const res = await engine.compose(revisedSession);
-      setResult({ output: res.output, report: res.report, attempts: res.attempts });
-      const variants = (res.output.variants ?? {}) as Record<string, string>;
-      const chosen = String(revisedSession.values.tool?.value ?? 'universal');
-      setTool(variants[chosen] ? chosen : Object.keys(variants)[0] ?? 'universal');
-      void engine.track('composed', bp.id, { sessionId: sessionId.current, meta: { passed: res.report.passed, total: res.report.total, attempts: res.attempts, revision: true } });
-    } catch {
-      setError(t('The writer is busy right now. Your brief is saved — try again.', 'الكاتب مشغول دلوقتي. البريف بتاعك محفوظ، جرّب تاني.'));
+      const move = await engine.next(session, { sent: last?.message ?? shownPrompt, reply: aiResponse.trim().slice(0, 10000), note: revisionRequest.trim().slice(0, 1000) || undefined, done: follow.done });
+      setResult({ ...result, follow: { done: move.done, moves: [...follow.moves, { received: move.received, issues: move.issues, next: move.next, message: move.message, finished: move.finished }].slice(-8) } });
+      setAiResponse(''); setRevisionRequest(''); setContinuing(false);
+      void engine.track('followed_up', bp.id, { sessionId: sessionId.current, meta: { step: follow.moves.length + 1, issues: move.issues.length, finished: move.finished } });
+    } catch (thrown) {
+      const code = thrown instanceof Error ? thrown.message : '';
+      setContinuationError(code === 'rate_limited'
+        ? t('That is a lot in one minute. Wait a moment and try again.', 'ده كتير في دقيقة واحدة. استنى شوية وجرّب تاني.')
+        : t('I could not read it right now — your text is still here, try again.', 'مقدرتش أقراه دلوقتي. الكلام بتاعك لسه موجود، جرّب تاني.'));
     } finally { setBusy(''); }
   };
 
@@ -292,6 +281,8 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
     });
   }, [variants, shownPrompt, tool, lang, toolLabels]);
   const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  const follow = result?.follow;
+  const lastMove = follow?.moves[follow.moves.length - 1];
 
   const optionGrid = options && (
     <div className="lmc-options" role={slotDef?.kind === 'multi' ? 'group' : 'radiogroup'} aria-label={slotDef?.label[lang]}>
@@ -438,35 +429,51 @@ const LookersMissionChat: React.FC<Props> = ({ blueprint: bp, lang, onUniverses,
             {list(out.pageOutline).length > 0 && <section><h3>{t('Page outline', 'أقسام الصفحة')}</h3><ol>{list(out.pageOutline).map((s, i) => <li key={i}>{s}</li>)}</ol></section>}
             {list(out.missingData).length > 0 && <section className="lmc-missing"><h3>{t('Fill these in before using it', 'كمّل دول قبل ما تستخدمه')}</h3><ul>{list(out.missingData).map((s, i) => <li key={i}>{s}</li>)}</ul></section>}
             {list(out.checklist).length > 0 && <section><h3>{t('Check the result', 'راجع النتيجة على')}</h3><ul>{list(out.checklist).map((s, i) => <li key={i}>{s}</li>)}</ul></section>}
-            {/* ── Continuation: what happens next ── */}
+            {/* ── Follow-up: walk with the user through the tool until the result is done ── */}
             <section className="lmc-next">
-              <h3><MessageSquarePlus size={15} aria-hidden="true" /> {t('What happens next?', 'إيه اللي بعد كده؟')}</h3>
-              <p className="lmc-next__hint">{t(
-                'Used the prompt? Paste what you got back and tell us what to fix or add — we will re-write it.',
-                'استخدمت البرومبت؟ حط الرد اللي جالك وقولنا عايز تعدّل إيه — هنكتبهولك تاني.'
-              )}</p>
+              <h3><MessageSquarePlus size={15} aria-hidden="true" /> {t('Run it with me, step by step', 'نكمّل سوا خطوة بخطوة')}</h3>
+              {!follow?.moves.length && <p className="lmc-next__hint">{t(
+                'Send the prompt to the tool, then paste its reply here. I will tell you what is done, fix what went wrong, and give you the next message so the tool delivers instead of talking.',
+                'ابعت البرومبت للأداة، وبعدين الزق ردها هنا. هقولك إيه اللي خلص، وأصلّح اللي غلط، وأديك الرسالة الجاية عشان الأداة تنفّذ بدل ما ترغي.'
+              )}</p>}
+              {follow && follow.done.length > 0 && (
+                <ol className="lmc-steps" aria-label={t('Done so far', 'اللي خلص')}>
+                  {follow.done.map((d, i) => <li key={i} className="is-done"><Check size={13} aria-hidden="true" /> {d}</li>)}
+                  {lastMove && !lastMove.finished && <li className="is-next"><ArrowRight size={13} aria-hidden="true" /> {lastMove.next}</li>}
+                </ol>
+              )}
+              {lastMove && (
+                <div className="lmc-move">
+                  {lastMove.received && <p className="lmc-move__got">{t('Got: ', 'وصلني: ')}{lastMove.received}</p>}
+                  {lastMove.issues.length > 0 && <ul className="lmc-move__issues" aria-label={t('Fixed in the next message', 'هيتصلّح في الرسالة الجاية')}>{lastMove.issues.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+                  <h4>{lastMove.finished ? t('All parts are done — ask for the final version:', 'كل الأجزاء خلصت. اطلب النسخة النهائية:') : t('Paste this in the same chat:', 'الزق ده في نفس الشات:')}</h4>
+                  <div className="lmc-prompt lmc-prompt--small"><pre>{lastMove.message}</pre>
+                    <button type="button" className="lai-chat__generate" onClick={() => void copy(lastMove.message, 'move')}><Copy size={15} aria-hidden="true" /> {copied === 'move' ? t('Copied', 'اتنسخ') : t('Copy message', 'انسخ الرسالة')}</button>
+                  </div>
+                </div>
+              )}
               {!continuing ? (
                 <div className="lmc-next__actions">
                   <button type="button" className="lmc-next__primary" onClick={() => { setContinuing(true); setContinuationError(''); }}>
-                    <ArrowRight size={16} aria-hidden="true" /> {t('Continue — improve the prompt', 'كمّل — حسّن البرومبت')}
+                    <ArrowRight size={16} aria-hidden="true" /> {lastMove ? t('Paste the next reply', 'الزق الرد الجديد') : t('Paste the tool reply', 'الزق رد الأداة')}
                   </button>
                   <button type="button" className="lai-explain" onClick={() => { setResult(undefined); setSession({ ...session, phase: 'brief' }); }}>{t('Edit the brief', 'عدّل البريف')}</button>
                   <button type="button" className="lai-explain" onClick={restart}>{t('Start over', 'ابدأ من الأول')}</button>
                 </div>
               ) : (
-                <form className="lmc-next__form" onSubmit={e => { e.preventDefault(); void handleContinuation(); }}>
-                  <label htmlFor="lmc-ai-response">{t('AI response (optional — paste what you got)', 'رد الـ AI — اختياري، حط اللي جالك')}</label>
-                  <textarea id="lmc-ai-response" value={aiResponse} maxLength={3000} disabled={!!busy}
+                <form className="lmc-next__form" onSubmit={e => { e.preventDefault(); void followUp(); }}>
+                  <label htmlFor="lmc-ai-response">{t('What the tool replied', 'رد الأداة')}</label>
+                  <textarea id="lmc-ai-response" value={aiResponse} maxLength={10000} required disabled={!!busy}
                     onChange={e => setAiResponse(e.target.value)}
-                    placeholder={t('Paste the reply from the AI tool…', 'انسخ رد الأداة وحطّه هنا…')} />
-                  <label htmlFor="lmc-revision-request">{t('What should change or be added?', 'عايز نعدّل أو نزود إيه؟')}</label>
-                  <textarea id="lmc-revision-request" value={revisionRequest} maxLength={1000} required disabled={!!busy}
+                    placeholder={t('Paste the whole reply…', 'انسخ الرد كله وحطّه هنا…')} />
+                  <label htmlFor="lmc-revision-request">{t('Anything you want changed? (optional)', 'عايز تغيّر حاجة؟ (اختياري)')}</label>
+                  <textarea id="lmc-revision-request" value={revisionRequest} maxLength={1000} disabled={!!busy}
                     onChange={e => setRevisionRequest(e.target.value)}
-                    placeholder={t('e.g. make the background darker and add a headline area', 'مثلاً: غمّق الخلفية وسيب مكان لعنوان')} />
+                    placeholder={t('e.g. the logo feels too plain, make it bolder', 'مثلاً: اللوجو حاسه عادي، خليه أجرأ')} />
                   {continuationError && <p className="lmc-next__error" role="alert">{continuationError}</p>}
                   <div className="lmc-next__actions">
-                    <button type="submit" className="lmc-next__primary" disabled={!revisionRequest.trim() || !!busy}>
-                      {busy === 'writing' ? t('Re-writing…', 'بيتكتب من تاني…') : t('Update the prompt', 'حدّث البرومبت')}
+                    <button type="submit" className="lmc-next__primary" disabled={aiResponse.trim().length < 10 || !!busy}>
+                      {busy === 'writing' ? t('Reading…', 'بقرا الرد…') : t('Read it · give me the next step', 'اقراه · هات الخطوة الجاية')}
                     </button>
                     <button type="button" className="lai-explain" disabled={!!busy} onClick={() => setContinuing(false)}>{t('Cancel', 'إلغاء')}</button>
                   </div>

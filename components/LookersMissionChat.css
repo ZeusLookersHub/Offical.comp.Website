@@ -113,3 +113,17 @@
 .lmc-refguide{border:1px solid #c9a05b40;border-radius:14px;padding:12px 14px;background:#c9a05b0a}
 .lmc-refguide h3{display:flex;align-items:center;gap:6px;color:#e3b967}
 .lmc-refguide ol{margin:6px 0 0;padding-inline-start:20px;display:grid;gap:5px;color:#e8e4dc;font-size:13px;line-height:1.55}
+
+/* Follow-up: steps done, what came back, the next message */
+.lmc-steps{list-style:none;margin:4px 0 12px;padding:0;display:grid;gap:6px}
+.lmc-steps li{display:flex;align-items:flex-start;gap:7px;font-size:13px;line-height:1.5;color:#c9cfd6}
+.lmc-steps li svg{flex:none;margin-top:3px}
+.lmc-steps .is-done svg{color:#79cdd3}
+.lmc-steps .is-next{color:#f5e2b8;font-weight:500}
+.lmc-steps .is-next svg{color:#e3b967}
+[dir=rtl] .lmc-steps .is-next svg{transform:scaleX(-1)}
+.lmc-move{display:grid;gap:8px;margin-bottom:14px}
+.lmc-move h4{margin:2px 0 0;font-size:13px;font-weight:500;color:#e3b967}
+.lmc-move__got{margin:0;font-size:13px;color:#b5bcc5;line-height:1.6}
+.lmc-move__issues{margin:0;padding:8px 12px 8px 28px;border-radius:10px;background:#e3b9670d;border:1px dashed #c9a05b45;font-size:12.5px;color:#e8d4a4;line-height:1.6}
+[dir=rtl] .lmc-move__issues{padding:8px 28px 8px 12px}

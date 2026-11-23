@@ -65,7 +65,13 @@ export function createChatJsonModel(cfg: { url: string; key: string; model: stri
             const json = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ''));
             const usage = payload.usage ? { inputTokens: payload.usage.prompt_tokens, outputTokens: payload.usage.completion_tokens } : undefined;
             return { json, usage };
-          } catch { throw new ModelError('model_bad_output'); }
+          } catch {
+            // Say why without the content: a cut-off answer (finish = length) needs more tokens, not a retry.
+            let finish = '', length = 0;
+            try { const p = JSON.parse(raw); finish = String(p?.choices?.[0]?.finish_reason ?? ''); length = String(p?.choices?.[0]?.message?.content ?? '').length; } catch { /* not JSON */ }
+            console.warn('model bad output', { provider: 'chat', model: cfg.model, finish, length, maxTokens });
+            throw new ModelError('model_bad_output');
+          }
         }, timeoutMs, signal);
       } catch (error) {
         if (error instanceof ModelError) throw error;
@@ -117,7 +123,12 @@ export function createGeminiJsonModel(cfg: { key: string; model?: string; timeou
             const u = payload?.usageMetadata;
             const usage = u ? { inputTokens: u.promptTokenCount, outputTokens: u.candidatesTokenCount } : undefined;
             return { json, usage };
-          } catch { throw new ModelError('model_bad_output'); }
+          } catch {
+            let finish = '', length = 0;
+            try { const p = JSON.parse(raw); finish = String(p?.candidates?.[0]?.finishReason ?? ''); length = JSON.stringify(p?.candidates?.[0]?.content ?? '').length; } catch { /* not JSON */ }
+            console.warn('model bad output', { provider: 'gemini', model, finish, length, maxTokens });
+            throw new ModelError('model_bad_output');
+          }
         }, timeoutMs, signal);
       } catch (error) {
         if (error instanceof ModelError) throw error;

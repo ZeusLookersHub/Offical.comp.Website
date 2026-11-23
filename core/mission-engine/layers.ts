@@ -55,6 +55,7 @@ const GLOBAL: Record<LayerId, string[]> = {
   ],
   delivery: [
     'Return one JSON object that matches the contract exactly. No markdown fences, no extra keys.',
+    'When the deliverable prompt is for a chat assistant (writing, plans, strategy, identity, decks, code), it must order execution, not a conversation: produce the complete, final, ready-to-use result in this reply; deliver every part in order without pausing to ask "shall I continue" or "ready for the next part"; no preamble about what it will do; where it can generate images, files or tables, produce them instead of describing them; only if the answer is too long for one reply, finish the current part completely and end with one line naming the next part.',
     'If the contract has coverage: for every value with assumed = false that is not verbatim, coverage[slotId] = a short phrase (3–12 words) copied character for character from prompt that carries that detail. Do not list assumed values.',
   ],
 };

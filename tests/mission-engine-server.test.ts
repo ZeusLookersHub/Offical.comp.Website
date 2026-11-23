@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { answer, blueprintById, confirmBrief, createSession, submitIntake, nextStep, type Blueprint, type Session } from '../core/mission-engine/index.ts';
-import { compose, extract, sanitizeSession } from '../server/engine/engine.ts';
+import { compose, extract, nextMove, sanitizeSession } from '../server/engine/engine.ts';
 import { createEngineHandler } from '../server/engine/handler.ts';
 import { serverShape } from '../scripts/build-engine-blueprints.ts';
 import { privateBlueprints } from '../server/engine/private-blueprints.ts';
@@ -402,4 +402,19 @@ test('a failed text-model call reports the provider reason too', async () => {
     assert.match(logged.body, /PERMISSION_DENIED/, 'the reason is readable instead of guessed at');
     assert.ok(!JSON.stringify(seen).includes('KEY-ABC'), 'and the key is scrubbed');
   } finally { console.warn = warn; }
+});
+
+test('follow-up: tracks what is done and writes the next message; a misspelt brand is sent back once', async () => {
+  const move = { done: ['Logo direction'], received: 'It described the logo and asked to continue.', issues: ['Asked permission instead of continuing'], next: 'Colour palette', finished: false };
+  const model = scripted([
+    { ...move, message: 'Approved: the stacked wordmark for DAVIE DOVE. Now deliver the colour palette in full.' },
+    { ...move, message: 'Approved: the stacked wordmark for DAVIDOFF. Now deliver the colour palette in full, no questions.' },
+  ]);
+  const out = await nextMove(model, photo, confirmedPerfume(), { sent: 'prompt', reply: 'Here is the logo direction… Ready for the palette?', note: '', done: [] });
+  assert.equal(model.calls.length, 2);
+  assert.match(model.calls[1].user, /DAVIDOFF/);
+  assert.match(out.message, /DAVIDOFF/);
+  assert.deepEqual(out.done, ['Logo direction']);
+  assert.equal(out.next, 'Colour palette');
+  assert.match(model.calls[0].system, /no "shall I continue"/);
 });

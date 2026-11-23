@@ -40,7 +40,8 @@ export interface ModelRoute {
 }
 
 /** Fails over to the backup when the primary is out of quota, down, or too slow. */
-const COVERABLE = new Set(['model_rate_limited', 'model_unavailable', 'model_timeout']);
+// A malformed (often cut-off) answer is worth one try on the other model too.
+const COVERABLE = new Set(['model_rate_limited', 'model_unavailable', 'model_timeout', 'model_bad_output']);
 
 export function withBackup(primary: JsonModel, backup: JsonModel | null): JsonModel {
   if (!backup) return primary;

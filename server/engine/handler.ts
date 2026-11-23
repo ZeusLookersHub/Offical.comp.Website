@@ -1,6 +1,6 @@
 import { bounded } from '../../core/agent/bounded.ts';
 import { dataOnly, record } from '../../core/agent/validation.ts';
-import { compose, extract, ideas, sanitizeSession, type BlueprintLookup } from './engine.ts';
+import { compose, extract, ideas, nextMove, sanitizeSession, type BlueprintLookup } from './engine.ts';
 import { ModelError, type JsonModel } from './model.ts';
 import type { EngineOp, ModelRoute } from './router.ts';
 import { describeReference, validImage, type VisionModel } from './vision.ts';
@@ -13,7 +13,7 @@ const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+-zeuslookershubs-projects\.vercel\.
 const ANY_VERCEL_PREVIEW = /^https:\/\/[a-z0-9-]+\.vercel\.app$/;
 const MAX_BODY = 60000;
 /** Calls one anonymous user may make per minute, per operation. Compose costs money; typing does not. */
-const RATE_LIMITS: Record<string, number> = { compose: 10, describe: 10, intake: 30, ideas: 60 };
+const RATE_LIMITS: Record<string, number> = { compose: 10, next: 10, describe: 10, intake: 30, ideas: 60 };
 const RATE_WINDOW_SECONDS = 60;
 const MAX_IMAGE_BODY = 4_200_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -154,9 +154,19 @@ export function createEngineHandler(options: {
         });
         return json({ ...result, resultId }, 200, origin);
       }
+      if (body.op === 'next') {
+        const clean = await sanitizeSession(body.session, blueprintById);
+        if ('error' in clean) return json({ error: clean.error }, 400, origin);
+        const str = (v: unknown, max: number) => typeof v === 'string' ? v.trim().slice(0, max) : '';
+        const reply = str(body.reply, 10000), sent = str(body.sent, 8000);
+        if (reply.length < 10 || !sent) return json({ error: 'invalid_request' }, 400, origin);
+        const done = Array.isArray(body.done) ? body.done.filter((d): d is string => typeof d === 'string').slice(0, 20).map(d => d.slice(0, 300)) : [];
+        return json(await nextMove(model, clean.bp, clean.session, { sent, reply, note: str(body.note, 1000), done }, req.signal), 200, origin);
+      }
       return json({ error: 'unknown_op' }, 400, origin);
     } catch (error) {
       const code = error instanceof ModelError ? error.code : error instanceof Error && error.message.startsWith('blueprints_') ? 'blueprints_unavailable' : 'engine_failed';
+      if (code === 'engine_failed') console.warn('engine failed', { op, error: error instanceof Error ? error.message.slice(0, 200) : 'unknown' });
       const status = code === 'model_timeout' ? 504 : code === 'model_rate_limited' ? 429 : code === 'model_unavailable' || code === 'model_auth_failed' || code === 'blueprints_unavailable' ? 503 : 502;
       return json({ error: code }, status, origin);
     }

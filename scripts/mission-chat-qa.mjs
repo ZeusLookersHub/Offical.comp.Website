@@ -41,7 +41,10 @@ async function mockEngine(context) {
     }
     const reply = body.op === 'intake'
       ? { candidates: [{ slot: 'brandName', value: 'DAVIDOFF', evidence: 'DAVIDOFF' }, { slot: 'style', value: 'luxury-dark', evidence: 'فخمة' }] }
-      : body.op === 'ideas' ? { ideas: ['زجاج مطفي', 'غطا معدن لامع'] } : composed;
+      : body.op === 'ideas' ? { ideas: ['زجاج مطفي', 'غطا معدن لامع'] }
+      : body.op === 'next' ? { done: ['الصورة الأساسية'], received: 'طلّع وصف للصورة بدل ما يولّدها.', issues: ['وصف بدل ما ينفّذ'], next: 'نسخة الستوري', finished: false,
+          message: 'Approved: the DAVIDOFF bottle on wet black marble. Now generate the image itself, final quality — no description, no questions.', model: 'mock' }
+      : composed;
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(reply) });
   });
 }
@@ -104,6 +107,12 @@ try {
     await page.locator('.lmc-input').type('بغطا فضي');
     await page.getByRole('button', { name: 'إرسال' }).click();
 
+    // New or built on something existing: the answer decides whether a reference is needed.
+    await page.getByTestId('question-content').and(page.locator('[data-slot=basis]')).waitFor();
+    await page.locator('.lmc-option', { hasText: 'حاجة جديدة' }).click();
+    await page.getByRole('button', { name: 'إرسال' }).click();
+    checks.push(`${label}: asks whether it is new or built on something existing`);
+
     // "إعلان … لستوري" is ambiguous between ad and story, so the engine asks instead of guessing.
     await page.getByTestId('question-content').and(page.locator('[data-slot=usage]')).waitFor();
     await page.locator('.lmc-option', { hasText: 'ستوري' }).click();
@@ -113,12 +122,11 @@ try {
     await brief.waitFor();
     const briefText = await brief.innerText();
     assert.match(briefText, /9:16/);
-    assert.match(briefText, /الستوري طولي كامل/);
+    assert.match(briefText, /مفترض/, 'assumptions are marked as assumed');
     checks.push(`${label}: brief shows facts and visible assumptions with reasons`);
     await page.screenshot({ path: `${output}/${label}-3-brief.png`, fullPage: false });
 
-    const ratioRow = brief.locator('li', { hasText: 'المقاس' });
-    await ratioRow.getByRole('button', { name: 'غيّر' }).click();
+    await brief.locator('li', { hasText: 'المقاس' }).click();
     await brief.locator('.lmc-option', { hasText: 'مربع' }).click();
     await page.getByRole('button', { name: 'إرسال' }).click();
     await page.waitForFunction(() => document.querySelector('[data-testid=brief]')?.textContent?.includes('1:1'));
@@ -133,6 +141,18 @@ try {
     await result.getByRole('tab', { name: 'Midjourney' }).click();
     assert.match(await result.locator('.lmc-prompt pre').first().innerText(), /--ar 1:1/);
     checks.push(`${label}: result shows checks, per-tool versions and copy`);
+
+    // Follow-up: paste the tool reply → what is done, what went wrong, the next message to paste.
+    await result.getByRole('button', { name: 'الزق رد الأداة' }).click();
+    await result.locator('#lmc-ai-response').fill('Here is a description of the image you asked for. Ready for the next part?');
+    await result.getByRole('button', { name: 'اقراه · هات الخطوة الجاية' }).click();
+    await result.locator('.lmc-move').waitFor();
+    const moveText = await result.innerText();
+    assert.match(moveText, /الصورة الأساسية/);
+    assert.match(moveText, /نسخة الستوري/);
+    assert.match(moveText, /generate the image itself/);
+    assert.ok(engineCalls.includes('next'));
+    checks.push(`${label}: the tool reply is read back into done steps and the next message`);
     await page.screenshot({ path: `${output}/${label}-4-result.png` });
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);

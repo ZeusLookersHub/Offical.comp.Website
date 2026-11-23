@@ -7,7 +7,7 @@ import type { Candidate, ComposeRequest, GateReport, Session } from '../core/mis
  */
 type Client = Pick<SupabaseClient, 'functions' | 'from'>;
 export type EngineEvent = 'intake' | 'question_shown' | 'answered' | 'skipped' | 'suggestion_used' | 'brief_shown'
-  | 'brief_edited' | 'brief_confirmed' | 'composed' | 'copied' | 'tool_opened' | 'feedback';
+  | 'brief_edited' | 'brief_confirmed' | 'composed' | 'copied' | 'tool_opened' | 'feedback' | 'followed_up';
 
 export function createEngineClient(getClient: () => Promise<Client>) {
   const call = async <T>(body: Record<string, unknown>): Promise<T> => {
@@ -35,7 +35,10 @@ export function createEngineClient(getClient: () => Promise<Client>) {
       call<{ ideas: string[] }>({ op: 'ideas', blueprintId, slot, typed, context, lang }).then(r => r.ideas ?? []),
     compose: (session: Session, sessionId?: string) =>
       call<{ output: Record<string, unknown>; report: GateReport; attempts: number; model: string; resultId: string | null }>({ op: 'compose', session, sessionId }),
-    /** "Explain this image": description + evidence-checked candidates. Served by whichever vision
+    /** Follow-up: the user pasted the tool's reply; get what is done and the next message to paste. */
+    next: (session: Session, input: { sent: string; reply: string; note?: string; done: string[] }) =>
+      call<{ done: string[]; received: string; issues: string[]; next: string; message: string; finished: boolean; model: string }>({ op: 'next', session, ...input }),
+        /** "Explain this image": description + evidence-checked candidates. Served by whichever vision
      *  model the server has configured; the answer reports which one looked at the image. */
     describe: (blueprintId: string, image: { mimeType: string; data: string }, lang: Session['lang']) =>
       call<{ description: string; candidates: Candidate[] }>({ op: 'describe', blueprintId, image, lang }),
